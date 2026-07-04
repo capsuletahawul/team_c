@@ -14,8 +14,10 @@ export default {
           gold: "#FFD369",
           darkGold: "#D19E22",
           background: "#F0F5F9",
+          border: "#C9D6DF",
           footer: "#2D3766",
         },
+
       },
 
       fontFamily: {

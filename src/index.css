@@ -1,1 +1,15 @@
 @import "tailwindcss";
+
+@theme {
+  --color-capsule-navy: #164961;
+  --color-capsule-teal: #387B84;
+  --color-capsule-gold: #FFD369;
+  --color-capsule-darkGold: #D19E22;
+  --color-capsule-bg: #F0F5F9;
+  --color-capsule-footer: #2D3766;
+
+  --color-capsule-border: #C9D6DF;
+  --color-capsule-muted: #706F6F;
+  --color-capsule-light: #E8E6E6;
+  --color-capsule-placeholder: #9B9B9B;
+}
