@@ -120,7 +120,7 @@ useEffect(() => {
                           اعتماد ونشر المعسكر
                         </button>
                       ) : (
-                        <span className="text-emerald-600 text-xs font-bold">تم الاعتماد حيّاً ✅</span>
+                        <span className="text-emerald-600 text-xs font-bold">تم الاعتماد والنشر ✅</span>
                       )}
                     </td>
                   </tr>
