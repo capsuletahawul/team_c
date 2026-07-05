@@ -1,10 +1,10 @@
 import React from 'react';
-import CoursesApproval from './CoursesApproval.jsx';
+import BusinessContractForm from './BusinessContractForm.jsx';
 
 function App() {
   return (
     <>
-      <CoursesApproval />
+      <BusinessContractForm />
     </>
   );
 }
