@@ -8,14 +8,10 @@ function App() {
   return (
     <>
       <LandingPage />
-    </>
-  )
-}
-
-export default App
       <BusinessContractForm />
     </>
   );
 }
+
 
 export default App;
