@@ -1,11 +1,11 @@
 import React from 'react';
-import CoursesApproval from './CoursesApproval.jsx';
+import TrainerProfile from './TrainerProfile.jsx';
 
 function App() {
   return (
     <>
-      {/* عرض صفحة اعتماد الدورات التدريبية كصفحة أساسية وحيدة للمشروع */}
-      <CoursesApproval />
+      {/* عرض صفحة الملف الشخصي للمدرب كصفحة أساسية وحيدة للمشروع */}
+      <TrainerProfile />
     </>
   );
 }
