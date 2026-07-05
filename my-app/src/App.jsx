@@ -1,14 +1,11 @@
 import { useState } from 'react'
-import AdminDashboard from './AdminDashboard'
-
+import TrainerProfile from './TrainerProfile' // استيراد صفحة المدرب الجديدة
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
     <>
-    <AdminDashboard />
-         </>
+      <TrainerProfile />
+    </>
   )
 }
 
