@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import LandingPage from './LandingPage'
 import AdminDashboard from './AdminDashboard'
 
 
@@ -7,7 +8,7 @@ function App() {
 
   return (
     <>
-    <AdminDashboard />
+    <LandingPage/>
          </>
   )
 }
