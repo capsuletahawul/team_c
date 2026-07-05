@@ -1,11 +1,11 @@
 import React from 'react';
-import BusinessContractForm from './BusinessContractForm.jsx';
+import CoursesApproval from './CoursesApproval.jsx';
 
 function App() {
   return (
     <>
-      {/* عرض صفحة استمارة الشركات كصفحة أساسية وحيدة للمشروع */}
-      <BusinessContractForm />
+      {/* عرض صفحة اعتماد الدورات التدريبية كصفحة أساسية وحيدة للمشروع */}
+      <CoursesApproval />
     </>
   );
 }
