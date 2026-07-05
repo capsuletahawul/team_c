@@ -1,10 +1,10 @@
 import React from 'react';
-import TrainerProfile from './TrainerProfile.jsx';
+import CoursesApproval from './CoursesApproval.jsx';
 
 function App() {
   return (
     <>
-      <TrainerProfile />
+      <CoursesApproval />
     </>
   );
 }
