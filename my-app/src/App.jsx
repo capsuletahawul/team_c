@@ -1,15 +1,12 @@
-import { useState } from 'react'
-import LandingPage from './LandingPage'
-import AdminDashboard from './AdminDashboard'
-import TrainerProfile from './TrainerProfile' 
-import TrainerDashboard from './TrainerDashboard'
+import React from 'react';
+import CoursesApproval from './CoursesApproval.jsx';
 
 function App() {
   return (
     <>
-      <TrainerDashboard />
+      <CoursesApproval />
     </>
-  )
+  );
 }
 
-export default App
+export default App;
