@@ -1,10 +1,11 @@
 import React from 'react';
-import TrainerProfile from './TrainerProfile.jsx';
+import BusinessContractForm from './BusinessContractForm.jsx';
 
 function App() {
   return (
     <>
-      <TrainerProfile />
+      {/* عرض صفحة استمارة الشركات كصفحة أساسية وحيدة للمشروع */}
+      <BusinessContractForm />
     </>
   );
 }
