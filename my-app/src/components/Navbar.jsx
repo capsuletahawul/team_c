@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-function Navbar({ activePage = 'dashboard' }) {
+function Navbar({ activePage = 'dashboard', showAuthButtons = false, onSignIn, onSignUp }) {
   const [isOpen, setIsOpen] = useState(false);
 
   const navLinks = [
@@ -34,8 +34,25 @@ function Navbar({ activePage = 'dashboard' }) {
           </div>
         </div>
 
-        <div className="hidden md:block">
-          <span className="bg-capsule-navy text-white text-xs px-4 py-1.5 rounded-full font-bold shadow-xs">بوابة الأعضاء</span>
+        <div className="hidden md:flex items-center gap-3">
+          {showAuthButtons ? (
+            <>
+              <button
+                onClick={onSignIn}
+                className="text-sm font-bold text-capsule-navy hover:text-capsule-teal transition cursor-pointer"
+              >
+                تسجيل الدخول
+              </button>
+              <button
+                onClick={onSignUp}
+                className="bg-capsule-navy hover:bg-capsule-teal text-white text-xs px-4 py-2 rounded-full font-bold shadow-xs transition cursor-pointer"
+              >
+                إنشاء حساب
+              </button>
+            </>
+          ) : (
+            <span className="bg-capsule-navy text-white text-xs px-4 py-1.5 rounded-full font-bold shadow-xs">بوابة الأعضاء</span>
+          )}
         </div>
 
         {/* زر الـ Hamburger على الجوال */}
@@ -58,6 +75,23 @@ function Navbar({ activePage = 'dashboard' }) {
               {link.label}
             </a>
           ))}
+
+          {showAuthButtons && (
+            <div className="flex flex-col gap-2 pt-3 mt-1 border-t border-gray-200">
+              <button
+                onClick={onSignIn}
+                className="p-2 rounded-lg text-right font-bold text-capsule-navy hover:bg-gray-100 transition cursor-pointer"
+              >
+                تسجيل الدخول
+              </button>
+              <button
+                onClick={onSignUp}
+                className="p-2.5 rounded-lg text-center font-bold text-white bg-capsule-navy hover:bg-capsule-teal transition cursor-pointer"
+              >
+                إنشاء حساب
+              </button>
+            </div>
+          )}
         </div>
       )}
     </nav>
