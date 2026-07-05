@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import StudentProfile from './StudentProfile'
+import LandingPage from './LandingPage'
 
 
 function App() {
@@ -7,7 +7,7 @@ function App() {
 
   return (
     <>
-    <StudentProfile/>
+    <LandingPage/>
          </>
   )
 }
