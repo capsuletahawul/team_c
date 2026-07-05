@@ -10,7 +10,7 @@ import heroImage from './assets/hero.png';
 
 const CATEGORIES = ['الكل', 'Web Development', 'Artificial Intelligence', 'Cybersecurity', 'Cloud Computing'];
 
-function LandingPage({ onNavigateToRegister, onNavigateToTrainerOnboarding, onNavigateToCompanyOnboarding }) {
+function LandingPage({ onNavigateToRegister, onNavigateToLogin, onNavigateToTrainerOnboarding, onNavigateToCompanyOnboarding }) {
   const [overview, setOverview] = useState(null);
   const [courses, setCourses] = useState([]);
   const [activeCategory, setActiveCategory] = useState('الكل');
@@ -64,7 +64,12 @@ function LandingPage({ onNavigateToRegister, onNavigateToTrainerOnboarding, onNa
 
   return (
     <div className="min-h-screen bg-capsule-bg text-capsule-navy font-sans antialiased text-right" dir="rtl">
-      <Navbar activePage="home" />
+      <Navbar
+        activePage="home"
+        showAuthButtons
+        onSignIn={onNavigateToLogin}
+        onSignUp={onNavigateToRegister}
+      />
 
       {error && (
         <div className="max-w-7xl mx-auto px-6 pt-6">
