@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 // Feature 1 (Platform Vision & Ecosystem Overview) + Feature 2 (Public Course Catalog Exploration)
 import { getPlatformOverview, getCourses } from './mocks/mockApi';
 import Navbar from './components/Navbar.jsx';
@@ -11,6 +12,7 @@ import heroImage from './assets/hero.png';
 const CATEGORIES = ['الكل', 'Web Development', 'Artificial Intelligence', 'Cybersecurity', 'Cloud Computing'];
 
 function LandingPage({ onNavigateToRegister, onNavigateToLogin, onNavigateToTrainerOnboarding, onNavigateToCompanyOnboarding }) {
+  const navigate = useNavigate();
   const [overview, setOverview] = useState(null);
   const [courses, setCourses] = useState([]);
   const [activeCategory, setActiveCategory] = useState('الكل');
@@ -93,7 +95,7 @@ function LandingPage({ onNavigateToRegister, onNavigateToLogin, onNavigateToTrai
             <div className="flex flex-wrap gap-4 mt-8">
               <Button variant="primary" onClick={onNavigateToRegister}>ابدأ التعلم مجاناً</Button>
               <button
-                onClick={() => document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' })}
+                onClick={() => navigate('/courses-overview')}
                 className="px-5 py-2.5 font-bold text-sm rounded-xl border border-white/30 text-white hover:bg-white/10 transition cursor-pointer"
               >
                 تصفح الدورات

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 // استدعاء الدالة الصحيحة المتوفرة بموك النظامgetAdminDashboardMetrics
 import { getAdminDashboardMetrics } from './mocks/mockApi';
 import Navbar from './components/Navbar.jsx';
@@ -6,6 +7,7 @@ import Footer from './components/Footer.jsx';
 import LoadingIndicator from './components/LoadingIndicator.jsx';
 
 function AdminDashboard() {
+  const navigate = useNavigate();
   const [adminStats, setAdminStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [courses, setCourses] = useState([
@@ -85,8 +87,14 @@ useEffect(() => {
 
         {/* الجدول */}
         <div className="bg-white border border-gray-100 rounded-2xl shadow-xs overflow-hidden">
-          <div className="p-6 border-b border-gray-100 bg-gray-50">
+          <div className="p-6 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
             <h2 className="text-base font-bold text-capsule-navy">مراجعة طلبات المعسكرات والدورات التدريبية</h2>
+            <button 
+              onClick={() => navigate('/courses-approval')}
+              className="text-xs font-bold text-capsule-teal hover:text-capsule-navy transition cursor-pointer"
+            >
+              انتقل لصفحة اعتماد الكورسات (Courses Approval) ←
+            </button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-right border-collapse">

@@ -1,5 +1,6 @@
 // src/pages/SignIn.jsx
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { COPY } from "../i18n/copy";
 import { CapsuleMark, EyeIcon } from "../components/Icons";
 import "../styles/auth.css";
@@ -12,6 +13,7 @@ import "../styles/auth.css";
  * - onGoToSignUp: دالة للتنقل إلى صفحة إنشاء الحساب
  */
 export default function SignIn({ lang, onToggleLang, onGoToSignUp }) {
+  const navigate = useNavigate();
   const [showPw, setShowPw] = React.useState(false);
   const t = COPY[lang];
   const form = t.login;
@@ -51,7 +53,7 @@ export default function SignIn({ lang, onToggleLang, onGoToSignUp }) {
             <h2>{form.title}</h2>
             <p className="auth-subtitle">{form.subtitle}</p>
 
-            <form className="auth-form" onSubmit={(e) => e.preventDefault()}>
+            <form className="auth-form" onSubmit={(e) => { e.preventDefault(); navigate('/student-dashboard'); }}>
               <div className="field">
                 <label>{form.email}</label>
                 <input type="email" placeholder={form.emailPh} />

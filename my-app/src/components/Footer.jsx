@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 function Footer() {
   return (
@@ -15,9 +16,9 @@ function Footer() {
         <div>
           <h4 className="font-bold mb-3 text-capsule-gold text-xs uppercase tracking-wider">روابط سريعة</h4>
           <ul className="space-y-2 text-xs text-gray-300">
-            <li><a href="#" className="hover:text-white transition">الرئيسية</a></li>
-            <li><a href="#" className="hover:text-white transition">الدورات والمسارات</a></li>
-            <li><a href="#" className="hover:text-white transition">كيف تعمل المنصة</a></li>
+            <li><Link to="/" className="hover:text-white transition">الرئيسية</Link></li>
+            <li><Link to="/courses-overview" className="hover:text-white transition">الدورات والمسارات</Link></li>
+            <li><Link to="/admin-dashboard" className="hover:text-white transition">إدارة المنصة</Link></li>
           </ul>
         </div>
 

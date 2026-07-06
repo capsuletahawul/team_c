@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import LoadingIndicator from "./components/LoadingIndicator";
 import Button from "./components/Button";
 
@@ -110,6 +111,7 @@ const translations = {
 };
 
 function TrainerProfile() {
+  const navigate = useNavigate();
   const [lang, setLang] = useState('ar');
   const t = translations[lang];
   const isRTL = lang === 'ar';
@@ -277,8 +279,14 @@ function TrainerProfile() {
                   {t.data.bio}
                 </p>
 
-                <div className="mt-6">
+                <div className="mt-6 flex gap-3">
                   <Button variant="primary">{t.profile.editBtn}</Button>
+                  <button 
+                    onClick={() => navigate('/trainer-details')} 
+                    className="px-4 py-2 border border-[#0d9488] text-[#0d9488] font-bold rounded-xl hover:bg-[#0d9488]/10 transition text-sm cursor-pointer"
+                  >
+                    {lang === 'ar' ? 'عرض الملف العام للمدرب ←' : 'View Public Trainer Details ←'}
+                  </button>
                 </div>
               </div>
             </div>

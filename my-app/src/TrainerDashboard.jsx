@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 // استدعاء الدوال بالأسماء الصحيحة الموجودة في ملف الموك حقتك
 import { getTrainerAnalytics, submitB2BRequest } from './mocks/mockApi';
 import Navbar from './components/Navbar';
@@ -8,6 +9,7 @@ import LoadingIndicator from './components/LoadingIndicator';
 import ErrorMessage from './components/ErrorMessage';
 
 function TrainerDashboard() {
+  const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
@@ -105,9 +107,17 @@ function TrainerDashboard() {
             <h3 className="text-3xl font-black text-capsule-navy">{stats?.activeEnrolledStudentsCount} <span className="text-sm font-bold text-capsule-teal">طالب</span></h3>
           </div>
 
-          <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm border-r-4 border-capsule-navy hover:shadow-md transition">
-            <p className="text-xs font-bold text-capsule-navy mb-2">حالة الحساب التدريبي</p>
-            <h3 className="text-xl font-bold text-emerald-600 mt-2">موثق ونشط ✅</h3>
+          <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm border-r-4 border-capsule-navy hover:shadow-md transition flex flex-col justify-between">
+            <div>
+              <p className="text-xs font-bold text-capsule-navy mb-2">حالة الحساب التدريبي</p>
+              <h3 className="text-xl font-bold text-emerald-600 mt-2">موثق ونشط ✅</h3>
+            </div>
+            <button 
+              onClick={() => navigate('/trainer-profile')}
+              className="text-xs font-bold text-capsule-teal hover:text-capsule-navy transition mt-3 text-right cursor-pointer"
+            >
+              عرض وتعديل ملفك الشخصي للمدرب ←
+            </button>
           </div>
         </div>
 

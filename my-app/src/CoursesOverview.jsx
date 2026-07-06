@@ -1,4 +1,7 @@
 import React, { useState, useMemo } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import Navbar from "./components/Navbar.jsx";
+import { useTheme } from "./context/ThemeContext.jsx";
 
 /**
  * Capsule Tahawul — Courses Overview
@@ -342,7 +345,8 @@ function Star({ filled }) {
 }
 
 export default function CoursesOverview() {
-  const [lang, setLang] = useState("ar");
+  const navigate = useNavigate();
+  const { lang } = useTheme();
   const [activeFilter, setActiveFilter] = useState("category");
   const t = COPY[lang];
   const isRTL = t.dir === "rtl";
@@ -360,32 +364,7 @@ export default function CoursesOverview() {
   return (
     <div className="ct-root" dir={t.dir} lang={lang}>
       {/* ---------- NAVBAR ---------- */}
-      <header className="ct-nav">
-        <div className="ct-nav-inner">
-          <div className="ct-brand">
-            <CapsuleMark size={34} />
-            <span className="ct-brand-text">{t.brand}</span>
-          </div>
-          <nav className="ct-nav-links">
-            {t.nav.map((item, i) => (
-              <a key={i} href="#" className={i === 1 ? "active" : ""}>
-                {item}
-              </a>
-            ))}
-          </nav>
-          <div className="ct-nav-actions">
-            <button
-              className="ct-lang-toggle"
-              onClick={() => setLang(lang === "ar" ? "en" : "ar")}
-              aria-label="Toggle language"
-            >
-              {lang === "ar" ? "EN" : "AR"}
-            </button>
-            <button className="ct-icon-btn" aria-label="search">🔍</button>
-            <button className="ct-avatar" aria-label="account">👤</button>
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
       {/* ---------- HERO ---------- */}
       <section className="ct-hero">
@@ -501,7 +480,15 @@ export default function CoursesOverview() {
                     <span className={c.price === 0 ? "ct-price-free" : "ct-price"}>
                       {c.price === 0 ? t.free : `${c.price} ${t.sar}`}
                     </span>
-                    <button className="ct-btn-outline">{t.viewDetails}</button>
+                    <button 
+                      className="ct-btn-outline" 
+                      onClick={() => {
+                        const courseIds = ["c2", "c6", "c4", "c1", "c2", "c3", "c7", "c7"];
+                        navigate(`/course-details/${courseIds[i] || "c2"}`);
+                      }}
+                    >
+                      {t.viewDetails}
+                    </button>
                   </div>
                 </div>
               </article>

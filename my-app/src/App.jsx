@@ -14,6 +14,9 @@ import TrainerDashboard from './TrainerDashboard.jsx';
 import SignInSignUpApproval from './CoursesApproval.jsx';
 import CoursesOverview from './CoursesOverview.jsx';
 import Contact from './pages/Contact.jsx';
+import CourseDetails from './pages/CourseDetails.jsx';
+import { ThemeProvider } from './context/ThemeContext.jsx';
+import { AuthProvider } from './context/AuthContext.jsx';
 
 // --- Small wrappers for pages that expect navigation callbacks as props ---
 
@@ -72,6 +75,7 @@ function DevIndex() {
     ['/sign-up', 'Sign Up'],
     ['/student-dashboard', 'Student Dashboard'],
     ['/student-profile', 'Student Profile'],
+    ['/course-details', 'Course Details'],
     ['/trainer-details', 'Trainer Details'],
     ['/trainer-profile', 'Trainer Profile (standalone)'],
     ['/trainer-dashboard', 'Trainer Dashboard'],
@@ -97,24 +101,31 @@ function DevIndex() {
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<LandingRoute />} />
-        <Route path="/dev" element={<DevIndex />} />
-        <Route path="/sign-in" element={<SignInRoute />} />
-        <Route path="/sign-up" element={<SignUpRoute />} />
-        <Route path="/student-dashboard" element={<StudentDashboardRoute />} />
-        <Route path="/student-profile" element={<StudentProfileRoute />} />
-        <Route path="/trainer-details" element={<TrainerDetails />} />
-        <Route path="/trainer-profile" element={<TrainerProfile />} />
-        <Route path="/trainer-dashboard" element={<TrainerDashboard />} />
-        <Route path="/admin-dashboard" element={<AdminDashboard />} />
-        <Route path="/courses-approval" element={<SignInSignUpApproval />} />
-        <Route path="/courses-overview" element={<CoursesOverview />} />
-        <Route path="/business-contract" element={<BusinessContractForm />} />
-        <Route path="/contact" element={<Contact />} />
-      </Routes>
-    </BrowserRouter>
+    <ThemeProvider>
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<LandingRoute />} />
+            <Route path="/dev" element={<DevIndex />} />
+            <Route path="/sign-in" element={<SignInRoute />} />
+            <Route path="/sign-up" element={<SignUpRoute />} />
+            <Route path="/student-dashboard" element={<StudentDashboardRoute />} />
+            <Route path="/student-profile" element={<StudentProfileRoute />} />
+            <Route path="/course-details" element={<CourseDetails />} />
+            <Route path="/course-details/:id" element={<CourseDetails />} />
+            <Route path="/trainer-details" element={<TrainerDetails />} />
+            <Route path="/trainer-details/:id" element={<TrainerDetails />} />
+            <Route path="/trainer-profile" element={<TrainerProfile />} />
+            <Route path="/trainer-dashboard" element={<TrainerDashboard />} />
+            <Route path="/admin-dashboard" element={<AdminDashboard />} />
+            <Route path="/courses-approval" element={<SignInSignUpApproval />} />
+            <Route path="/courses-overview" element={<CoursesOverview />} />
+            <Route path="/business-contract" element={<BusinessContractForm />} />
+            <Route path="/contact" element={<Contact />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 
