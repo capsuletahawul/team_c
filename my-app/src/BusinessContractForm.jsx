@@ -10,7 +10,6 @@ import { useLanguage } from "./context/LanguageContext";
 
 function BusinessContractForm() {
   const { t } = useLanguage();
-  console.log("THIS IS WHAT REACT SEES:", t);
   const l = t.businessForm;
 
   const [formData, setFormData] = useState({
