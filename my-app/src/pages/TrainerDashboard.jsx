@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { getTrainerAnalytics, submitB2BRequest } from './mocks/mockApi';
+import { getTrainerAnalytics, submitB2BRequest } from '../mocks/mockApi';
 
 // Reusable Components
-import Navbar from './components/Navbar';
-import Footer from './components/Footer';
-import Button from './components/Button';
-import LoadingIndicator from './components/LoadingIndicator';
-import ErrorMessage from './components/ErrorMessage';
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
+import Button from '../components/Button';
+import LoadingIndicator from '../components/LoadingIndicator';
+import ErrorMessage from '../components/ErrorMessage';
 
 // Global Context
-import { useLanguage } from './context/LanguageContext';
+import { useLanguage } from '../context/LanguageContext';
 
 function TrainerDashboard() {
   const { t, lang } = useLanguage();

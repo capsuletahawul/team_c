@@ -217,6 +217,9 @@ export const contactPageData = {
   ar: { title: 'تواصل معنا الآن', subtitle: 'نحن هنا لمساعدتك في قيادة تحولك الرقمي وبناء مسيرتك التقنية.', formName: 'الاسم الكامل', formEmail: 'البريد الإلكتروني', formPhone: 'رقم الجوال', formMessage: 'تفاصيل الرسالة', submitBtn: 'إرسال الرسالة' }
 };
 
+
+
+
 // ============================================================================
 // MODULE 1: AUTHENTICATION APIs (Feature 3)
 // ============================================================================
@@ -517,3 +520,49 @@ export async function getAdminDashboardMetrics() {
     }
   };
 }
+
+// ==========================================
+// TRAINER PROFILE MOCK ENDPOINTS
+// ==========================================
+
+export const getTrainerProfile = async () => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve({
+        success: true,
+        data: {
+          name: "أ. أحمد القحطاني",
+          specialty: "تطوير الويب",
+          email: "ahmed@capsule.sa",
+          phone: "0551234567",
+          experience: "8",
+          bio: "مدرب معتمد في React و JavaScript وتطوير تطبيقات الويب الحديثة. أهدف إلى سد الفجوة بين التعليم الأكاديمي وسوق العمل.",
+          avatarLetter: "A",
+          stats: {
+            coursesCount: 6,
+            studentsCount: 320,
+            rating: 4.9
+          },
+          courses: [
+            { id: 1, name: "React Bootcamp", students: 120, status: "published" },
+            { id: 2, name: "JavaScript Advanced", students: 85, status: "published" },
+            { id: 3, name: "Next.js Fundamentals", students: 0, status: "underReview" }
+          ],
+          reviews: [
+            { id: 1, name: "خالد س.", date: "2026-06-15", rating: 5, comment: "مدرب ممتاز، يشرح المفاهيم المعقدة بطريقة بسيطة وعملية." },
+            { id: 2, name: "نورة ف.", date: "2026-06-10", rating: 4, comment: "المعسكر كان رائعاً، لكن الرتم كان سريعاً بعض الشيء في النهاية." }
+          ]
+        }
+      });
+    }, 800); // Simulate network delay
+  });
+};
+
+export const updateTrainerProfile = async (formData) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      // Simulate a successful update response
+      resolve({ success: true, data: formData });
+    }, 800);
+  });
+};

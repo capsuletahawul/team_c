@@ -16,7 +16,7 @@ import { StarIcon, CalendarDaysIcon, ChartBarIcon, LanguageIcon, UsersIcon, Chec
 import { 
   courseHeroData, curriculumData, instructorData, 
   overviewData, requirementsData, enrollmentData, navTranslations 
-} from './mockApi';
+} from '../mocks/mockApi';
 
 // مصفوفة الألوان المساعدة لبطاقات الإحصائيات
 const statsConfig = {

@@ -1,121 +1,69 @@
-import React, { useState } from 'react';
-import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-dom';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
-import LandingPage from './LandingPage.jsx';
-import StudentDashboard from './StudentDashboard.jsx';
-import StudentProfile from './StudentProfile.jsx';
+// ==========================================
+// 1. PUBLIC PAGES (Guests)
+// ==========================================
+import LandingPage from './pages/LandingPage.jsx';
+import CoursesOverview from './pages/CoursesOverview.jsx';
+import CourseDetails from './pages/CourseDetails.jsx';
+import TrainerDetails from './pages/TrainerDetails.jsx';
+import Contact from './pages/Contact.jsx';
 import SignIn from './pages/SignIn.jsx';
 import SignUp from './pages/SignUp.jsx';
-import BusinessContractForm from './BusinessContractForm.jsx';
-import TrainerDetails from './TrainerDetails.jsx';
-import TrainerProfile from './TrainerProfile.jsx';
-import AdminDashboard from './AdminDashboard.jsx';
-import TrainerDashboard from './TrainerDashboard.jsx';
-import SignInSignUpApproval from './CoursesApproval.jsx';
-import CoursesOverview from './CoursesOverview.jsx';
-import Contact from './pages/Contact.jsx';
 
-// --- Small wrappers for pages that expect navigation callbacks as props ---
+// ==========================================
+// 2. LOGGED IN PAGES
+// ==========================================
+import StudentDashboard from './pages/StudentDashboard.jsx';
+import StudentProfile from './pages/StudentProfile.jsx';
+import TrainerDashboard from './pages/TrainerDashboard.jsx';
+import TrainerProfile from './pages/TrainerProfile.jsx';
+import AdminDashboard from './pages/AdminDashboard.jsx';
+import CoursesApproval from './pages/CoursesApproval.jsx';
+import BusinessContractForm from './pages/BusinessContractForm.jsx';
 
-function LandingRoute() {
-  const navigate = useNavigate();
+// ==========================================
+// 3. DEVELOPER TOOLS
+// ==========================================
+import DevHub from './pages/DevHub.jsx';
+
+export default function App() {
   return (
-    <LandingPage
-      onNavigateToRegister={() => navigate('/sign-up')}
-      onNavigateToLogin={() => navigate('/sign-in')}
-      onNavigateToTrainerOnboarding={() => navigate('/trainer-dashboard')}
-      onNavigateToCompanyOnboarding={() => navigate('/business-contract')}
-    />
-  );
-}
-
-function StudentDashboardRoute() {
-  const navigate = useNavigate();
-  return <StudentDashboard onNavigateToProfile={() => navigate('/student-profile')} />;
-}
-
-function StudentProfileRoute() {
-  const navigate = useNavigate();
-  return <StudentProfile onBack={() => navigate('/student-dashboard')} />;
-}
-
-function SignInRoute() {
-  const navigate = useNavigate();
-  const [lang, setLang] = useState('ar');
-  return (
-    <SignIn
-      lang={lang}
-      onToggleLang={() => setLang((l) => (l === 'ar' ? 'en' : 'ar'))}
-      onGoToSignUp={() => navigate('/sign-up')}
-    />
-  );
-}
-
-function SignUpRoute() {
-  const navigate = useNavigate();
-  const [lang, setLang] = useState('ar');
-  return (
-    <SignUp
-      lang={lang}
-      onToggleLang={() => setLang((l) => (l === 'ar' ? 'en' : 'ar'))}
-      onGoToSignIn={() => navigate('/sign-in')}
-    />
-  );
-}
-
-// Quick dev-only index so every page in the repo is reachable and
-// nothing is orphaned. Feel free to delete this once real nav exists.
-function DevIndex() {
-  const links = [
-    ['/', 'Landing Page'],
-    ['/sign-in', 'Sign In'],
-    ['/sign-up', 'Sign Up'],
-    ['/student-dashboard', 'Student Dashboard'],
-    ['/student-profile', 'Student Profile'],
-    ['/trainer-details', 'Trainer Details'],
-    ['/trainer-profile', 'Trainer Profile (standalone)'],
-    ['/trainer-dashboard', 'Trainer Dashboard'],
-    ['/admin-dashboard', 'Admin Dashboard'],
-    ['/courses-approval', 'Courses Approval'],
-    ['/courses-overview', 'Courses Overview'],
-    ['/business-contract', 'Business Contract Form'],
-    ['/contact', 'Contact'],
-  ];
-  return (
-    <div style={{ padding: 40, fontFamily: 'sans-serif' }}>
-      <h1>Dev Page Index</h1>
-      <ul>
-        {links.map(([href, label]) => (
-          <li key={href}>
-            <Link to={href}>{label}</Link>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-function App() {
-  return (
-    <BrowserRouter>
+    <Router>
       <Routes>
-        <Route path="/" element={<LandingRoute />} />
-        <Route path="/dev" element={<DevIndex />} />
-        <Route path="/sign-in" element={<SignInRoute />} />
-        <Route path="/sign-up" element={<SignUpRoute />} />
-        <Route path="/student-dashboard" element={<StudentDashboardRoute />} />
-        <Route path="/student-profile" element={<StudentProfileRoute />} />
-        <Route path="/trainer-details" element={<TrainerDetails />} />
-        <Route path="/trainer-profile" element={<TrainerProfile />} />
-        <Route path="/trainer-dashboard" element={<TrainerDashboard />} />
-        <Route path="/admin-dashboard" element={<AdminDashboard />} />
-        <Route path="/courses-approval" element={<SignInSignUpApproval />} />
-        <Route path="/courses-overview" element={<CoursesOverview />} />
-        <Route path="/business-contract" element={<BusinessContractForm />} />
+        {/* DEVELOPER HUB (Go to localhost:xxxx/hub to see the menu) */}
+        <Route path="/hub" element={<DevHub />} />
+
+        {/* PUBLIC ROUTES */}
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/courses" element={<CoursesOverview />} />
+        <Route path="/course/:courseId" element={<CourseDetails />} />
+        <Route path="/trainer/:trainerId" element={<TrainerDetails />} />
+        
+        {/* AUTH & CONTACT */}
         <Route path="/contact" element={<Contact />} />
+        <Route path="/login" element={<SignIn />} />
+        <Route path="/signup" element={<SignUp />} />
+
+        {/* STUDENT ROUTES */}
+        <Route path="/student/dashboard" element={<StudentDashboard />} />
+        <Route path="/student/profile" element={<StudentProfile />} />
+
+        {/* TRAINER ROUTES */}
+        <Route path="/trainer/dashboard" element={<TrainerDashboard />} />
+        <Route path="/trainer/profile" element={<TrainerProfile />} />
+
+        {/* ADMIN ROUTES */}
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        <Route path="/admin/approvals" element={<CoursesApproval />} />
+
+        {/* COMPANY ROUTES */}
+        <Route path="/company/contract" element={<BusinessContractForm />} />
+
+        {/* FALLBACK ROUTE: Catch-all for typos */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </BrowserRouter>
+    </Router>
   );
 }
-
-export default App;
