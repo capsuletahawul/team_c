@@ -5,6 +5,8 @@
  */
 
 import { useState } from 'react';
+import StudentNavbar from "./components/StudentNavbar.jsx";
+import Footer from './components/Footer';
 import { 
   MagnifyingGlassIcon, UserCircleIcon, ChevronDownIcon, PlayIcon, 
   DocumentTextIcon, CodeBracketSquareIcon, ClockIcon, VideoCameraIcon,
@@ -16,7 +18,7 @@ import { StarIcon, CalendarDaysIcon, ChartBarIcon, LanguageIcon, UsersIcon, Chec
 import { 
   courseHeroData, curriculumData, instructorData, 
   overviewData, requirementsData, enrollmentData, navTranslations 
-} from './mockApi';
+} from "./mocks/mockApi";
 
 // مصفوفة الألوان المساعدة لبطاقات الإحصائيات
 const statsConfig = {
@@ -33,25 +35,7 @@ export default function CourseDetails() {
 
   return (
     <div className="min-h-screen bg-capsule-bg flex flex-col font-sans transition-colors duration-300">
-      {/* البار العلوي للنظام */}
-      <nav dir={isRTL ? 'rtl' : 'ltr'} className="w-full bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <div className="bg-capsule-navy text-white font-bold w-8 h-8 flex items-center justify-center rounded-lg shadow-sm">ك</div>
-            <span className="text-xl font-extrabold text-capsule-navy">{isRTL ? 'كبسولة تحول' : 'Capsule Tahawul'}</span>
-          </div>
-          <div className="hidden lg:flex gap-8">
-            {Object.entries(t.nav).map(([key, item]) => (
-              <a key={key} href="#" className={`font-semibold ${key === 'courses' ? 'text-capsule-teal border-b-2 border-capsule-teal pb-1' : 'text-capsule-navy'}`}>{item}</a>
-            ))}
-          </div>
-          <div className="flex items-center gap-4">
-            <button onClick={() => setLang(l => l === 'ar' ? 'en' : 'ar')} className="bg-gray-100 px-3 py-1 rounded-md font-bold text-sm text-capsule-navy">{t.langBtn}</button>
-            <MagnifyingGlassIcon className="w-6 h-6 text-capsule-navy cursor-pointer" />
-            <UserCircleIcon className="w-7 h-7 text-capsule-navy cursor-pointer" />
-          </div>
-        </div>
-      </nav>
+            <StudentNavbar activePage="courses" />
 
       {/* المحتوى الأساسي */}
       <main className="flex-grow">
@@ -71,6 +55,8 @@ export default function CourseDetails() {
           </div>
         </div>
       </main>
+
+      <Footer />
     </div>
   );
 }
