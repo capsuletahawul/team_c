@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-
+import { useNavigate } from "react-router-dom";
 // Reusable Components
 import StudentNavbar from "./components/StudentNavbar.jsx";
 import Footer from "./components/Footer.jsx";
@@ -36,6 +36,7 @@ function Star({ filled }) {
 
 export default function CoursesOverview() {
   const { t, lang } = useLanguage();
+  const navigate = useNavigate();
   const l = t.coursesOverview;
   const isRTL = t.dir === "rtl";
 
@@ -223,9 +224,14 @@ export default function CoursesOverview() {
                       <span className={`font-extrabold text-[14px] ${c.price === 0 ? 'text-[#3E5F44]' : 'text-capsule-navy'}`}>
                         {c.price === 0 ? l.results.free : `${c.price} ${l.results.sar}`}
                       </span>
-                      <button className="border-2 border-capsule-teal text-capsule-teal bg-transparent rounded-full px-3.5 py-1.5 text-[12.5px] font-bold cursor-pointer hover:bg-capsule-teal hover:text-white transition-colors">
-                        {l.results.viewDetails}
-                      </button>
+                      
+<button
+  onClick={() => navigate("/course-details")}
+  className="border-2 border-capsule-teal text-capsule-teal bg-transparent rounded-full px-3.5 py-1.5 text-[12.5px] font-bold cursor-pointer hover:bg-capsule-teal hover:text-white transition-colors"
+>
+  {l.results.viewDetails}
+</button>
+
                     </div>
                   </div>
                 </article>
