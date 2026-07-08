@@ -12,6 +12,7 @@ import TrainerProfile from './TrainerProfile.jsx';
 import AdminDashboard from './AdminDashboard.jsx';
 import TrainerDashboard from './TrainerDashboard.jsx';
 import SignInSignUpApproval from './CoursesApproval.jsx';
+import CourseDetails from './CourseDetails.jsx';
 import CoursesOverview from './CoursesOverview.jsx';
 import StudentCoursesOverview from './StudentCoursesOverview.jsx';
 import Contact from './pages/Contact.jsx';
@@ -79,6 +80,7 @@ function DevIndex() {
     ['/admin-dashboard', 'Admin Dashboard'],
     ['/courses-approval', 'Courses Approval'],
     ['/courses-overview', 'Courses Overview'],
+    ['./CourseDetails', 'Course Details'],
     ['/business-contract', 'Business Contract Form'],
     ['/contact', 'Contact'],
   ];
@@ -111,6 +113,7 @@ function App() {
         <Route path="/trainer-dashboard" element={<TrainerDashboard />} />
         <Route path="/admin-dashboard" element={<AdminDashboard />} />
         <Route path="/courses-approval" element={<SignInSignUpApproval />} />
+        <Route path="/course-details" element={<CourseDetails />} />
         <Route path="/courses-overview" element={<CoursesOverview />} />
         <Route path="/student-courses-overview" element={<StudentCoursesOverview />} />
         <Route path="/business-contract" element={<BusinessContractForm />} />
