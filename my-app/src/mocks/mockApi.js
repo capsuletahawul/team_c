@@ -14,10 +14,216 @@ const delay = (ms) => new Promise(res => setTimeout(res, ms));
 // ============================================================================
 
 let mockCourses = [
-  { id: 15, title: "React Bootcamp Deep Dive", category: "Web Development", price: 250, duration: "32 Hours", rating: 4.8, status: "available", students: 1240, thumbnail: "react-bootcamp.jpg", prerequisites: ["HTML", "CSS", "JavaScript"] },
-  { id: 16, title: "AI & Machine Learning Fundamentals", category: "Artificial Intelligence", price: 0, duration: "12 Hours", rating: 4.9, status: "available", students: 850, thumbnail: "ai-funds.jpg", prerequisites: ["Basic Python"] },
-  { id: 17, title: "Cybersecurity Next-Gen Defense", category: "Cybersecurity", price: 499, duration: "40 Hours", rating: 0, status: "coming_soon", students: 0, thumbnail: "cyber.jpg", prerequisites: ["Basic Networking"] },
-  { id: 18, title: "Cloud Native Infrastructure", category: "Cloud Computing", price: 199, duration: "24 Hours", rating: 4.5, status: "completed", students: 430, thumbnail: "cloud.jpg", prerequisites: ["Linux Basics"] }
+{
+  id: 15,
+  title: "React Bootcamp Deep Dive",
+  category: "Web Development",
+  description: "Learn React from beginner to advanced with hands-on projects.",
+  subtitle: "Master building production-ready React applications with hooks, state management, and real-world project architecture.",
+  instructor: "Ahmed Mohammed",
+
+  price: 250,
+  originalPrice: 450,
+  discount: "45% OFF",
+  duration: "32 Hours",
+  level: "Intermediate",
+  language: "Arabic / English",
+  updated: "06/2026",
+  rating: 4.8,
+  status: "available",
+  students: 1240,
+  thumbnail: "react-bootcamp.jpg",
+
+  prerequisites: ["HTML", "CSS", "JavaScript"],
+
+  outcomes: [
+    "Build modern React applications",
+    "Use React Hooks",
+    "Manage application state",
+    "Structure scalable component architecture",
+    "Integrate REST APIs into React apps",
+    "Deploy production-ready front-end projects"
+  ],
+
+  instructorProfile: {
+    role: "Senior Front-End Engineer",
+    bio: "Ahmed has spent over 8 years building production React applications for startups and enterprises across the region.",
+    avatarLabel: "AM",
+    ratingText: "4.8 Instructor Rating",
+    studentsText: "1,240+ Students",
+    coursesText: "3 Bootcamps",
+    skills: ["React", "Hooks", "State Management", "REST APIs"]
+  },
+
+  requirements: [
+    { id: "tech", title: "Technical Background", desc: "Basic knowledge of HTML, CSS, and JavaScript fundamentals.", type: "code" },
+    { id: "hardware", title: "Hardware Setup", desc: "A laptop with at least 8GB RAM and a stable internet connection.", type: "cpu" },
+    { id: "mindset", title: "Commitment & Mindset", desc: "Readiness to invest 8-10 hours per week on coding exercises and projects.", type: "shield" }
+  ],
+
+  curriculum: [
+    { id: 1, week: "Week 1 - 2", title: "React Fundamentals & JSX", duration: "10 Hours",
+      topics: [
+        { type: "video", name: "Introduction to Components & JSX", duration: "40 mins" },
+        { type: "code", name: "Hands-on: Building Your First Components", duration: "2 hours" },
+        { type: "doc", name: "Reading: Component Lifecycle Overview", duration: "15 mins" }
+      ] },
+    { id: 2, week: "Week 3 - 4", title: "State, Props & Hooks", duration: "12 Hours",
+      topics: [
+        { type: "video", name: "useState & useEffect in Depth", duration: "50 mins" },
+        { type: "code", name: "Lab: Building a Todo Application", duration: "3 hours" },
+        { type: "code", name: "Project: Custom Hooks for Data Fetching", duration: "3 hours" }
+      ] },
+    { id: 3, week: "Week 5 - 6", title: "Routing & Production Deployment", duration: "10 Hours",
+      topics: [
+        { type: "video", name: "React Router & Protected Routes", duration: "45 mins" },
+        { type: "code", name: "Capstone: Full Application Deployment", duration: "5 hours" }
+      ] }
+  ],
+
+  enrollment: {
+    features: ["4 Weeks Intensive", "Live Mentorship", "Job Guarantee Support", "Lifetime Access"],
+    timer: "Enrollment closes in: 04:12:45"
+  }
+},
+
+  { id: 16, title: "AI & Machine Learning Fundamentals", category: "Artificial Intelligence",
+    description: "A hands-on introduction to AI and Machine Learning concepts using real datasets and Python.",
+    subtitle: "Learn the core building blocks of AI and Machine Learning through practical, project-based lessons.",
+    instructor: "Sara Ali",
+    price: 0, originalPrice: 0, discount: "Free",
+    duration: "12 Hours", level: "Beginner", language: "Arabic / English", updated: "06/2026",
+    rating: 4.9, status: "available", students: 850, thumbnail: "ai-funds.jpg",
+    prerequisites: ["Basic Python"],
+    outcomes: [
+      "Understand core Machine Learning concepts",
+      "Work with real-world datasets in Python",
+      "Train and evaluate simple ML models",
+      "Understand the fundamentals of neural networks"
+    ],
+    instructorProfile: {
+      role: "AI & Data Science Instructor",
+      bio: "Sara has taught Machine Learning fundamentals to thousands of students, focusing on practical, project-first learning.",
+      avatarLabel: "SA",
+      ratingText: "4.9 Instructor Rating",
+      studentsText: "850+ Students",
+      coursesText: "2 Bootcamps",
+      skills: ["Python", "Machine Learning", "Data Analysis", "Neural Networks"]
+    },
+    requirements: [
+      { id: "tech", title: "Technical Background", desc: "Basic familiarity with Python syntax and programming logic.", type: "code" },
+      { id: "hardware", title: "Hardware Setup", desc: "A laptop with at least 8GB RAM to run Python notebooks smoothly.", type: "cpu" },
+      { id: "mindset", title: "Commitment & Mindset", desc: "Readiness to invest 4-6 hours per week on exercises and mini projects.", type: "shield" }
+    ],
+    curriculum: [
+      { id: 1, week: "Week 1", title: "Introduction to AI & ML", duration: "4 Hours",
+        topics: [
+          { type: "video", name: "What is Machine Learning?", duration: "30 mins" },
+          { type: "doc", name: "Reading: Types of ML Problems", duration: "15 mins" }
+        ] },
+      { id: 2, week: "Week 2", title: "Working with Data", duration: "4 Hours",
+        topics: [
+          { type: "code", name: "Lab: Data Cleaning with Pandas", duration: "2 hours" }
+        ] },
+      { id: 3, week: "Week 3", title: "Building Your First Model", duration: "4 Hours",
+        topics: [
+          { type: "code", name: "Project: Training a Classification Model", duration: "3 hours" }
+        ] }
+    ],
+    enrollment: { features: ["Self-Paced", "Community Support", "Certificate of Completion"], timer: "Open enrollment" }
+  },
+
+  { id: 17, title: "Cybersecurity Next-Gen Defense", category: "Cybersecurity",
+    description: "Learn modern cybersecurity defense strategies to protect networks and systems from evolving threats.",
+    subtitle: "Build practical skills in network defense, threat detection, and incident response.",
+    instructor: "Abdullah Nasser",
+    price: 499, originalPrice: 699, discount: "28% OFF",
+    duration: "40 Hours", level: "Advanced", language: "Arabic / English", updated: "07/2026",
+    rating: 0, status: "coming_soon", students: 0, thumbnail: "cyber.jpg",
+    prerequisites: ["Basic Networking"],
+    outcomes: [
+      "Understand modern attack vectors and threat models",
+      "Configure firewalls and intrusion detection systems",
+      "Perform basic incident response procedures",
+      "Harden systems against common vulnerabilities"
+    ],
+    instructorProfile: {
+      role: "Senior Cybersecurity Engineer",
+      bio: "Abdullah has over 10 years of experience securing enterprise infrastructure and leading incident response teams.",
+      avatarLabel: "AN",
+      ratingText: "New Instructor",
+      studentsText: "0 Students (Coming Soon)",
+      coursesText: "1 Bootcamp",
+      skills: ["Network Security", "Incident Response", "Threat Detection", "Penetration Testing"]
+    },
+    requirements: [
+      { id: "tech", title: "Technical Background", desc: "Basic understanding of networking concepts (IP, DNS, ports).", type: "code" },
+      { id: "hardware", title: "Hardware Setup", desc: "A laptop capable of running a virtual lab environment (16GB RAM recommended).", type: "cpu" },
+      { id: "mindset", title: "Commitment & Mindset", desc: "Readiness to invest 10-12 hours per week on labs and simulations.", type: "shield" }
+    ],
+    curriculum: [
+      { id: 1, week: "Week 1 - 3", title: "Network Security Foundations", duration: "14 Hours",
+        topics: [
+          { type: "video", name: "Threat Landscape Overview", duration: "45 mins" },
+          { type: "code", name: "Lab: Configuring Firewalls", duration: "3 hours" }
+        ] },
+      { id: 2, week: "Week 4 - 6", title: "Threat Detection & Monitoring", duration: "14 Hours",
+        topics: [
+          { type: "code", name: "Lab: Setting Up an IDS", duration: "4 hours" }
+        ] },
+      { id: 3, week: "Week 7 - 8", title: "Incident Response", duration: "12 Hours",
+        topics: [
+          { type: "code", name: "Capstone: Simulated Breach Response", duration: "6 hours" }
+        ] }
+    ],
+    enrollment: { features: ["8 Weeks Intensive", "Hands-on Labs", "Industry Certificate"], timer: "Coming soon — join the waitlist" }
+  },
+
+  { id: 18, title: "Cloud Native Infrastructure", category: "Cloud Computing",
+    description: "Master cloud-native architecture, containers, and infrastructure automation on modern cloud platforms.",
+    subtitle: "Design, deploy, and scale cloud-native infrastructure using industry-standard tools.",
+    instructor: "Noura Al-Faisal",
+    price: 199, originalPrice: 199, discount: null,
+    duration: "24 Hours", level: "Intermediate", language: "Arabic / English", updated: "05/2026",
+    rating: 4.5, status: "completed", students: 430, thumbnail: "cloud.jpg",
+    prerequisites: ["Linux Basics"],
+    outcomes: [
+      "Deploy applications using Docker containers",
+      "Orchestrate workloads with Kubernetes basics",
+      "Automate infrastructure with Infrastructure-as-Code",
+      "Design scalable cloud-native architectures"
+    ],
+    instructorProfile: {
+      role: "Cloud Solutions Architect",
+      bio: "Noura has led cloud migration and infrastructure automation projects for enterprise clients across the Gulf region.",
+      avatarLabel: "NF",
+      ratingText: "4.5 Instructor Rating",
+      studentsText: "430+ Students",
+      coursesText: "2 Bootcamps",
+      skills: ["Docker", "Kubernetes", "Cloud Architecture", "Infrastructure as Code"]
+    },
+    requirements: [
+      { id: "tech", title: "Technical Background", desc: "Comfortable working with the Linux command line.", type: "code" },
+      { id: "hardware", title: "Hardware Setup", desc: "A laptop with at least 8GB RAM able to run Docker containers.", type: "cpu" },
+      { id: "mindset", title: "Commitment & Mindset", desc: "Readiness to invest 6-8 hours per week on labs and deployments.", type: "shield" }
+    ],
+    curriculum: [
+      { id: 1, week: "Week 1 - 2", title: "Containers with Docker", duration: "10 Hours",
+        topics: [
+          { type: "video", name: "Docker Fundamentals", duration: "40 mins" },
+          { type: "code", name: "Lab: Containerizing an Application", duration: "3 hours" }
+        ] },
+      { id: 2, week: "Week 3", title: "Orchestration with Kubernetes", duration: "8 Hours",
+        topics: [
+          { type: "code", name: "Lab: Deploying to a Kubernetes Cluster", duration: "4 hours" }
+        ] },
+      { id: 3, week: "Week 4", title: "Infrastructure as Code", duration: "6 Hours",
+        topics: [
+          { type: "code", name: "Capstone: Automated Cloud Deployment", duration: "4 hours" }
+        ] }
+    ],
+    enrollment: { features: ["4 Weeks Intensive", "Cloud Lab Credits", "Certificate of Completion"], timer: "This course has ended" }
+  }
 ];
 
 let mockUser = {
