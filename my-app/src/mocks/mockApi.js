@@ -21,6 +21,7 @@ let mockCourses = [
   description: "Learn React from beginner to advanced with hands-on projects.",
   subtitle: "Master building production-ready React applications with hooks, state management, and real-world project architecture.",
   instructor: "Ahmed Mohammed",
+  trainerId: "ahmed-mohammed",
 
   price: 250,
   originalPrice: 450,
@@ -91,6 +92,7 @@ let mockCourses = [
     description: "A hands-on introduction to AI and Machine Learning concepts using real datasets and Python.",
     subtitle: "Learn the core building blocks of AI and Machine Learning through practical, project-based lessons.",
     instructor: "Sara Ali",
+    trainerId: "sara-ali",
     price: 0, originalPrice: 0, discount: "Free",
     duration: "12 Hours", level: "Beginner", language: "Arabic / English", updated: "06/2026",
     rating: 4.9, status: "available", students: 850, thumbnail: "ai-funds.jpg",
@@ -137,6 +139,7 @@ let mockCourses = [
     description: "Learn modern cybersecurity defense strategies to protect networks and systems from evolving threats.",
     subtitle: "Build practical skills in network defense, threat detection, and incident response.",
     instructor: "Abdullah Nasser",
+    trainerId: "abdullah-nasser",
     price: 499, originalPrice: 699, discount: "28% OFF",
     duration: "40 Hours", level: "Advanced", language: "Arabic / English", updated: "07/2026",
     rating: 0, status: "coming_soon", students: 0, thumbnail: "cyber.jpg",
@@ -183,6 +186,7 @@ let mockCourses = [
     description: "Master cloud-native architecture, containers, and infrastructure automation on modern cloud platforms.",
     subtitle: "Design, deploy, and scale cloud-native infrastructure using industry-standard tools.",
     instructor: "Noura Al-Faisal",
+    trainerId: "noura-alfaisal",
     price: 199, originalPrice: 199, discount: null,
     duration: "24 Hours", level: "Intermediate", language: "Arabic / English", updated: "05/2026",
     rating: 4.5, status: "completed", students: 430, thumbnail: "cloud.jpg",
@@ -737,73 +741,96 @@ export async function getAdminDashboardMetrics() {
 // MODULE 9: TRAINER PROFILE
 // ============================================================================
 
-let trainerProfile = {
-  name: "Dr. Rayan Al-Qahtani",
-  specialty: "Artificial Intelligence",
-  bio: "Experienced AI trainer specializing in Generative AI and Digital Transformation.",
-  email: "rayan@capsule.com",
-  phone: "+966500000000",
-  experience: 15,
-  avatarLetter: "R",
+// Trainer profiles are NOT stored as separate static objects. They are derived
+// dynamically from mockCourses (the same source of truth used by the course
+// catalog), keyed by course.trainerId. This keeps the trainer's courses/stats
+// always in sync with the actual course data, and lets any course's instructor
+// name link to its own real trainer page instead of a fixed/hardcoded one.
 
-  stats: {
-    coursesCount: 7,
-    studentsCount: 18500,
-    rating: 4.9,
-  },
-
-  courses: [
-    {
-      id: 1,
-      name: "Generative AI Bootcamp",
-      students: 320,
-      status: "published",
-    },
-    {
-      id: 2,
-      name: "Machine Learning Essentials",
-      students: 180,
-      status: "review",
-    },
-  ],
-
-  reviews: [
-    {
-      id: 1,
-      name: "Ahmed",
-      rating: 5,
-      date: "2026-07-01",
-      comment: "Excellent trainer.",
-    },
-    {
-      id: 2,
-      name: "Sara",
-      rating: 4,
-      date: "2026-07-03",
-      comment: "Very informative sessions.",
-    },
-  ],
+// Small pieces of contact info that don't live on a course record.
+const trainerContactInfo = {
+  "ahmed-mohammed": { email: "ahmed.mohammed@capsule.com", phone: "+966500000011", experience: 8 },
+  "sara-ali": { email: "sara.ali@capsule.com", phone: "+966500000012", experience: 6 },
+  "abdullah-nasser": { email: "abdullah.nasser@capsule.com", phone: "+966500000013", experience: 10 },
+  "noura-alfaisal": { email: "noura.alfaisal@capsule.com", phone: "+966500000014", experience: 7 },
 };
 
-export async function getTrainerProfile() {
-  await delay(300);
+// Generic feedback pool (mock placeholder, reused across trainers).
+const genericTrainerReviews = [
+  { id: 1, name: "Khalid", rating: 5, date: "2026-07-01", comment: "Excellent trainer, very clear explanations." },
+  { id: 2, name: "Lama", rating: 4, date: "2026-07-03", comment: "Very informative and well-structured sessions." },
+];
 
-  return {
-    success: true,
-    data: trainerProfile,
+// Edits made via updateTrainerProfile() are stored here, keyed by trainerId,
+// and layered on top of the derived profile (in-memory only, resets on reload).
+let trainerProfileOverrides = {};
+
+function buildTrainerProfile(trainerId) {
+  const trainerCourses = mockCourses.filter(c => c.trainerId === trainerId);
+  if (trainerCourses.length === 0) return null;
+
+  const base = trainerCourses[0].instructorProfile || {};
+  const contact = trainerContactInfo[trainerId] || {};
+  const totalStudents = trainerCourses.reduce((sum, c) => sum + (c.students || 0), 0);
+  const ratedCourses = trainerCourses.filter(c => c.rating);
+  const avgRating = ratedCourses.length
+    ? +(ratedCourses.reduce((sum, c) => sum + c.rating, 0) / ratedCourses.length).toFixed(1)
+    : 0;
+
+  const derivedProfile = {
+    trainerId,
+    name: trainerCourses[0].instructor,
+    specialty: base.role || "Trainer",
+    bio: base.bio || "",
+    email: contact.email || `${trainerId}@capsule.com`,
+    phone: contact.phone || "+966500000000",
+    experience: contact.experience || 5,
+    avatarLetter: base.avatarLabel || trainerCourses[0].instructor.charAt(0),
+
+    stats: {
+      coursesCount: trainerCourses.length,
+      studentsCount: totalStudents,
+      rating: avgRating,
+    },
+
+    courses: trainerCourses.map(c => ({
+      id: c.id,
+      name: c.title,
+      students: c.students,
+      status: (c.status === "available" || c.status === "completed") ? "published" : "review",
+    })),
+
+    reviews: genericTrainerReviews,
   };
+
+  // Apply any in-memory edits saved via updateTrainerProfile()
+  return { ...derivedProfile, ...trainerProfileOverrides[trainerId] };
 }
 
-export async function updateTrainerProfile(payload) {
+export async function getTrainerProfile(trainerId) {
+  await delay(300);
+
+  // Backwards-compatible fallback: default to the first known trainer when no id is passed.
+  const id = trainerId || mockCourses.find(c => c.trainerId)?.trainerId;
+  const profile = buildTrainerProfile(id);
+
+  if (!profile) {
+    return {
+      success: false,
+      error: "trainer_not_found",
+      details: { trainerId: "The requested trainer does not exist on the index." }
+    };
+  }
+
+  return { success: true, data: profile };
+}
+
+export async function updateTrainerProfile(payload, trainerId) {
   await delay(500);
 
-  trainerProfile = {
-    ...trainerProfile,
-    ...payload,
-  };
+  const id = trainerId || mockCourses.find(c => c.trainerId)?.trainerId;
+  trainerProfileOverrides[id] = { ...trainerProfileOverrides[id], ...payload };
 
-  return {
-    success: true,
-    data: trainerProfile,
-  };
+  const profile = buildTrainerProfile(id);
+  return { success: true, data: profile };
 }
