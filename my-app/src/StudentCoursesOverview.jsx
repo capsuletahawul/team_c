@@ -1,12 +1,27 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 // Reusable Components
 import StudentNavbar from "./components/StudentNavbar.jsx";
 import Footer from "./components/Footer.jsx";
 import Button from "./components/Button.jsx";
 
+// Real courses data (not hardcoded) - same source used by CourseDetails.jsx
+import { getCourses } from "./mocks/mockApi";
+
 // Global Context
 import { useLanguage } from "./context/LanguageContext";
+
+// بصريات فقط (أيقونة/تدرج لوني/شارة) لكل بطاقة كورس حسب ترتيبها - لا علاقة لها بمحتوى الكورس نفسه
+const CARD_VISUALS = [
+  { icon: "⚛", badgeKey: "new", gradient: "from-capsule-navy to-[#343A60]" },
+  { icon: "◐", badgeKey: "popular", gradient: "from-[#537E84] to-[#7FB1BC]" },
+  { icon: "🐍", badgeKey: null, gradient: "from-capsule-navy to-[#343A60]" },
+  { icon: "🛡", badgeKey: "new", gradient: "from-capsule-navy to-[#0e2f3f]" },
+  { icon: "{ }", badgeKey: null, gradient: "from-capsule-navy to-[#343A60]" },
+  { icon: "▤", badgeKey: "popular", gradient: "from-capsule-teal to-capsule-navy" },
+  { icon: "◎", badgeKey: null, gradient: "from-capsule-dark-gold to-capsule-gold" },
+  { icon: "▦", badgeKey: null, gradient: "from-[#3E5F44] to-[#537E84]" }
+];
 
 // Internal SVGs
 function CapsuleMark({ size = 40 }) {
@@ -52,17 +67,40 @@ export default function CoursesOverview() {
     [l]
   );
 
-  // Mapping the static visual properties to the dynamic translated data
-  const dynamicCourses = [
-    { icon: "⚛", tag: "programming", badgeKey: "new", rating: 4.8, reviews: 320, hours: 18, students: 350, price: 0, gradient: "from-capsule-navy to-[#343A60]", ...l.mockCourses[0] },
-    { icon: "◐", tag: "design", badgeKey: "popular", rating: 4.9, reviews: 410, hours: 20, students: 480, price: 250, gradient: "from-[#537E84] to-[#7FB1BC]", ...l.mockCourses[1] },
-    { icon: "🐍", tag: "programming", badgeKey: null, rating: 4.7, reviews: 620, hours: 15, students: 700, price: 0, gradient: "from-capsule-navy to-[#343A60]", ...l.mockCourses[2] },
-    { icon: "🛡", tag: "cybersecurity", badgeKey: "new", rating: 4.6, reviews: 210, hours: 12, students: 260, price: 150, gradient: "from-capsule-navy to-[#0e2f3f]", ...l.mockCourses[3] },
-    { icon: "{ }", tag: "programming", badgeKey: null, rating: 4.8, reviews: 540, hours: 16, students: 600, price: 0, gradient: "from-capsule-navy to-[#343A60]", ...l.mockCourses[4] },
-    { icon: "▤", tag: "data", badgeKey: "popular", rating: 4.7, reviews: 310, hours: 14, students: 370, price: 200, gradient: "from-capsule-teal to-capsule-navy", ...l.mockCourses[5] },
-    { icon: "◎", tag: "marketing", badgeKey: null, rating: 4.5, reviews: 290, hours: 10, students: 330, price: 100, gradient: "from-capsule-dark-gold to-capsule-gold", ...l.mockCourses[6] },
-    { icon: "▦", tag: "business", badgeKey: null, rating: 4.6, reviews: 180, hours: 8, students: 220, price: 0, gradient: "from-[#3E5F44] to-[#537E84]", ...l.mockCourses[7] }
-  ];
+  // الكورسات الحقيقية تُجلب من الـ API، وليست بيانات ثابتة
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadCourses() {
+      setLoading(true);
+      const response = await getCourses();
+      if (isMounted && response.success) {
+        setCourses(response.data.courses);
+      }
+      setLoading(false);
+    }
+    loadCourses();
+    return () => { isMounted = false; };
+  }, []);
+
+  // دمج بيانات الكورس الحقيقية مع البصريات فقط (أيقونة/تدرج/شارة)
+  const dynamicCourses = courses.map((c, i) => {
+    const visuals = CARD_VISUALS[i % CARD_VISUALS.length];
+    return {
+      ...visuals,
+      id: c.id,
+      tag: c.category,
+      title: c.title,
+      desc: c.description,
+      instructor: c.instructor,
+      rating: c.rating,
+      students: c.students,
+      hours: c.duration,
+      price: c.price
+    };
+  });
 
   return (
     <div className="min-h-screen bg-capsule-bg text-capsule-navy font-sans antialiased flex flex-col" dir={t.dir} lang={lang}>
@@ -210,12 +248,12 @@ export default function CoursesOverview() {
                         <Star key={n} filled={n <= Math.round(c.rating)} />
                       ))}
                       <span className={`font-medium ${t.dir === 'rtl' ? 'mr-1' : 'ml-1'}`}>
-                        {c.rating} ({c.reviews})
+                        {c.rating || '—'}
                       </span>
                     </div>
 
                     <div className="flex gap-3.5 text-[12px] text-gray-500 font-medium mt-1 mb-2">
-                      <span>⏱ {c.hours} {l.results.hoursLabel}</span>
+                      <span>⏱ {c.hours}</span>
                       <span>👥 {c.students} {l.results.studentsLabel}</span>
                     </div>
 
@@ -226,8 +264,9 @@ export default function CoursesOverview() {
                       </span>
                       
 <button
-  onClick={() => navigate("/course-details")}
-  className="border-2 border-capsule-teal text-capsule-teal bg-transparent rounded-full px-3.5 py-1.5 text-[12.5px] font-bold cursor-pointer hover:bg-capsule-teal hover:text-white transition-colors"
+onClick={() => navigate(`/course-details/${c.id}`)}
+
+className="border-2 border-capsule-teal text-capsule-teal bg-transparent rounded-full px-3.5 py-1.5 text-[12.5px] font-bold cursor-pointer hover:bg-capsule-teal hover:text-white transition-colors"
 >
   {l.results.viewDetails}
 </button>
