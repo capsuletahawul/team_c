@@ -95,6 +95,7 @@ const navigate = useNavigate();
       title: c.title,
       desc: c.description,
       instructor: c.instructor,
+      trainerId: c.trainerId,
       rating: c.rating,
       students: c.students,
       hours: c.duration,
@@ -238,10 +239,14 @@ const navigate = useNavigate();
                     <h3 className="text-base font-bold text-capsule-navy leading-snug m-0">{c.title}</h3>
                     <p className="text-[13px] text-gray-500 m-0 leading-relaxed line-clamp-2">{c.desc}</p>
                     
-                    <div className="flex items-center gap-1.5 text-[12.5px] text-capsule-navy mt-1">
+                    <button
+                      type="button"
+                      onClick={() => c.trainerId && navigate(`/trainer-details/${c.trainerId}`)}
+                      className="flex items-center gap-1.5 text-[12.5px] text-capsule-navy mt-1 bg-transparent border-none p-0 cursor-pointer w-fit hover:text-capsule-teal transition-colors"
+                    >
                       <span className="w-4 h-4 rounded-full bg-[#7FB1BC] inline-block" />
-                      <span className="font-medium">{c.instructor}</span>
-                    </div>
+                      <span className="font-medium hover:underline">{c.instructor}</span>
+                    </button>
 
                     <div className="flex items-center gap-1 text-[12.5px] text-gray-500">
                       {[1, 2, 3, 4, 5].map((n) => (
