@@ -108,6 +108,7 @@ function App() {
         <Route path="/sign-up" element={<SignUpRoute />} />
         <Route path="/student-dashboard" element={<StudentDashboardRoute />} />
         <Route path="/student-profile" element={<StudentProfileRoute />} />
+        <Route path="/trainer-details/:trainerId" element={<TrainerDetails />} />
         <Route path="/trainer-details" element={<TrainerDetails />} />
         <Route path="/trainer-profile" element={<TrainerProfile />} />
         <Route path="/trainer-dashboard" element={<TrainerDashboard />} />
