@@ -113,7 +113,7 @@ function App() {
         <Route path="/trainer-dashboard" element={<TrainerDashboard />} />
         <Route path="/admin-dashboard" element={<AdminDashboard />} />
         <Route path="/courses-approval" element={<SignInSignUpApproval />} />
-        <Route path="/course-details" element={<CourseDetails />} />
+<Route path="/course-details/:id" element={<CourseDetails />} />
         <Route path="/courses-overview" element={<CoursesOverview />} />
         <Route path="/student-courses-overview" element={<StudentCoursesOverview />} />
         <Route path="/business-contract" element={<BusinessContractForm />} />
