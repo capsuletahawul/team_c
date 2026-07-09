@@ -1,5 +1,8 @@
 // src/pages/SignIn.jsx
 import React from "react";
+import { useNavigate } from "react-router-dom";
+
+
 import { COPY } from "../i18n/copy";
 import { CapsuleMark, EyeIcon } from "../components/Icons";
 import "../styles/auth.css";
@@ -13,8 +16,45 @@ import "../styles/auth.css";
  */
 export default function SignIn({ lang, onToggleLang, onGoToSignUp }) {
   const [showPw, setShowPw] = React.useState(false);
+
+const navigate = useNavigate();
+
+const [email, setEmail] = React.useState("");
+const [password, setPassword] = React.useState("");
+
   const t = COPY[lang];
   const form = t.login;
+
+const handleLogin = (e) => {
+  e.preventDefault();
+
+  // Student
+  if (email === "student@test.com" && password === "123456") {
+    navigate("/student-dashboard");
+    return;
+  }
+
+  // Trainer
+  if (email === "trainer@test.com" && password === "123456") {
+    navigate("/trainer-dashboard");
+    return;
+  }
+
+  // Admin
+  if (email === "admin@test.com" && password === "123456") {
+    navigate("/admin-dashboard");
+    return;
+  }
+
+  // Company
+  if (email === "company@test.com" && password === "123456") {
+    navigate("/business-contract");
+    return;
+  }
+
+  alert("البريد الإلكتروني أو كلمة المرور غير صحيحة");
+};
+
 
   return (
     <div className="auth-root" dir={t.dir} lang={lang}>
@@ -51,17 +91,26 @@ export default function SignIn({ lang, onToggleLang, onGoToSignUp }) {
             <h2>{form.title}</h2>
             <p className="auth-subtitle">{form.subtitle}</p>
 
-            <form className="auth-form" onSubmit={(e) => e.preventDefault()}>
-              <div className="field">
+<form className="auth-form" onSubmit={handleLogin}>
+                <div className="field">
                 <label>{form.email}</label>
-                <input type="email" placeholder={form.emailPh} />
+                <input
+  type="email"
+  placeholder={form.emailPh}
+  value={email}
+  onChange={(e) => setEmail(e.target.value)}
+/>
               </div>
 
               <div className="field">
                 <label>{form.password}</label>
                 <div className="password-input">
-                  <input type={showPw ? "text" : "password"} placeholder={form.passwordPh} />
-                  <button
+<input
+  type={showPw ? "text" : "password"}
+  placeholder={form.passwordPh}
+  value={password}
+  onChange={(e) => setPassword(e.target.value)}
+/>                  <button
                     type="button"
                     className="eye-btn"
                     onClick={() => setShowPw(!showPw)}

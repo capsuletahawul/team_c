@@ -46,6 +46,178 @@ let mockB2BRequests = [];
 let mockCourseDrafts = [];
 
 // ============================================================================
+// NEW STATIC DATA FOR INTEGRATION (Course Details, Trainer Details, Contact)
+// ============================================================================
+
+export const courseHeroData = {
+  en: {
+    category: 'Advanced Tech & Artificial Intelligence',
+    title: 'Full-Stack Generative AI & Digital Transformation Bootcamp',
+    subtitle: 'Master building scalable AI applications, fine-tuning LLMs, and leading enterprise-level digital transformations using cutting-edge modern frameworks.',
+    rating: '4.9 (1,240 global reviews)',
+    meta: { updated: 'Last updated 06/2026', level: 'Intermediate to Advanced', language: 'Arabic / English' }
+  },
+  ar: {
+    category: 'التقنيات المتقدمة والذكاء الاصطناعي',
+    title: 'معسكر مطور الذكاء الاصطناعي التوليدي المتكامل والتحول الرقمي',
+    subtitle: 'أتقن بناء تطبيقات الذكاء الاصطناعي القابلة للتوسع، وضبط النماذج اللغوية الكبيرة (LLMs)، وقيادة التحول الرقمي للشركات باستخدام أحدث الإطارات التقنية.',
+    rating: '4.9 (1,240 تقييم عالمي)',
+    meta: { updated: 'آخر تحديث 06/2026', level: 'متوسط إلى متقدم', language: 'العربية / الإنجليزية' }
+  }
+};
+
+export const curriculumData = {
+  en: {
+    title: 'Bootcamp Curriculum',
+    subtitle: 'Explore the structured operational roadmap designed to take you from foundational engineering to high-tier enterprise architecture.',
+    expandAll: 'Expand All', collapseAll: 'Collapse All', lessons: 'Lessons',
+    modules: [
+      {
+        id: 1, week: 'Week 1 - 2', title: 'Deep-Dive Into LLM Architectures & Foundations', duration: '20 Hours',
+        topics: [
+          { type: 'video', name: 'Introduction to Transformers & Attention Mechanisms', duration: '45 mins' },
+          { type: 'code', name: 'Hands-on: Building Tokenizers from Scratch', duration: '2 hours' },
+          { type: 'doc', name: 'Reading: Corporate AI Compliance & Open-Source vs Proprietary', duration: '15 mins' }
+        ]
+      },
+      {
+        id: 2, week: 'Week 3 - 5', title: 'Advanced Production-Grade RAG Systems', duration: '35 Hours',
+        topics: [
+          { type: 'video', name: 'Vector Databases, Embeddings, & Chunking Tactical Strategies', duration: '60 mins' },
+          { type: 'code', name: 'Lab: Hybrid Search Pipelines (Dense + Sparse Retrieval)', duration: '4 hours' },
+          { type: 'code', name: 'Project: Implementing Re-ranking & Query Expansion', duration: '6 hours' }
+        ]
+      },
+      {
+        id: 3, week: 'Week 6 - 8', title: 'Multi-Agent Systems & Autonomous Pipelines', duration: '40 Hours',
+        topics: [
+          { type: 'video', name: 'Orchestration Frameworks: LangGraph, AutoGen, & CrewAI', duration: '90 mins' },
+          { type: 'code', name: 'Lab: Memory Management & State Control in Long-Running Agents', duration: '5 hours' },
+          { type: 'code', name: 'Capstone: Enterprise Multi-Agent Deployment via Docker', duration: '12 hours' }
+        ]
+      }
+    ]
+  },
+  ar: {
+    title: 'المنهج وخطة المعسكر المتقدمة',
+    subtitle: 'استكشف خارطة الطريق الهيكلية والعملية المصممة لنقلك من الأساسيات البرمجية إلى هندسة الأنظمة الضخمة للشركات.',
+    expandAll: 'توسيع الكل', collapseAll: 'إغلاق الكل', lessons: 'دروس',
+    modules: [
+      {
+        id: 1, week: 'الأسبوع 1 - 2', title: 'الغوص العميق في بنيات النماذج اللغوية الكبيرة (LLMs)', duration: '20 ساعة',
+        topics: [
+          { type: 'video', name: 'مقدمة في نماذج الـ Transformers وآليات الانتباه (Attention)', duration: '45 دقيقة' },
+          { type: 'code', name: 'تطبيق عملي: بناء الـ Tokenizers البرمجية من الصفر', duration: 'ساعتين' },
+          { type: 'doc', name: 'قراءة موجهة: حوكمة الذكاء الاصطناعي والمفتوح مقابل المغلق', duration: '15 دقيقة' }
+        ]
+      },
+      {
+        id: 2, week: 'الأسبوع 3 - 5', title: 'أنظمة استرجاع المعلومات المعززة بالتوليد (RAG) للإنتاج الحقيقي', duration: '35 ساعة',
+        topics: [
+          { type: 'video', name: 'قواعد البيانات المتجهة (Vector DBs) واستراتيجيات تقسيم النصوص', duration: '60 دقيقة' },
+          { type: 'code', name: 'معمل عملي: بناء خطوط البحث الهجين (Hybrid Search Pipelines)', duration: '4 ساعات' },
+          { type: 'code', name: 'مشروع: تنفيذ أنظمة إعادة الترتيب (Re-ranking) وتوسيع الاستعلام', duration: '6 ساعات' }
+        ]
+      },
+      {
+        id: 3, week: 'الأسبوع 6 - 8', title: 'الأنظمة متعددة الوكلاء (Multi-Agent Systems) والتدفقات المستقلة', duration: '40 ساعة',
+        topics: [
+          { type: 'video', name: 'إطارات الإدارة والربط: LangGraph، AutoGen، و CrewAI', duration: '90 دقيقة' },
+          { type: 'code', name: 'معمل: إدارة الذاكرة والتحكم في الحالات (State Control) للوكلاء البرمجيين', duration: '5 ساعات' },
+          { type: 'مشروع التخرج: نشر وكلاء الذكاء الاصطناعي للشركات عبر Docker', duration: '12 ساعة' }
+        ]
+      }
+    ]
+  }
+};
+
+export const instructorData = {
+  en: {
+    sectionTitle: 'Meet Your Instructor', name: 'Dr. Rayan Al-Qahtani', role: 'Chief AI Architect & Digital Transformation Advisor',
+    bio: 'With over 15 years of industry experience, Dr. Rayan has directed core enterprise AI system deployments across elite cloud technology hubs in Silicon Valley and Saudi Arabia.',
+    stats: { rating: '4.9 Instructor Rating', students: '18,500+ Students', courses: '7 Deep-Tech Bootcamps' },
+    skills: ['LLMOps Architecture', 'Fine-Tuning Expert', 'Cloud Security', 'Corporate Strategy']
+  },
+  ar: {
+    sectionTitle: 'تعرّف على موجّه المعسكر', name: 'د. ريان القحطاني', role: 'كبير مهندسي الذكاء الاصطناعي ومستشار التحول الرقمي',
+    bio: 'على مدى أكثر من 15 عاماً من الخبرة العملية، قاد الدكتور ريان مشاريع كبرى لنشر أنظمة الذكاء الاصطناعي في نخبة من مراكز الحوسبة السحابية في وادي السيليكون والمملكة العربية السعودية.',
+    stats: { rating: '4.9 تقييم المدرب', students: '+18,500 طالب وطالبة', courses: '7 معسكرات تقنية عميقة' },
+    skills: ['هندسة الـ LLMOps', 'ضبط النماذج الرقمية', 'أمن الحوسبة السحابية', 'الاستراتيجية الرقمية']
+  }
+};
+
+export const overviewData = {
+  en: {
+    title: 'What You Will Master',
+    description: 'This elite bootcamp bridges advanced software architecture with generative artificial intelligence, providing hands-on pipelines to upgrade your technical engineering capabilities completely.',
+    outcomes: [
+      'Architect and deploy end-to-end cloud-native Generative AI applications.',
+      'Fine-tune open-source Large Language Models (LLMs) on private enterprise datasets.',
+      'Build advanced Retrieval-Augmented Generation (RAG) knowledge intelligence architectures.',
+      'Implement multi-agent autonomous workflows using modern AI orchestration tools.',
+      'Optimize AI training pipelines for maximum performance and cost efficiency.',
+      'Lead tactical enterprise digital transformations with safe corporate AI compliance.'
+    ]
+  },
+  ar: {
+    title: 'ما الذي ستتقنه في هذا المعسكر',
+    description: 'يجمع هذا المعسكر النخبي بين هندسة البرمجيات المتقدمة والذكاء الاصطناعي التوليدي، مما يوفر لك خطوط إنتاج وتطبيق برمجية حية لترقية قدراتك التقنية والهندسية بالكامل.',
+    outcomes: [
+      'بناء وتطوير تطبيقات الذكاء الاصطناعي التوليدي السحابية من الصفر وحتى الإنتاج.',
+      'ضبط وتعديل النماذج اللغوية الكبيرة (LLMs) مفتوحة المصدر على بيانات الشركات الخاصة.',
+      'تأسيس بنية متقدمة لأنظمة استرجاع المعلومات المعززة بالتوليد (RAG) الذكية.',
+      'تنفيذ تدفقات عمل برمجية ذاتية القيادة ومتعددة الوكلاء (Multi-Agent Systems).',
+      'تحسين خطوط معالجة وتدريب نماذج الذكاء الاصطناعي لأعلى كفاءة وأقل تكلفة حوسبية.',
+      'قيادة استراتيجيات التحول الرقمي بامتثال أمني وحوكمة تقنية صارمة للشركات.'
+    ]
+  }
+};
+
+export const requirementsData = {
+  en: {
+    title: 'Bootcamp Prerequisites',
+    subtitle: 'Please review the technical background and hardware requirements needed to ensure an optimal learning experience.',
+    items: [
+      { id: 'tech', title: 'Technical Background', desc: 'Intermediate knowledge of JavaScript/Python and basic familiarity with modern web architectures and APIs.', type: 'code' },
+      { id: 'hardware', title: 'Hardware Setup', desc: 'A laptop (Mac/Windows/Linux) with at least 8GB RAM (16GB recommended) and stable internet connection.', type: 'cpu' },
+      { id: 'mindset', title: 'Commitment & Mindset', desc: 'Readiness to invest 10-15 hours per week for building engineering tasks, coding challenges, and interactive team review sessions.', type: 'shield' }
+    ]
+  },
+  ar: {
+    title: 'المتطلبات المسبقة للانضمام',
+    subtitle: 'يرجى مراجعة الخلفية التقنية والمواصفات اللازمة لضمان تحقيق أقصى استفادة ممكنة من غرف المعمل والتطبيق المتقدم.',
+    items: [
+      { id: 'tech', title: 'الخلفية التقنية المطلوبة', desc: 'معرفة متوسطة بلغة JavaScript أو Python، وفهم أساسي لكيفية التعامل مع واجهات برمجة التطبيقات (APIs).', type: 'code' },
+      { id: 'hardware', title: 'مواصفات جهاز الكمبيوتر', desc: 'جهاز كمبيوتر بذاكرة عشوائية لا تقل عن 8 جيجابايت (يفضل 16 جيجابايت)، مع اتصال إنترنت مستقر للمختبرات عن بعد.', type: 'cpu' },
+      { id: 'mindset', title: 'الالتزام الذهني والوقتي', desc: 'الاستعداد المكامل لتخصيص 10 إلى 15 ساعة أسبوعياً لحل التحديات البرمجية وبناء المشاريع وجلسات التوجيه الجماعية.', type: 'shield' }
+    ]
+  }
+};
+
+export const enrollmentData = {
+  en: {
+    price: '$499', originalPrice: '$899', discount: '45% OFF', title: 'Ready to Transform?',
+    features: ['8 Weeks Intensive', 'Live Mentorship', 'Job Guarantee Support', 'Lifetime Access'],
+    btnText: 'Secure Your Spot', timer: 'Enrollment closes in: 04:12:45'
+  },
+  ar: {
+    price: '1,899 ر.س', originalPrice: '3,499 ر.س', discount: 'خصم 45%', title: 'جاهز لبدء رحلة التحول؟',
+    features: ['8 أسابيع تدريب مكثف', 'جلسات توجيه مباشرة', 'دعم التوظيف الاحترافي', 'وصول دائم للمحتوى'],
+    btnText: 'احجز مقعدك الآن', timer: 'ينتهي التسجيل خلال: 04:12:45'
+  }
+};
+
+export const navTranslations = {
+  en: { nav: { home: 'Home', courses: 'Courses', bootcamps: 'Bootcamps', companies: 'Companies', about: 'About Us', contact: 'Contact' }, langBtn: 'AR' },
+  ar: { nav: { home: 'الرئيسية', courses: 'الدورات', bootcamps: 'المعسكرات', companies: 'الشركات', about: 'من نحن', contact: 'تواصل معنا' }, langBtn: 'EN' }
+};
+
+export const contactPageData = {
+  en: { title: 'Get in Touch', subtitle: 'We are here to help you deploy your digital shift. Reach out anytime.', formName: 'Your Name', formEmail: 'Email Address', formPhone: 'Phone Number', formMessage: 'Message Description', submitBtn: 'Send Message' },
+  ar: { title: 'تواصل معنا الآن', subtitle: 'نحن هنا لمساعدتك في قيادة تحولك الرقمي وبناء مسيرتك التقنية.', formName: 'الاسم الكامل', formEmail: 'البريد الإلكتروني', formPhone: 'رقم الجوال', formMessage: 'تفاصيل الرسالة', submitBtn: 'إرسال الرسالة' }
+};
+
+// ============================================================================
 // MODULE 1: AUTHENTICATION APIs (Feature 3)
 // ============================================================================
 
@@ -94,7 +266,6 @@ export async function loginUser(payload) {
     };
   }
 
-  // Simulating successful auth log for presentation flow
   return {
     success: true,
     message: "Login successful.",
@@ -248,7 +419,7 @@ export async function submitQuiz(quizId, payload) {
 export async function submitContactForm(data) {
   await delay(800);
   
-  if (!data.name || data.name.length < 3) {
+  if (!data.fullName || data.fullName.length < 3) {
     return { success: false, error: "validation_error", details: { name: "Name must be at least 3 characters." } };
   }
   if (!data.email.includes("@")) {
@@ -344,5 +515,89 @@ export async function getAdminDashboardMetrics() {
       serverResourceDistribution: "optimal",
       publishedCoursesCount: mockCourses.length
     }
+  };
+}
+
+
+
+
+
+
+
+
+
+
+// ============================================================================
+// MODULE 9: TRAINER PROFILE
+// ============================================================================
+
+let trainerProfile = {
+  name: "Dr. Rayan Al-Qahtani",
+  specialty: "Artificial Intelligence",
+  bio: "Experienced AI trainer specializing in Generative AI and Digital Transformation.",
+  email: "rayan@capsule.com",
+  phone: "+966500000000",
+  experience: 15,
+  avatarLetter: "R",
+
+  stats: {
+    coursesCount: 7,
+    studentsCount: 18500,
+    rating: 4.9,
+  },
+
+  courses: [
+    {
+      id: 1,
+      name: "Generative AI Bootcamp",
+      students: 320,
+      status: "published",
+    },
+    {
+      id: 2,
+      name: "Machine Learning Essentials",
+      students: 180,
+      status: "review",
+    },
+  ],
+
+  reviews: [
+    {
+      id: 1,
+      name: "Ahmed",
+      rating: 5,
+      date: "2026-07-01",
+      comment: "Excellent trainer.",
+    },
+    {
+      id: 2,
+      name: "Sara",
+      rating: 4,
+      date: "2026-07-03",
+      comment: "Very informative sessions.",
+    },
+  ],
+};
+
+export async function getTrainerProfile() {
+  await delay(300);
+
+  return {
+    success: true,
+    data: trainerProfile,
+  };
+}
+
+export async function updateTrainerProfile(payload) {
+  await delay(500);
+
+  trainerProfile = {
+    ...trainerProfile,
+    ...payload,
+  };
+
+  return {
+    success: true,
+    data: trainerProfile,
   };
 }

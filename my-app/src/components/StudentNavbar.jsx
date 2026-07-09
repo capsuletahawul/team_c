@@ -4,16 +4,32 @@ import { useLanguage } from '../context/LanguageContext';
 import { Link } from "react-router-dom";
 import logo from "../assets/logo.png";
 
-function Navbar({ activePage = 'dashboard', showAuthButtons = false, onSignIn, onSignUp }) {
+function StudentNavbar({ activePage = 'dashboard', showAuthButtons = false, onSignIn, onSignUp }) {
   const [isOpen, setIsOpen] = useState(false);
   const { t, lang, toggleLanguage } = useLanguage();
 
 const navLinks = [
-  { id: "home", label: t.nav.home, to: "/" },
-  { id: "courses", label: t.nav.courses, to: "/courses-overview" },
-  { id: "bootcamps", label: t.nav.bootcamps, to: "/courses-overview" },
-  { id: "companies", label: t.nav.companies, to: "/business-contract" },
-  ];
+  {
+    id: "dashboard",
+    label: lang === "ar" ? "الرئيسية" : "Home",
+    to: "/student-dashboard",
+  },
+  {
+    id: "courses",
+    label: lang === "ar" ? "دوراتي" : "My Courses",
+    to: "/student-courses-overview",
+  },
+  {
+    id: "profile",
+    label: lang === "ar" ? "الملف الشخصي" : "Profile",
+    to: "/student-profile",
+  },
+  {
+    id: "contact",
+    label: lang === "ar" ? "تواصل معنا" : "Contact",
+    to: "/contact",
+  },
+];
 
   return (
 
@@ -132,13 +148,17 @@ dir={t.dir}
           </button>
 
           {navLinks.map(link => (
-            <a 
-              key={link.id} 
-              href={link.href} 
-              className={`p-2 rounded-lg ${activePage === link.id ? 'bg-capsule-teal/10 text-capsule-teal' : 'text-gray-600'}`}
-            >
-              {link.label}
-            </a>
+            <Link
+  key={link.id}
+  to={link.to}
+  className={`p-2 rounded-lg ${
+    activePage === link.id
+      ? "bg-capsule-teal/10 text-capsule-teal"
+      : "text-gray-600"
+  }`}
+>
+  {link.label}
+</Link>
           ))}
 
           {showAuthButtons && (
@@ -163,4 +183,4 @@ dir={t.dir}
   );
 }
 
-export default Navbar;
+export default StudentNavbar;

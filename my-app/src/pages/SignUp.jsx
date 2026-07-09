@@ -1,5 +1,8 @@
 // src/pages/SignUp.jsx
 import React from "react";
+
+import { useNavigate } from "react-router-dom";
+
 import { COPY } from "../i18n/copy";
 import { CapsuleMark, EyeIcon } from "../components/Icons";
 import "../styles/auth.css";
@@ -16,11 +19,75 @@ export default function SignUp({ lang, onToggleLang, onGoToSignIn }) {
   const [pwValue, setPwValue] = React.useState("");
   const [role, setRole] = React.useState(0);
 
+  const navigate = useNavigate();
+
+const [name, setName] = React.useState("");
+const [email, setEmail] = React.useState("");
+
+
   const t = COPY[lang];
   const form = t.signup;
 
   const pwStrength =
-    pwValue.length === 0 ? -1 : pwValue.length < 6 ? 0 : pwValue.length < 10 ? 1 : 2;
+  pwValue.length === 0
+    ? -1
+    : pwValue.length < 6
+    ? 0
+    : pwValue.length < 10
+    ? 1
+    : 2;
+
+const passwordChecks = {
+  length: pwValue.length >= 8,
+  uppercase: /[A-Z]/.test(pwValue),
+  lowercase: /[a-z]/.test(pwValue),
+  number: /[0-9]/.test(pwValue),
+  special: /[!@#$%^&*(),.?":{}|<>]/.test(pwValue),
+};
+
+
+const handleSignUp = (e) => {
+  e.preventDefault();
+
+  // نتأكد أن الحقول ليست فارغة
+  if (!name || !email || !pwValue) {
+    alert("يرجى تعبئة جميع الحقول");
+    return;
+  }
+
+  const isPasswordValid =
+  passwordChecks.length &&
+  passwordChecks.uppercase &&
+  passwordChecks.lowercase &&
+  passwordChecks.number &&
+  passwordChecks.special;
+
+if (!isPasswordValid) {
+  alert(
+    "يجب أن تحتوي كلمة المرور على 8 أحرف على الأقل، وحرف كبير، وحرف صغير، ورقم، ورمز خاص."
+  );
+  return;
+}
+
+  // Student
+  if (role === 0) {
+    navigate("/student-dashboard");
+    return;
+  }
+
+  // Trainer
+  if (role === 1) {
+    navigate("/trainer-dashboard");
+    return;
+  }
+
+  // Company
+  if (role === 2) {
+    navigate("/business-contract");
+    return;
+  }
+};
+
 
   return (
     <div className="auth-root" dir={t.dir} lang={lang}>
@@ -57,15 +124,31 @@ export default function SignUp({ lang, onToggleLang, onGoToSignIn }) {
             <h2>{form.title}</h2>
             <p className="auth-subtitle">{form.subtitle}</p>
 
-            <form className="auth-form" onSubmit={(e) => e.preventDefault()}>
+
+<form className="auth-form" onSubmit={handleSignUp}>
+
+
               <div className="field">
                 <label>{form.name}</label>
-                <input type="text" placeholder={form.namePh} />
+<input
+  type="text"
+  placeholder={form.namePh}
+  value={name}
+  onChange={(e) => setName(e.target.value)}
+/>
+
               </div>
 
               <div className="field">
                 <label>{form.email}</label>
-                <input type="email" placeholder={form.emailPh} />
+
+<input
+  type="email"
+  placeholder={form.emailPh}
+  value={email}
+  onChange={(e) => setEmail(e.target.value)}
+/>
+
               </div>
 
               <div className="field">
@@ -100,6 +183,38 @@ export default function SignUp({ lang, onToggleLang, onGoToSignIn }) {
                 )}
                 {pwValue.length === 0 && <span className="pw-hint">{t.passwordHint}</span>}
               </div>
+
+
+
+ <div className="password-rules">
+
+  <div className="rule">
+    <span className={`rule-dot ${passwordChecks.length ? "valid" : ""}`}></span>
+    <span>8 أحرف على الأقل</span>
+  </div>
+
+  <div className="rule">
+    <span className={`rule-dot ${passwordChecks.uppercase ? "valid" : ""}`}></span>
+    <span>حرف كبير (A-Z)</span>
+  </div>
+
+  <div className="rule">
+    <span className={`rule-dot ${passwordChecks.lowercase ? "valid" : ""}`}></span>
+    <span>حرف صغير (a-z)</span>
+  </div>
+
+  <div className="rule">
+    <span className={`rule-dot ${passwordChecks.number ? "valid" : ""}`}></span>
+    <span>رقم (0-9)</span>
+  </div>
+
+  <div className="rule">
+    <span className={`rule-dot ${passwordChecks.special ? "valid" : ""}`}></span>
+    <span>رمز خاص (!@#$)</span>
+  </div>
+   </div>
+
+
 
               <div className="field">
                 <label>{form.role}</label>

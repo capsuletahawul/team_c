@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 
 // Reusable Components
-import Navbar from "./components/Navbar.jsx";
+import StudentNavbar from "./components/StudentNavbar.jsx";
 import Footer from "./components/Footer.jsx";
 import Button from "./components/Button.jsx";
 
@@ -65,7 +65,7 @@ export default function CoursesOverview() {
 
   return (
     <div className="min-h-screen bg-capsule-bg text-capsule-navy font-sans antialiased flex flex-col" dir={t.dir} lang={lang}>
-      <Navbar activePage="courses" showAuthButtons={true} />
+<StudentNavbar activePage="courses" />
 
       <main className="flex-grow">
         
