@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { useLanguage } from './context/LanguageContext';
 import Navbar from './components/Navbar.jsx';
 import Footer from './components/Footer.jsx';
@@ -33,6 +34,7 @@ const uiLabels = {
 const starIndices = [1, 2, 3, 4, 5];
 
 export default function TrainerDetails() {
+  const { trainerId } = useParams();
   const { t: globalShared, lang } = useLanguage();
   const l = uiLabels[lang];
   const isRTL = lang === 'ar';
@@ -55,7 +57,9 @@ export default function TrainerDetails() {
   // 1. جلب البيانات ديناميكياً عند تحميل الصفحة (نفس منطق الطالب)
   useEffect(() => {
     let isMounted = true;
-    getTrainerProfile()
+    setLoading(true);
+    setError(false);
+    getTrainerProfile(trainerId)
       .then((res) => {
         if (!isMounted) return;
         if (res.success && res.data) {
@@ -70,13 +74,13 @@ export default function TrainerDetails() {
         if (isMounted) { setError(true); setLoading(false); }
       });
     return () => { isMounted = false; };
-  }, []);
+  }, [trainerId]);
 
   // 2. معالجة حفظ التعديلات وإرسالها للـ API (نفس منطق الطالب)
   const handleSave = async (e) => {
     e.preventDefault();
     setSaveState('saving');
-    const res = await updateTrainerProfile(formValues);
+    const res = await updateTrainerProfile(formValues, trainerId);
     if (res.success) {
       setProfile({ ...profile, ...formValues });
       setSaveState('saved');
