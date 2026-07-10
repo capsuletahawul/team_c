@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 
 // Reusable Components
-import TrainerNavbar from "./components/TrainerNavbar.jsx";import Footer from "./components/Footer";
-import LoadingIndicator from "./components/LoadingIndicator";
+import TrainerNavbar from "../components/TrainerNavbar.jsx";import Footer from "../components/Footer.jsx";
+import LoadingIndicator from "../components/LoadingIndicator.jsx";
 
 // Global Context
-import { useLanguage } from "./context/LanguageContext";
+import { useLanguage } from "../context/LanguageContext.jsx";
 
 function TrainerProfile() {
   const { t, lang } = useLanguage();

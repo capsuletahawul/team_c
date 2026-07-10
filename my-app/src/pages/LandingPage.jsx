@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { getPlatformOverview, getCourses } from './mocks/mockApi';
-import Navbar from './components/Navbar.jsx';
-import Footer from './components/Footer.jsx';
-import LoadingIndicator from './components/LoadingIndicator.jsx';
-import ErrorMessage from './components/ErrorMessage.jsx';
-import Button from './components/Button.jsx';
-import heroImage from './assets/hero.png';
+import { getPlatformOverview, getCourses } from '../mocks/mockApi';
+import Navbar from '../components/Navbar.jsx';
+import Footer from '../components/Footer.jsx';
+import LoadingIndicator from '../components/LoadingIndicator.jsx';
+import ErrorMessage from '../components/ErrorMessage.jsx';
+import Button from '../components/Button.jsx';
+import heroImage from '../assets/hero.png';
 
 // Import the global language context
-import { useLanguage } from './context/LanguageContext';
+import { useLanguage } from '../context/LanguageContext';
 
 function LandingPage({ onNavigateToRegister, onNavigateToLogin, onNavigateToTrainerOnboarding, onNavigateToCompanyOnboarding }) {
   // Initialize context and extract required translation objects

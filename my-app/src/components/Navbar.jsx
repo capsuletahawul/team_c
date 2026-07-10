@@ -12,7 +12,6 @@ const navLinks = [
   { id: "home", label: t.nav.home, to: "/" },
   { id: "courses", label: t.nav.courses, to: "/courses-overview" },
   { id: "bootcamps", label: t.nav.bootcamps, to: "/courses-overview" },
-  { id: "companies", label: t.nav.companies, to: "/business-contract" },
   ];
 
   return (
@@ -84,6 +83,12 @@ dir={t.dir}
           >
             {lang === 'ar' ? 'EN' : 'AR'}
           </button>
+
+          <button
+  className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-100 transition"
+>
+  🌙
+</button>
 
           {showAuthButtons ? (
   <div className="flex items-center gap-3">

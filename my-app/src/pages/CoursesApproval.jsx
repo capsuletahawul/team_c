@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 
 // Reusable Components
-import Navbar from "./components/Navbar.jsx";
-import Footer from "./components/Footer.jsx";
-import Button from "./components/Button.jsx";
+import Navbar from "../components/Navbar.jsx";
+import Footer from "../components/Footer.jsx";
+import Button from "../components/Button.jsx";
 
 // Global Context
-import { useLanguage } from "./context/LanguageContext";
+import { useLanguage } from "../context/LanguageContext.jsx";
 
 export default function CoursesApproval() {
   const { t } = useLanguage();
