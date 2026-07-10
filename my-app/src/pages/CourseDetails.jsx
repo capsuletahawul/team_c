@@ -8,8 +8,8 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, Link } from "react-router-dom";
-import StudentNavbar from "./components/StudentNavbar.jsx";
-import Footer from './components/Footer';
+import StudentNavbar from "../components/StudentNavbar.jsx";
+import Footer from '../components/Footer';
 import {
   ChevronDownIcon, PlayIcon,
   DocumentTextIcon, CodeBracketSquareIcon, ClockIcon, VideoCameraIcon,
@@ -18,7 +18,7 @@ import {
 import { StarIcon, CalendarDaysIcon, ChartBarIcon, LanguageIcon, UsersIcon, CheckCircleIcon, SparklesIcon, CheckIcon } from '@heroicons/react/24/solid';
 
 // نستورد فقط دالة الجلب من الـ API + نصوص التنقل العامة (Nav) - لا نستورد أي محتوى خاص بكورس معيّن
-import { navTranslations, getCourseDetails } from "./mocks/mockApi";
+import { navTranslations, getCourseDetails } from "../mocks/mockApi";
 
 // نصوص الواجهة الثابتة (أزرار وعناوين أقسام) - عامة لكل الكورسات، وليست بيانات كورس
 const uiText = {

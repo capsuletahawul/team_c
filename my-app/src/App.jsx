@@ -1,20 +1,20 @@
 import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-dom';
 
-import LandingPage from './LandingPage.jsx';
-import StudentDashboard from './StudentDashboard.jsx';
-import StudentProfile from './StudentProfile.jsx';
+import LandingPage from './pages/LandingPage.jsx';
+import StudentDashboard from './pages/StudentDashboard.jsx';
+import StudentProfile from './pages/StudentProfile.jsx';
 import SignIn from './pages/SignIn.jsx';
 import SignUp from './pages/SignUp.jsx';
-import BusinessContractForm from './BusinessContractForm.jsx';
-import TrainerDetails from './TrainerDetails.jsx';
-import TrainerProfile from './TrainerProfile.jsx';
-import AdminDashboard from './AdminDashboard.jsx';
-import TrainerDashboard from './TrainerDashboard.jsx';
-import SignInSignUpApproval from './CoursesApproval.jsx';
-import CourseDetails from './CourseDetails.jsx';
-import CoursesOverview from './CoursesOverview.jsx';
-import StudentCoursesOverview from './StudentCoursesOverview.jsx';
+import BusinessContractForm from './pages/BusinessContractForm.jsx';
+import TrainerDetails from './pages/TrainerDetails.jsx';
+import TrainerProfile from './pages/TrainerProfile.jsx';
+import AdminDashboard from './pages/AdminDashboard.jsx';
+import TrainerDashboard from './pages/TrainerDashboard.jsx';
+import SignInSignUpApproval from './pages/CoursesApproval.jsx';
+import CourseDetails from './pages/CourseDetails.jsx';
+import CoursesOverview from './pages/CoursesOverview.jsx';
+import StudentCoursesOverview from './pages/StudentCoursesOverview.jsx';
 import Contact from './pages/Contact.jsx';
 
 // --- Small wrappers for pages that expect navigation callbacks as props ---

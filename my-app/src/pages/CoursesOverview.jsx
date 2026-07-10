@@ -1,15 +1,15 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 // Reusable Components
-import Navbar from "./components/Navbar.jsx";
-import Footer from "./components/Footer.jsx";
-import Button from "./components/Button.jsx";
+import Navbar from "../components/Navbar.jsx";
+import Footer from "../components/Footer.jsx";
+import Button from "../components/Button.jsx";
 
 // Real courses data (not hardcoded) - same source used by CourseDetails.jsx
-import { getCourses } from "./mocks/mockApi";
+import { getCourses } from "../mocks/mockApi.js";
 
 // Global Context
-import { useLanguage } from "./context/LanguageContext";
+import { useLanguage } from "../context/LanguageContext.jsx";
 
 // بصريات فقط (أيقونة/تدرج لوني/شارة) لكل بطاقة كورس حسب ترتيبها - لا علاقة لها بمحتوى الكورس نفسه
 const CARD_VISUALS = [

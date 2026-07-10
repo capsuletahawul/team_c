@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { useLanguage } from './context/LanguageContext';
-import Navbar from './components/Navbar.jsx';
-import Footer from './components/Footer.jsx';
-import { getTrainerProfile, updateTrainerProfile } from './mocks/mockApi';
+import { useLanguage } from '../context/LanguageContext.jsx';
+import Navbar from '../components/Navbar.jsx';
+import Footer from '../components/Footer.jsx';
+import { getTrainerProfile, updateTrainerProfile } from '../mocks/mockApi.js';
 import { PaperAirplaneIcon, UserIcon, EnvelopeIcon, ChatBubbleBottomCenterTextIcon, PhoneIcon, BriefcaseIcon, StarIcon as OutlineStar, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
 import { StarIcon as SolidStar } from '@heroicons/react/24/solid';
 

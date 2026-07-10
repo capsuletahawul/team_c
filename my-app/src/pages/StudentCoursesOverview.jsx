@@ -1,15 +1,15 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 // Reusable Components
-import StudentNavbar from "./components/StudentNavbar.jsx";
-import Footer from "./components/Footer.jsx";
-import Button from "./components/Button.jsx";
+import StudentNavbar from "../components/StudentNavbar.jsx";
+import Footer from "../components/Footer.jsx";
+import Button from "../components/Button.jsx";
 
 // Real courses data (not hardcoded) - same source used by CourseDetails.jsx
-import { getCourses } from "./mocks/mockApi";
+import { getCourses } from "../mocks/mockApi.js";
 
 // Global Context
-import { useLanguage } from "./context/LanguageContext";
+import { useLanguage } from "../context/LanguageContext.jsx";
 
 // بصريات فقط (أيقونة/تدرج لوني/شارة) لكل بطاقة كورس حسب ترتيبها - لا علاقة لها بمحتوى الكورس نفسه
 const CARD_VISUALS = [
@@ -95,7 +95,6 @@ export default function CoursesOverview() {
       title: c.title,
       desc: c.description,
       instructor: c.instructor,
-      trainerId: c.trainerId,
       rating: c.rating,
       students: c.students,
       hours: c.duration,
@@ -239,14 +238,10 @@ export default function CoursesOverview() {
                     <h3 className="text-base font-bold text-capsule-navy leading-snug m-0">{c.title}</h3>
                     <p className="text-[13px] text-gray-500 m-0 leading-relaxed line-clamp-2">{c.desc}</p>
                     
-                    <button
-                      type="button"
-                      onClick={() => c.trainerId && navigate(`/trainer-details/${c.trainerId}`)}
-                      className="flex items-center gap-1.5 text-[12.5px] text-capsule-navy mt-1 bg-transparent border-none p-0 cursor-pointer w-fit hover:text-capsule-teal transition-colors"
-                    >
+                    <div className="flex items-center gap-1.5 text-[12.5px] text-capsule-navy mt-1">
                       <span className="w-4 h-4 rounded-full bg-[#7FB1BC] inline-block" />
-                      <span className="font-medium hover:underline">{c.instructor}</span>
-                    </button>
+                      <span className="font-medium">{c.instructor}</span>
+                    </div>
 
                     <div className="flex items-center gap-1 text-[12.5px] text-gray-500">
                       {[1, 2, 3, 4, 5].map((n) => (

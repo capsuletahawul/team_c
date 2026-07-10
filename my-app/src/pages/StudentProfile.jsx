@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { getStudentProfile, updateStudentProfile, getPurchasedCourses } from './mocks/mockApi';
+import { getStudentProfile, updateStudentProfile, getPurchasedCourses } from '../mocks/mockApi.js';
 
 // Reusable Components
-import StudentNavbar from "./components/StudentNavbar.jsx";
-import Footer from './components/Footer.jsx';
-import LoadingIndicator from './components/LoadingIndicator.jsx';
-import ErrorMessage from './components/ErrorMessage.jsx';
-import Button from './components/Button.jsx';
+import StudentNavbar from "../components/StudentNavbar.jsx";
+import Footer from '../components/Footer.jsx';
+import LoadingIndicator from '../components/LoadingIndicator.jsx';
+import ErrorMessage from '../components/ErrorMessage.jsx';
+import Button from '../components/Button.jsx';
 
 // Global Context
-import { useLanguage } from './context/LanguageContext';
+import { useLanguage } from '../context/LanguageContext.jsx';
 
 function StudentProfile({ onBack }) {
   const { t, lang } = useLanguage();
