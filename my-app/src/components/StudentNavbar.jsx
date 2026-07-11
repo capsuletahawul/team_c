@@ -10,24 +10,24 @@ function StudentNavbar({ activePage = 'dashboard', showAuthButtons = false, onSi
 
 const navLinks = [
   {
-    id: "dashboard",
+    id: "home",
     label: lang === "ar" ? "الرئيسية" : "Home",
     to: "/student-dashboard",
   },
   {
     id: "courses",
-    label: lang === "ar" ? "دوراتي" : "My Courses",
+    label: lang === "ar" ? "الدورات" : "Courses",
     to: "/student-courses-overview",
+  },
+  {
+    id: "bootcamps",
+    label: lang === "ar" ? "المعسكرات" : "Bootcamps",
+    to: "#",
   },
   {
     id: "profile",
     label: lang === "ar" ? "الملف الشخصي" : "Profile",
     to: "/student-profile",
-  },
-  {
-    id: "contact",
-    label: lang === "ar" ? "تواصل معنا" : "Contact",
-    to: "/contact",
   },
 ];
 
@@ -92,14 +92,32 @@ dir={t.dir}
 
         {/* Desktop Actions: Toggle + Auth */}
         <div className="hidden md:flex items-center gap-4 px-4">
+
+        <button
+  className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition"
+  title={lang === "ar" ? "السلة" : "Cart"}
+>
+  🛒
+</button>
+
+                 
+     <button
+  className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-100 transition"
+>
+  🌙
+</button>
+
+
           
           {/* Language Toggle (Desktop) */}
           <button 
             onClick={toggleLanguage}
             className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-extrabold text-xs px-3 py-1.5 rounded-full transition-all duration-200 cursor-pointer border border-gray-200 shadow-xs"
           >
+
             {lang === 'ar' ? 'EN' : 'AR'}
           </button>
+
 
           {showAuthButtons ? (
   <div className="flex items-center gap-3">
