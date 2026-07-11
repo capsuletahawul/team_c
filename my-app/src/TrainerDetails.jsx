@@ -7,71 +7,91 @@ import { getTrainerProfile } from './mocks/mockApi';
 import { PaperAirplaneIcon, UserIcon, EnvelopeIcon, ChatBubbleBottomCenterTextIcon, PhoneIcon, BriefcaseIcon, StarIcon as OutlineStar, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
 import { StarIcon as SolidStar } from '@heroicons/react/24/solid';
 
-// قواميس النصوص الثابتة والترجمة للواجهة
-const uiLabels = {
-  en: {
-    loading: 'Loading trainer profile data...', error: 'Failed to load trainer details.',
-    heroTitle: 'Trainer Profile', heroSub: 'Comprehensive review of trainer biographies, assigned technical courses, and global metrics.',
-    coursesTitle: 'Training Courses', thName: 'Course Name', thStudents: 'Number of Students', thStatus: 'Status', statusPub: 'Published', statusRev: 'Under Review',
-    reviewsTitle: 'Students Feedbacks & Reviews', rateTitle: 'Rate Your Experience with the Trainer', rateDesc: 'Click on the stars to instantly update the overall evaluation metrics.',
-    thankYou: 'Thank you for your active feedback!', notRated: 'No rating selected yet. Hover and click to test!', textSelection: 'Your current selection: ',
-    contactTitle: 'Direct Consultation & Message', contactSub: 'Have a corporate training inquiry? Drop a message directly to the trainer.',
-    msgSuccess: '✨ Your inquiry has been dispatched successfully!', labelName: 'Full Name', labelEmail: 'Email Address', labelMsg: 'Your Message', btnSend: 'Send Message Now'
-  },
-  ar: {
-    loading: 'جاري تحميل بيانات ملف المدرب الخبير...', error: 'فشل في تحميل تفاصيل المدرب، يرجى المحاولة لاحقاً.',
-    heroTitle: 'ملف المدرب الشخصي', heroSub: 'مراجعة شاملة للسيرة الذاتية للمدرب، الدورات التقنية المسندة إليه، والمقاييس العالمية.',
-    coursesTitle: 'الدورات التدريبية القائمة', thName: 'اسم الدورة التدريبية', thStudents: 'عدد الطلاب المسجلين', thStatus: 'الحالة الحالية', statusPub: 'منشورة حياً', statusRev: 'تحت المراجعة',
-    reviewsTitle: 'آراء وتقييمات الطلاب المتدربين', rateTitle: 'قيم تجربتك الحالية مع المدرب الخبير', rateDesc: 'انقر على النجوم لتحديث مقاييس التقييم الإجمالية فوراً وضمان الجودة الكلية للمنصة.',
-    thankYou: 'نشكرك على تقييمك الفعّال والدائم!', notRated: 'لم يتم اختيار أي تقييم بعد. مرر وانقر للتجربة المباشرة!', textSelection: 'اختيارك الحالي هو: ',
-    contactTitle: 'الاستشارة المباشرة وإرسال رسالة', contactSub: 'هل لديك استفسار حول تدريب مخصص للشركات؟ أرسل رسالة مباشرة إلى صندوق المدرب.',
-    msgSuccess: '✨ تم إرسال استفسارك بنجاح إلى المدرب!', labelName: 'الاسم الكامل', labelEmail: 'البريد الإلكتروني للاستجابة', labelMsg: 'تفاصيل رسالتك أو استشارتك', btnSend: 'إرسال الرسالة الآن'
-  }
-};
-
 export default function TrainerDetails() {
-  const { currentLang } = useLanguage();
-  const { trainerId } = useParams();
-  const isRtl = currentLang === 'ar';
-  const l = uiLabels[currentLang || 'en'];
+  // الاعتماد الكامل على الكونتيكست العالمي[cite: 5]
+  const { t, lang } = useLanguage();
+  
+  const l = t.trainerDetails || {
+    loading: lang === 'ar' ? 'جاري تحميل بيانات ملف المدرب الخبير...' : 'Loading trainer profile data...',
+    error: lang === 'ar' ? 'فشل في تحميل تفاصيل المدرب، يرجى المحاولة لاحقاً.' : 'Failed to load trainer details.',
+    heroTitle: lang === 'ar' ? 'ملف المدرب الشخصي' : 'Trainer Profile',
+    heroSub: lang === 'ar' ? 'مراجعة شاملة للسيرة الذاتية للمدرب، الدورات التقنية المسندة إليه، والمقاييس العالمية.' : 'Comprehensive review of trainer biographies, assigned technical courses, and global metrics.',
+    coursesTitle: lang === 'ar' ? 'الدورات التدريبية القائمة' : 'Training Courses',
+    thName: lang === 'ar' ? 'اسم الدورة التدريبية' : 'Course Name',
+    thStudents: lang === 'ar' ? 'عدد الطلاب المسجلين' : 'Number of Students',
+    thStatus: lang === 'ar' ? 'الحالة الحالية' : 'Status',
+    statusPub: lang === 'ar' ? 'منشورة حياً' : 'Published',
+    statusRev: lang === 'ar' ? 'تحت المراجعة' : 'Under Review',
+    reviewsTitle: lang === 'ar' ? 'آراء وتقييمات الطلاب المتدربين' : 'Students Feedbacks & Reviews',
+    rateTitle: lang === 'ar' ? 'قيم تجربتك الحالية مع المدرب الخبير' : 'Rate Your Experience with the Trainer',
+    rateDesc: lang === 'ar' ? 'انقر على النجوم لتحديث مقاييس التقييم الإجمالية فوراً وضمان الجودة الكلية للمنصة.' : 'Click on the stars to instantly update the overall evaluation metrics.',
+    thankYou: lang === 'ar' ? 'نشكرك على تقييمك الفعّال والدائم!' : 'Thank you for your active feedback!',
+    notRated: lang === 'ar' ? 'لم يتم اختيار أي تقييم بعد. مرر وانقر للتجربة المباشرة!' : 'No rating selected yet. Hover and click to test!',
+    textSelection: lang === 'ar' ? 'اختيارك الحالي هو: ' : 'Your current selection: ',
+    contactTitle: lang === 'ar' ? 'الاستشارة المباشرة وإرسال رسالة' : 'Direct Consultation & Message',
+    contactSub: lang === 'ar' ? 'هل لديك استفسار حول تدريب مخصص للشركات؟ أرسل رسالة مباشرة إلى صندوق المدرب.' : 'Have a corporate training inquiry? Drop a message directly to the trainer.',
+    msgSuccess: lang === 'ar' ? '✨ تم إرسال استفسارك بنجاح إلى المدرب!' : '✨ Your inquiry has been dispatched successfully!',
+    labelName: lang === 'ar' ? 'الاسم الكامل' : 'Full Name',
+    labelEmail: lang === 'ar' ? 'البريد الإلكتروني للاستجابة' : 'Email Address',
+    labelMsg: lang === 'ar' ? 'تفاصيل رسالتك أو استشارتك' : 'Your Message',
+    btnSend: lang === 'ar' ? 'إرسال الرسالة الآن' : 'Send Message Now',
+    bioTitle: lang === 'ar' ? 'السيرة المهنية' : 'Biography',
+    phoneTitle: lang === 'ar' ? 'رقم الهاتف' : 'Phone'
+  };
 
-  // الحالات البرمجية (States) للمكون
+  const { trainerId } = useParams();
+
+  const [rawData, setRawData] = useState(null);
   const [trainer, setTrainer] = useState(null);
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // حالة التقييم التفاعلي
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
   const [hasRated, setHasRated] = useState(false);
 
-  // حالة نموذج التواصل
   const [contactForm, setContactForm] = useState({ name: '', email: '', message: '' });
   const [showFormSuccess, setShowFormSuccess] = useState(false);
 
-  // جلب بيانات المدرب عند التحميل
   useEffect(() => {
+    let isMounted = true;
     async function fetchData() {
       try {
         setLoading(true);
-        const response = await getTrainerProfile(trainerId || 18);
-        if (response.success) {
-          setTrainer(response.data.profile);
+        const response = await getTrainerProfile(trainerId);
+        if (!isMounted) return;
+
+        if (response.success && response.data) {
+          setRawData(response.data);
           setCourses(response.data.courses || []);
         } else {
           setError(l.error);
         }
       } catch (err) {
-        setError(l.error);
+        if (isMounted) setError(l.error);
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     }
     fetchData();
-  }, [trainerId, currentLang]);
+    return () => { isMounted = false; };
+  }, [trainerId]);
 
-  // معالجة إرسال استمارة التواصل
+  // إصلاح آلية التحويل الفوري لبيانات المدرب بناءً على تغير متغيّر lang
+  useEffect(() => {
+    if (rawData) {
+      const isAr = lang === 'ar';
+      setTrainer({
+        fullName: isAr ? (rawData.nameAr || rawData.name) : (rawData.nameEn || rawData.name),
+        specialization: isAr ? (rawData.specialtyAr || rawData.specialty) : (rawData.specialtyEn || rawData.specialty),
+        bio: isAr ? (rawData.bioAr || rawData.bio) : (rawData.bioEn || rawData.bio),
+        email: rawData.email || "",
+        phone: rawData.phone || ""
+      });
+    }
+  }, [rawData, lang]);
+
   const handleContactSubmit = (e) => {
     e.preventDefault();
     setShowFormSuccess(true);
@@ -102,7 +122,7 @@ export default function TrainerDetails() {
   }
 
   return (
-    <div className={`min-h-screen bg-slate-50/50 font-sans text-slate-800 selection:bg-[#00A499]/10`} dir={isRtl ? 'rtl' : 'ltr'}>
+    <div className="min-h-screen bg-slate-50/50 font-sans text-slate-800 selection:bg-[#00A499]/10" dir={t.dir}>
       <Navbar />
 
       {/* Hero Cover Header */}
@@ -113,7 +133,7 @@ export default function TrainerDetails() {
             <span className="w-1.5 h-1.5 rounded-full bg-[#26FFE6] animate-pulse"></span>
             {l.heroTitle}
           </div>
-          <h1 className="text-3xl md:text-5xl font-black tracking-tight mb-3">{isRtl ? trainer.fullNameAr : trainer.fullNameEn}</h1>
+          <h1 className="text-3xl md:text-5xl font-black tracking-tight mb-3">{trainer.fullName}</h1>
           <p className="text-slate-300 max-w-3xl text-sm md:text-base font-semibold leading-relaxed">{l.heroSub}</p>
         </div>
       </div>
@@ -130,10 +150,10 @@ export default function TrainerDetails() {
               <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-[#00A499]/10 to-[#0D4C54]/5 flex items-center justify-center text-[#0D4C54] mb-4 relative group border border-slate-100">
                 <UserIcon className="w-12 h-12" />
               </div>
-              <h2 className="text-xl font-black text-slate-900">{isRtl ? trainer.fullNameAr : trainer.fullNameEn}</h2>
+              <h2 className="text-xl font-black text-slate-900">{trainer.fullName}</h2>
               <p className="text-xs font-bold text-[#00A499] bg-[#00A499]/5 px-3 py-1 rounded-md mt-2 flex items-center gap-1">
                 <BriefcaseIcon className="w-3.5 h-3.5" />
-                {isRtl ? trainer.specializationAr : trainer.specializationEn}
+                {trainer.specialization}
               </p>
             </div>
 
@@ -142,10 +162,10 @@ export default function TrainerDetails() {
               <div className="space-y-1.5">
                 <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
                   <ChatBubbleLeftRightIcon className="w-3.5 h-3.5" />
-                  {isRtl ? 'السيرة المهنية' : 'Biography'}
+                  {l.bioTitle}
                 </h3>
                 <p className="text-sm font-semibold text-slate-600 leading-relaxed">
-                  {isRtl ? trainer.bioAr : trainer.bioEn}
+                  {trainer.bio}
                 </p>
               </div>
             </div>
@@ -158,7 +178,7 @@ export default function TrainerDetails() {
               </div>
               <div className="flex items-center gap-3 text-slate-600 hover:text-slate-900 transition-colors">
                 <div className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 text-slate-400"><PhoneIcon className="w-4 h-4" /></div>
-                <div className="flex-1 min-w-0"><p className="text-xs font-bold text-slate-400">{isRtl ? 'رقم الهاتف' : 'Phone'}</p><p className="text-sm font-bold truncate" dir="ltr">{trainer.phone}</p></div>
+                <div className="flex-1 min-w-0"><p className="text-xs font-bold text-slate-400">{l.phoneTitle}</p><p className="text-sm font-bold truncate" dir="ltr">{trainer.phone}</p></div>
               </div>
             </div>
           </div>
@@ -179,7 +199,7 @@ export default function TrainerDetails() {
                 <table className="w-full border-collapse text-sm">
                   <thead>
                     <tr className="border-b border-slate-100 text-slate-400 text-xs font-bold bg-slate-50/20">
-                      <th className={`p-4 ${isRtl ? 'text-right' : 'text-left'}`}>{l.thName}</th>
+                      <th className={`p-4 ${lang === 'ar' ? 'text-right' : 'text-left'}`}>{l.thName}</th>
                       <th className="p-4 text-center">{l.thStudents}</th>
                       <th className="p-4 text-center">{l.thStatus}</th>
                     </tr>
@@ -187,8 +207,8 @@ export default function TrainerDetails() {
                   <tbody className="divide-y divide-slate-50 font-semibold text-slate-700">
                     {courses.map((course) => (
                       <tr key={course.id} className="hover:bg-slate-50/40 transition-colors">
-                        <td className="p-4 font-bold text-slate-900 max-w-xs md:max-w-sm truncate">{course.title}</td>
-                        <td className="p-4 text-center text-slate-500 font-mono">{course.students.toLocaleString()}</td>
+                        <td className="p-4 font-bold text-slate-900 max-w-xs md:max-w-sm truncate">{course.name || course.title}</td>
+                        <td className="p-4 text-center text-slate-500 font-mono">{course.students ? course.students.toLocaleString() : 0}</td>
                         <td className="p-4 text-center">
                           <span className={`inline-flex items-center gap-1 text-[11px] font-black px-2.5 py-1 rounded-full ${course.status === 'published' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-amber-50 text-amber-600 border border-amber-100'}`}>
                             <span className={`w-1.5 h-1.5 rounded-full ${course.status === 'published' ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>

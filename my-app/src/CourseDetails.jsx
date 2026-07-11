@@ -8,6 +8,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, Link } from "react-router-dom";
+import { useLanguage } from './context/LanguageContext'; // ربط الصفحة بالكونتيكست العالمي فوراً
 import StudentNavbar from "./components/StudentNavbar.jsx";
 import Footer from './components/Footer';
 import {
@@ -18,7 +19,7 @@ import {
 import { StarIcon, CalendarDaysIcon, ChartBarIcon, LanguageIcon, UsersIcon, CheckCircleIcon, SparklesIcon, CheckIcon } from '@heroicons/react/24/solid';
 
 // نستورد فقط دالة الجلب من الـ API + نصوص التنقل العامة (Nav) - لا نستورد أي محتوى خاص بكورس معيّن
-import { navTranslations, getCourseDetails } from "./mocks/mockApi";
+import { getCourseDetails } from "./mocks/mockApi";
 
 // نصوص الواجهة الثابتة (أزرار وعناوين أقسام) - عامة لكل الكورسات، وليست بيانات كورس
 const uiText = {
@@ -56,10 +57,12 @@ const uiText = {
 
 export default function CourseDetails() {
   const { id } = useParams();
-  const [lang, setLang] = useState('ar');
-  const t = navTranslations[lang];
-  const ui = uiText[lang];
+  
+  // الاعتماد المباشر على اللغة العالمية من الكونتيكست للاستجابة الفورية عند الضغط على الزر
+  const { lang, t } = useLanguage(); 
+  const ui = uiText[lang] || uiText['ar'];
 
+  const [rawData, setRawData] = useState(null);
   const [course, setCourse] = useState(null);
   const [status, setStatus] = useState('loading'); // loading | success | not_found
 
@@ -73,10 +76,10 @@ export default function CourseDetails() {
       if (!isMounted) return;
 
       if (response.success) {
-        setCourse(response.data);
+        setRawData(response.data);
         setStatus('success');
       } else {
-        setCourse(null);
+        setRawData(null);
         setStatus('not_found');
       }
     }
@@ -84,6 +87,58 @@ export default function CourseDetails() {
     loadCourse();
     return () => { isMounted = false; };
   }, [id]);
+
+  // عمل تأثير جانبي لتحويل نصوص الكورس البرمجية القادمة من الموك فوراً بمجرد تغير لغة الكونتيكست
+  useEffect(() => {
+    if (rawData) {
+      const isAr = lang === 'ar';
+      setCourse({
+        ...rawData,
+        title: isAr ? (rawData.titleAr || rawData.title) : (rawData.titleEn || rawData.title),
+        category: isAr ? (rawData.categoryAr || rawData.category) : (rawData.categoryEn || rawData.category),
+        description: isAr ? (rawData.descriptionAr || rawData.description) : (rawData.descriptionEn || rawData.description),
+        subtitle: isAr ? (rawData.subtitleAr || rawData.subtitle) : (rawData.subtitleEn || rawData.subtitle),
+        instructor: isAr ? (rawData.instructorAr || rawData.instructor) : (rawData.instructorEn || rawData.instructor),
+        level: isAr ? (rawData.levelAr || rawData.level) : (rawData.levelEn || rawData.level),
+        language: isAr ? (rawData.languageAr || rawData.language) : (rawData.languageEn || rawData.language),
+        duration: isAr ? (rawData.durationAr || rawData.duration) : (rawData.durationEn || rawData.duration),
+        updated: isAr ? (rawData.updatedAr || rawData.updated) : (rawData.updatedEn || rawData.updated),
+        outcomes: isAr ? (rawData.outcomesAr || rawData.outcomes || []) : (rawData.outcomesEn || rawData.outcomes || []),
+        
+        instructorProfile: rawData.instructorProfile ? {
+          role: isAr ? (rawData.instructorProfile.roleAr || rawData.instructorProfile.role) : (rawData.instructorProfile.roleEn || rawData.instructorProfile.role),
+          bio: isAr ? (rawData.instructorProfile.bioAr || rawData.instructorProfile.bio) : (rawData.instructorProfile.bioEn || rawData.instructorProfile.bio),
+          avatarLabel: rawData.instructorProfile.avatarLabel || "",
+          ratingText: isAr ? (rawData.instructorProfile.ratingTextAr || rawData.instructorProfile.ratingText) : (rawData.instructorProfile.ratingTextEn || rawData.instructorProfile.ratingText),
+          studentsText: isAr ? (rawData.instructorProfile.studentsTextAr || rawData.instructorProfile.studentsText) : (rawData.instructorProfile.studentsTextEn || rawData.instructorProfile.studentsText),
+          skills: isAr ? (rawData.instructorProfile.skillsAr || rawData.instructorProfile.skills || []) : (rawData.instructorProfile.skillsEn || rawData.instructorProfile.skills || [])
+        } : null,
+
+        requirements: (rawData.requirements || []).map(req => ({
+          ...req,
+          title: isAr ? (req.titleAr || req.title) : (req.titleEn || req.title),
+          desc: isAr ? (req.descAr || req.desc) : (req.descEn || req.desc)
+        })),
+
+        curriculum: (rawData.curriculum || []).map(curr => ({
+          ...curr,
+          week: isAr ? (curr.weekAr || curr.week) : (curr.weekEn || curr.week),
+          title: isAr ? (curr.titleAr || curr.title) : (curr.titleEn || curr.title),
+          duration: isAr ? (curr.durationAr || curr.duration) : (curr.durationEn || curr.duration),
+          topics: (curr.topics || []).map(topic => ({
+            ...topic,
+            name: isAr ? (topic.nameAr || topic.name) : (topic.nameEn || topic.name),
+            duration: isAr ? (topic.durationAr || topic.duration) : (topic.durationEn || topic.duration)
+          }))
+        })),
+
+        enrollment: rawData.enrollment ? {
+          features: isAr ? (rawData.enrollment.featuresAr || rawData.enrollment.features || []) : (rawData.enrollment.featuresEn || rawData.enrollment.features || []),
+          timer: isAr ? (rawData.enrollment.timerAr || rawData.enrollment.timer) : (rawData.enrollment.timerEn || rawData.enrollment.timer)
+        } : null
+      });
+    }
+  }, [rawData, lang]);
 
   const isRTL = lang === 'ar';
 
@@ -233,7 +288,14 @@ function CourseOverview({ ui, course }) {
 // 4. مكون المنهج الدراسي المتفاعل (Accordion) - من curriculum الخاصة بالكورس
 function CourseCurriculum({ ui, course }) {
   const modules = course.curriculum || [];
-  const [expanded, setExpanded] = useState(modules.length ? [modules[0].id] : []);
+  const [expanded, setExpanded] = useState([]);
+
+  // تحديث الموديول المفتوح تلقائياً عند تحميل الكورس لأول مرة
+  useEffect(() => {
+    if (modules.length && expanded.length === 0) {
+      setExpanded([modules[0].id]);
+    }
+  }, [modules]);
 
   if (modules.length === 0) return null;
 

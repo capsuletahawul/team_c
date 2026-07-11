@@ -410,7 +410,7 @@ export const enrollmentData = {
     btnText: 'Secure Your Spot', timer: 'Enrollment closes in: 04:12:45'
   },
   ar: {
-    price: '1,899 ر.س', originalPrice: '3,499 ر.س', discount: 'خصم 45%', title: 'جاهز لبدء رحلة التحول؟',
+    price: '1,899 ر.س', originalPrice: '3,499 ر.س', discount: 'خصم 45%', title: 'جاهز لبدء رحلة التحول？',
     features: ['8 أسابيع تدريب مكثف', 'جلسات توجيه مباشرة', 'دعم التوظيف الاحترافي', 'وصول دائم للمحتوى'],
     btnText: 'احجز مقعدك الآن', timer: 'ينتهي التسجيل خلال: 04:12:45'
   }
@@ -520,7 +520,7 @@ export async function getCourses(filters = {}) {
   };
 }
 
-export async function getCourseDetails(courseId) {
+export async function getCourseDetails(courseId, locale = 'en') {
   await delay(400);
   const course = mockCourses.find(c => c.id === parseInt(courseId));
   
@@ -532,7 +532,32 @@ export async function getCourseDetails(courseId) {
     };
   }
 
-  return { success: true, data: course };
+  // If requesting the translation-supported Advanced GenAI bootcamp (ID 15 or similar mock matching), inject localizations
+  const lang = locale === 'ar' ? 'ar' : 'en';
+  const localizedHero = courseHeroData[lang];
+  const localizedCurriculum = curriculumData[lang];
+  const localizedOverview = overviewData[lang];
+  const localizedRequirements = requirementsData[lang];
+  const localizedEnrollment = enrollmentData[lang];
+  const localizedInstructor = instructorData[lang];
+
+  // Return the base data merged with responsive structural translations
+  return { 
+    success: true, 
+    data: {
+      ...course,
+      title: localizedHero.title || course.title,
+      subtitle: localizedHero.subtitle || course.subtitle,
+      category: localizedHero.category || course.category,
+      outcomes: localizedOverview.outcomes || course.outcomes,
+      // Inject translated modular curriculum structure
+      translatedCurriculum: localizedCurriculum,
+      translatedRequirements: localizedRequirements,
+      translatedEnrollment: localizedEnrollment,
+      translatedInstructor: localizedInstructor,
+      currentLocale: lang
+    }
+  };
 }
 
 // ============================================================================
