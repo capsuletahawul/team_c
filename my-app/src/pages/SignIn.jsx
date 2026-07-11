@@ -46,9 +46,9 @@ const handleLogin = (e) => {
     return;
   }
 
-  // Company
+  // Company — Successfully updated to hit the dashboard directly
   if (email === "company@test.com" && password === "123456") {
-    navigate("/business-contract");
+    navigate("/company-dashboard"); 
     return;
   }
 
