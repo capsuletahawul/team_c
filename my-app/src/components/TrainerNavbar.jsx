@@ -17,18 +17,14 @@ const navLinks = [
   {
     id: "courses",
     label: lang === "ar" ? "دوراتي" : "My Courses",
-    to: "/courses-overview",
+    to: "#",
   },
   {
     id: "profile",
     label: lang === "ar" ? "ملفي الشخصي" : "My Profile",
     to: "/trainer-profile",
   },
-  {
-    id: "contact",
-    label: lang === "ar" ? "تواصل معنا" : "Contact",
-    to: "/contact",
-  },
+  
 ];
 
   return (
@@ -100,6 +96,12 @@ dir={t.dir}
           >
             {lang === 'ar' ? 'EN' : 'AR'}
           </button>
+
+<button
+  className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-100 transition"
+>
+  🌙
+</button>
 
           {showAuthButtons ? (
   <div className="flex items-center gap-3">
