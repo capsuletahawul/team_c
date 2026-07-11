@@ -1,22 +1,17 @@
 import React from 'react';
 import { useLanguage } from '../context/LanguageContext';
-
 import { Link } from "react-router-dom";
 
 function Footer() {
   const { t } = useLanguage();
 
-  // Dynamic classes for the input/button corners based on direction
-  const inputCorners = t.dir === 'rtl' ? 'rounded-r-xl' : 'rounded-l-xl';
-  const buttonCorners = t.dir === 'rtl' ? 'rounded-l-xl' : 'rounded-r-xl';
-
   return (
     <footer className="bg-capsule-footer text-white pt-12 pb-6 px-8 mt-24 border-t border-capsule-teal/20 font-sans" dir={t.dir}>
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 text-sm pb-8 border-b border-white/10">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 text-sm pb-8 border-b border-white/10">
         
         {/* Brand & Description */}
         <div>
-          <h3 className="text-base font-black mb-3">🎓 {t.brand}</h3>
+          <h3 className="text-base font-black mb-3">🚀 {t.brand}</h3>
           <p className="text-gray-300 text-xs leading-relaxed">
             {t.footer.desc}
           </p>
@@ -24,54 +19,66 @@ function Footer() {
 
         {/* Quick Links */}
         <ul className="space-y-2 text-xs text-gray-300">
-  <li>
-    <Link to="/" className="hover:text-capsule-gold transition">
-      {t.footer.home}
-    </Link>
-  </li>
-
-  <li>
-    <Link to="/courses-overview" className="hover:text-capsule-gold transition">
-      {t.footer.courses}
-    </Link>
-  </li>
-
-  <li>
-    <Link to="/contact" className="hover:text-capsule-gold transition">
-      {t.footer.howItWorks}
-    </Link>
-  </li>
-
-  <li>
-    <Link to="/contact" className="hover:text-capsule-gold transition">
-      {t.footer.contact}
-    </Link>
-  </li>
-</ul>
+          <li>
+            <Link to="/" className="hover:text-capsule-gold transition">
+              {t.footer.home}
+            </Link>
+          </li>
+          <li>
+            <Link to="/courses-overview" className="hover:text-capsule-gold transition">
+              {t.footer.courses}
+            </Link>
+          </li>
+          <li>
+            <Link to="/contact" className="hover:text-capsule-gold transition">
+              {t.footer.howItWorks}
+            </Link>
+          </li>
+          <li>
+            <Link to="/contact" className="hover:text-capsule-gold transition">
+              {t.footer.contact}
+            </Link>
+          </li>
+        </ul>
 
         {/* Social Media */}
         <div>
-          <h4 className="font-bold mb-3 text-capsule-gold text-xs uppercase tracking-wider">{t.footer.social}</h4>
-          <div className={`flex space-x-3 text-lg ${t.dir === 'rtl' ? 'space-x-reverse' : ''}`}>
-            <a href="#" className="hover:text-capsule-gold transition">𝕏</a>
-            <a href="#" className="hover:text-capsule-gold transition">💼</a>
-            <a href="#" className="hover:text-capsule-gold transition">📸</a>
-            <a href="#" className="hover:text-capsule-gold transition">🎥</a>
-          </div>
-        </div>
-
-        {/* Newsletter */}
-        <div>
-          <h4 className="font-bold mb-3 text-capsule-gold text-xs">{t.footer.newsletter}</h4>
-          <div className="flex">
-            <input 
-              type="email" 
-              placeholder={t.footer.emailPh} 
-className={`px-4 py-2.5 w-full bg-white text-gray-800 text-sm placeholder-gray-400 border border-gray-300 ${inputCorners}`} ></input>            
+          <h4 className="font-bold mb-4 text-capsule-gold text-xs uppercase tracking-wider">{t.footer.social}</h4>
+          {/* استخدام gap-5 يضمن مسافات متساوية تماماً بين الأيقونات */}
+          <div className="flex items-center gap-5">
             
-            <button className={`bg-capsule-gold text-capsule-navy font-bold text-xs px-4 hover:bg-yellow-500 transition cursor-pointer ${buttonCorners}`}>
-              {t.footer.subscribe}
-            </button>
+            {/* Instagram */}
+            <a href="#" className="text-white hover:text-capsule-gold transition duration-300 flex items-center justify-center">
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+              </svg>
+            </a>
+
+            {/* TikTok */}
+            <a href="#" className="text-white hover:text-capsule-gold transition duration-300 flex items-center justify-center">
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"></path>
+              </svg>
+            </a>
+
+            {/* X (Twitter) */}
+            <a href="#" className="text-white hover:text-capsule-gold transition duration-300 flex items-center justify-center">
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+              </svg>
+            </a>
+
+            {/* LinkedIn */}
+            <a href="#" className="text-white hover:text-capsule-gold transition duration-300 flex items-center justify-center">
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+                <rect x="2" y="9" width="4" height="12"></rect>
+                <circle cx="4" cy="4" r="2"></circle>
+              </svg>
+            </a>
+            
           </div>
         </div>
 

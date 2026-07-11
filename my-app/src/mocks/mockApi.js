@@ -1,8 +1,7 @@
 /**
  * Capsule Tahawul Mock API Layer
  * Location: src/mocks/mockApi.js
- * 
- * This file simulates a backend database and server processing environment.
+ * * This file simulates a backend database and server processing environment.
  * Every response strictly adheres to the mandated bootcamp envelope format.
  */
 
@@ -326,7 +325,7 @@ export const curriculumData = {
         topics: [
           { type: 'video', name: 'قواعد البيانات المتجهة (Vector DBs) واستراتيجيات تقسيم النصوص', duration: '60 دقيقة' },
           { type: 'code', name: 'معمل عملي: بناء خطوط البحث الهجين (Hybrid Search Pipelines)', duration: '4 ساعات' },
-          { type: 'code', name: 'مشروع: تنفيذ أنظمة إعادة الترتيب (Re-ranking) وتوسيع الاستعلام', duration: '6 ساعات' }
+          { type: 'مشروع: تنفيذ أنظمة إعادة الترتيب (Re-ranking) وتوسيع الاستعلام', duration: '6 ساعات' }
         ]
       },
       {
@@ -411,7 +410,7 @@ export const enrollmentData = {
     btnText: 'Secure Your Spot', timer: 'Enrollment closes in: 04:12:45'
   },
   ar: {
-    price: '1,899 ر.س', originalPrice: '3,499 ر.س', discount: 'خصم 45%', title: 'جاهز لبدء رحلة التحول؟',
+    price: '1,899 ر.س', originalPrice: '3,499 ر.س', discount: 'خصم 45%', title: 'جاهز لبدء رحلة التحول？',
     features: ['8 أسابيع تدريب مكثف', 'جلسات توجيه مباشرة', 'دعم التوظيف الاحترافي', 'وصول دائم للمحتوى'],
     btnText: 'احجز مقعدك الآن', timer: 'ينتهي التسجيل خلال: 04:12:45'
   }
@@ -521,7 +520,7 @@ export async function getCourses(filters = {}) {
   };
 }
 
-export async function getCourseDetails(courseId) {
+export async function getCourseDetails(courseId, locale = 'en') {
   await delay(400);
   const course = mockCourses.find(c => c.id === parseInt(courseId));
   
@@ -533,7 +532,32 @@ export async function getCourseDetails(courseId) {
     };
   }
 
-  return { success: true, data: course };
+  // If requesting the translation-supported Advanced GenAI bootcamp (ID 15 or similar mock matching), inject localizations
+  const lang = locale === 'ar' ? 'ar' : 'en';
+  const localizedHero = courseHeroData[lang];
+  const localizedCurriculum = curriculumData[lang];
+  const localizedOverview = overviewData[lang];
+  const localizedRequirements = requirementsData[lang];
+  const localizedEnrollment = enrollmentData[lang];
+  const localizedInstructor = instructorData[lang];
+
+  // Return the base data merged with responsive structural translations
+  return { 
+    success: true, 
+    data: {
+      ...course,
+      title: localizedHero.title || course.title,
+      subtitle: localizedHero.subtitle || course.subtitle,
+      category: localizedHero.category || course.category,
+      outcomes: localizedOverview.outcomes || course.outcomes,
+      // Inject translated modular curriculum structure
+      translatedCurriculum: localizedCurriculum,
+      translatedRequirements: localizedRequirements,
+      translatedEnrollment: localizedEnrollment,
+      translatedInstructor: localizedInstructor,
+      currentLocale: lang
+    }
+  };
 }
 
 // ============================================================================
@@ -728,15 +752,6 @@ export async function getAdminDashboardMetrics() {
   };
 }
 
-
-
-
-
-
-
-
-
-
 // ============================================================================
 // MODULE 9: TRAINER PROFILE
 // ============================================================================
@@ -760,10 +775,6 @@ const genericTrainerReviews = [
   { id: 1, name: "Khalid", rating: 5, date: "2026-07-01", comment: "Excellent trainer, very clear explanations." },
   { id: 2, name: "Lama", rating: 4, date: "2026-07-03", comment: "Very informative and well-structured sessions." },
 ];
-
-// Edits made via updateTrainerProfile() are stored here, keyed by trainerId,
-// and layered on top of the derived profile (in-memory only, resets on reload).
-let trainerProfileOverrides = {};
 
 function buildTrainerProfile(trainerId) {
   const trainerCourses = mockCourses.filter(c => c.trainerId === trainerId);
@@ -803,8 +814,7 @@ function buildTrainerProfile(trainerId) {
     reviews: genericTrainerReviews,
   };
 
-  // Apply any in-memory edits saved via updateTrainerProfile()
-  return { ...derivedProfile, ...trainerProfileOverrides[trainerId] };
+  return derivedProfile;
 }
 
 export async function getTrainerProfile(trainerId) {
@@ -822,15 +832,5 @@ export async function getTrainerProfile(trainerId) {
     };
   }
 
-  return { success: true, data: profile };
-}
-
-export async function updateTrainerProfile(payload, trainerId) {
-  await delay(500);
-
-  const id = trainerId || mockCourses.find(c => c.trainerId)?.trainerId;
-  trainerProfileOverrides[id] = { ...trainerProfileOverrides[id], ...payload };
-
-  const profile = buildTrainerProfile(id);
   return { success: true, data: profile };
 }
