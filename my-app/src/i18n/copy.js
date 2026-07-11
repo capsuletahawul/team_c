@@ -174,10 +174,6 @@ admin: {
       error: "فشل في تحميل تفاصيل المدرب، يرجى المحاولة لاحقاً.",
       heroTitle: "ملف المدرب الشخصي",
       heroSub: "مراجعة شاملة للسيرة الذاتية للمدرب، الدورات التقنية المسندة إليه، والمقاييس العالمية.",
-      editBtn: "تعديل الملف الشخصي",
-      saveBtn: "حفظ التغييرات",
-      cancelBtn: "إلغاء",
-      saving: "جاري الحفظ...",
       coursesTitle: "الدورات التدريبية القائمة",
       thName: "اسم الدورة التدريبية",
       thStudents: "عدد الطلاب المسجلين",
@@ -191,7 +187,7 @@ admin: {
       notRated: "لم يتم اختيار أي تقييم بعد. مرر وانقر للتجربة المباشرة!",
       textSelection: "اختيارك الحالي هو: ",
       contactTitle: "الاستشارة المباشرة وإرسال رسالة",
-      contactSub: "هل لديك استفسار حول تدريب مخصص للشركات؟ أرسل رسالة مباشرة إلى صندوق المدرب.",
+      contactSub: "هل لديك استفسار حول تدريب مخصص للشركات? أرسل رسالة مباشرة إلى صندوق المدرب.",
       msgSuccess: "✨ تم إرسال استفسارك بنجاح إلى المدرب!",
       labelName: "الاسم الكامل",
       labelEmail: "البريد الإلكتروني للاستجابة",
@@ -629,7 +625,7 @@ trainerDashboard: {
 businessForm: {
   hero: {
     title: "طلب شراكة مع شركة",
-    subtitle: "املأ النموذج التالي وسيتواصل معك فريق كبسولة تحول."
+    subtitle: "ملأ النموذج التالي وسيتواصل معك فريق كبسولة تحول."
   },
 
   form: {
@@ -839,10 +835,6 @@ businessForm: {
       error: "Failed to load trainer details.",
       heroTitle: "Trainer Profile",
       heroSub: "Comprehensive review of trainer biographies, assigned technical courses, and global metrics.",
-      editBtn: "Edit Profile",
-      saveBtn: "Save Changes",
-      cancelBtn: "Cancel",
-      saving: "Saving...",
       coursesTitle: "Training Courses",
       thName: "Course Name",
       thStudents: "Number of Students",

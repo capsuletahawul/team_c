@@ -1,8 +1,7 @@
 /**
  * Capsule Tahawul Mock API Layer
  * Location: src/mocks/mockApi.js
- * 
- * This file simulates a backend database and server processing environment.
+ * * This file simulates a backend database and server processing environment.
  * Every response strictly adheres to the mandated bootcamp envelope format.
  */
 
@@ -326,7 +325,7 @@ export const curriculumData = {
         topics: [
           { type: 'video', name: 'قواعد البيانات المتجهة (Vector DBs) واستراتيجيات تقسيم النصوص', duration: '60 دقيقة' },
           { type: 'code', name: 'معمل عملي: بناء خطوط البحث الهجين (Hybrid Search Pipelines)', duration: '4 ساعات' },
-          { type: 'code', name: 'مشروع: تنفيذ أنظمة إعادة الترتيب (Re-ranking) وتوسيع الاستعلام', duration: '6 ساعات' }
+          { type: 'مشروع: تنفيذ أنظمة إعادة الترتيب (Re-ranking) وتوسيع الاستعلام', duration: '6 ساعات' }
         ]
       },
       {
@@ -728,15 +727,6 @@ export async function getAdminDashboardMetrics() {
   };
 }
 
-
-
-
-
-
-
-
-
-
 // ============================================================================
 // MODULE 9: TRAINER PROFILE
 // ============================================================================
@@ -760,10 +750,6 @@ const genericTrainerReviews = [
   { id: 1, name: "Khalid", rating: 5, date: "2026-07-01", comment: "Excellent trainer, very clear explanations." },
   { id: 2, name: "Lama", rating: 4, date: "2026-07-03", comment: "Very informative and well-structured sessions." },
 ];
-
-// Edits made via updateTrainerProfile() are stored here, keyed by trainerId,
-// and layered on top of the derived profile (in-memory only, resets on reload).
-let trainerProfileOverrides = {};
 
 function buildTrainerProfile(trainerId) {
   const trainerCourses = mockCourses.filter(c => c.trainerId === trainerId);
@@ -803,8 +789,7 @@ function buildTrainerProfile(trainerId) {
     reviews: genericTrainerReviews,
   };
 
-  // Apply any in-memory edits saved via updateTrainerProfile()
-  return { ...derivedProfile, ...trainerProfileOverrides[trainerId] };
+  return derivedProfile;
 }
 
 export async function getTrainerProfile(trainerId) {
@@ -822,15 +807,5 @@ export async function getTrainerProfile(trainerId) {
     };
   }
 
-  return { success: true, data: profile };
-}
-
-export async function updateTrainerProfile(payload, trainerId) {
-  await delay(500);
-
-  const id = trainerId || mockCourses.find(c => c.trainerId)?.trainerId;
-  trainerProfileOverrides[id] = { ...trainerProfileOverrides[id], ...payload };
-
-  const profile = buildTrainerProfile(id);
   return { success: true, data: profile };
 }
