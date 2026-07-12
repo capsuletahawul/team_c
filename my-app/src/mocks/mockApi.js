@@ -834,3 +834,38 @@ export async function getTrainerProfile(trainerId) {
 
   return { success: true, data: profile };
 }
+// ============================================================================
+// MODULE 10: ADMIN IAM & USER MANAGEMENT DATA
+// ============================================================================
+
+let mockUsersPermissions = [
+  { id: 'USR-882', name: 'أحمد Mohammed', email: 'ahmed@capsule.com', role: 'Trainer', status: 'active' },
+  { id: 'USR-412', name: 'Alex Mercer', email: 'alex.mercer@corporate.com', role: 'Student', status: 'active' },
+  { id: 'USR-109', name: 'شركة التقنية المحدودة', email: 'b2b@tech.com', role: 'Company', status: 'active' },
+  { id: 'USR-554', name: 'سارة Ali', email: 'sara@capsule.com', role: 'Trainer', status: 'suspended' }
+];
+
+export async function getAllUsersForAdmin() {
+  await delay(300);
+  return { success: true, data: mockUsersPermissions };
+}
+
+export async function updateUserRoleInMock(userId, newRole) {
+  await delay(200);
+  mockUsersPermissions = mockUsersPermissions.map(user => 
+    user.id === userId ? { ...user, role: newRole } : user
+  );
+  return { success: true };
+}
+
+export async function toggleUserStatusInMock(userId) {
+  await delay(200);
+  mockUsersPermissions = mockUsersPermissions.map(user => {
+    if (user.id === userId) {
+      const nextStatus = user.status === 'active' ? 'suspended' : 'active';
+      return { ...user, status: nextStatus };
+    }
+    return user;
+  });
+  return { success: true };
+}
