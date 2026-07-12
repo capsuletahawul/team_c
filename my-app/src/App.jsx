@@ -13,10 +13,11 @@ import AdminDashboard from './pages/AdminDashboard.jsx';
 import TrainerDashboard from './pages/TrainerDashboard.jsx';
 import SignInSignUpApproval from './pages/CoursesApproval.jsx';
 import CourseDetails from './pages/CourseDetails.jsx';
-import CoursesOverview from './pages/CoursesOverview.jsx';
+import CoursesOverview from "./pages/CoursesOverview.jsx";
 import StudentCoursesOverview from './pages/StudentCoursesOverview.jsx';
 import Contact from './pages/Contact.jsx';
 import Cart from './pages/Cart.jsx';
+import ForgotPassword from "./pages/ForgotPassword";
 // Import the new CompanyDashboard component
 import CompanyDashboard from './pages/CompanyDashboard.jsx'; 
 
@@ -113,10 +114,10 @@ function App() {
         <Route path="/sign-up" element={<SignUpRoute />} />
         <Route path="/student-dashboard" element={<StudentDashboardRoute />} />
         <Route path="/student-profile" element={<StudentProfileRoute />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
         
         {/* Added route for the Company Dashboard */}
         <Route path="/company-dashboard" element={<CompanyDashboard />} /> 
-        
         <Route path="/trainer-details/:trainerId" element={<TrainerDetails />} />
         <Route path="/trainer-details" element={<TrainerDetails />} />
         <Route path="/trainer-profile" element={<TrainerProfile />} />
