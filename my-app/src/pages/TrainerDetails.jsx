@@ -3,304 +3,292 @@ import { useParams } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import Navbar from '../components/Navbar.jsx';
 import Footer from '../components/Footer.jsx';
-import { getTrainerProfile, updateTrainerProfile } from '../mocks/mockApi.js';
+import { getTrainerProfile} from '../mocks/mockApi.js';
 import { PaperAirplaneIcon, UserIcon, EnvelopeIcon, ChatBubbleBottomCenterTextIcon, PhoneIcon, BriefcaseIcon, StarIcon as OutlineStar, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
 import { StarIcon as SolidStar } from '@heroicons/react/24/solid';
 
-// قواميس النصوص الثابتة والترجمة للواجهة
-const uiLabels = {
-  en: {
-    loading: 'Loading trainer profile data...', error: 'Failed to load trainer details.',
-    heroTitle: 'Trainer Profile', heroSub: 'Comprehensive review of trainer biographies, assigned technical courses, and global metrics.',
-    editBtn: 'Edit Profile', saveBtn: 'Save Changes', cancelBtn: 'Cancel', saving: 'Saving...',
-    coursesTitle: 'Training Courses', thName: 'Course Name', thStudents: 'Number of Students', thStatus: 'Status', statusPub: 'Published', statusRev: 'Under Review',
-    reviewsTitle: 'Students Feedbacks & Reviews', rateTitle: 'Rate Your Experience with the Trainer', rateDesc: 'Click on the stars to instantly update the overall evaluation metrics.',
-    thankYou: 'Thank you for your active feedback!', notRated: 'No rating selected yet. Hover and click to test!', textSelection: 'Your current selection: ',
-    contactTitle: 'Direct Consultation & Message', contactSub: 'Have a corporate training inquiry? Drop a message directly to the trainer.',
-    msgSuccess: '✨ Your inquiry has been dispatched successfully!', labelName: 'Full Name', labelEmail: 'Email Address', labelMsg: 'Your Message', btnSend: 'Send Message Now'
-  },
-  ar: {
-    loading: 'جاري جلب بيانات المدرب والتأكد من الاتصال...', error: 'عذراً، فشل تحميل بيانات المدرب الحالية.',
-    heroTitle: 'الملف الشخصي للمدرب', heroSub: 'استعراض بيانات المدرب والدورات والإحصائيات الخاصة به.',
-    editBtn: 'تعديل الملف الشخصي', saveBtn: 'حفظ التغييرات', cancelBtn: 'إلغاء', saving: 'جاري الحفظ...',
-    coursesTitle: 'الدورات التدريبية', thName: 'اسم الدورة', thStudents: 'عدد الطلاب', thStatus: 'الحالة', statusPub: 'منشور', statusRev: 'قيد المراجعة',
-    reviewsTitle: 'آراء وتقييمات الطلاب', rateTitle: 'قيّم تجربتك التدريبية مع المدرب', rateDesc: 'اضغط على النجوم لتحديث التقييم الفوري على لوحة التحكم التفاعلية للمستخدم.',
-    thankYou: 'شكراً جزيلاً على تقييمك ومشاركتك الفعّالة!', notRated: 'لم تختر أي تقييم بعد. مرر الماوس واضغط للتقييم!', textSelection: 'اختيارك الحالي: ',
-    contactTitle: 'طلب استشارة أو رسالة مباشرة', contactSub: 'هل لديك استفسار حول تدريب الشركات؟ أرسل رسالتك مباشرة إلى المدرب.',
-    msgSuccess: '✨ تم إرسال طلب الاستشارة الخاص بك بنجاح إلى المدرب!', labelName: 'الاسم الكامل', labelEmail: 'البريد الإلكتروني', labelMsg: 'نص الرسالة أو تفاصيل الاستشارة', btnSend: 'إرسال الرسالة الآن'
-  }
-};
-
-const starIndices = [1, 2, 3, 4, 5];
-
 export default function TrainerDetails() {
+  // الاعتماد الكامل على الكونتيكست العالمي[cite: 5]
+  const { t, lang } = useLanguage();
+  
+  const l = t.trainerDetails || {
+    loading: lang === 'ar' ? 'جاري تحميل بيانات ملف المدرب الخبير...' : 'Loading trainer profile data...',
+    error: lang === 'ar' ? 'فشل في تحميل تفاصيل المدرب، يرجى المحاولة لاحقاً.' : 'Failed to load trainer details.',
+    heroTitle: lang === 'ar' ? 'ملف المدرب الشخصي' : 'Trainer Profile',
+    heroSub: lang === 'ar' ? 'مراجعة شاملة للسيرة الذاتية للمدرب، الدورات التقنية المسندة إليه، والمقاييس العالمية.' : 'Comprehensive review of trainer biographies, assigned technical courses, and global metrics.',
+    coursesTitle: lang === 'ar' ? 'الدورات التدريبية القائمة' : 'Training Courses',
+    thName: lang === 'ar' ? 'اسم الدورة التدريبية' : 'Course Name',
+    thStudents: lang === 'ar' ? 'عدد الطلاب المسجلين' : 'Number of Students',
+    thStatus: lang === 'ar' ? 'الحالة الحالية' : 'Status',
+    statusPub: lang === 'ar' ? 'منشورة حياً' : 'Published',
+    statusRev: lang === 'ar' ? 'تحت المراجعة' : 'Under Review',
+    reviewsTitle: lang === 'ar' ? 'آراء وتقييمات الطلاب المتدربين' : 'Students Feedbacks & Reviews',
+    rateTitle: lang === 'ar' ? 'قيم تجربتك الحالية مع المدرب الخبير' : 'Rate Your Experience with the Trainer',
+    rateDesc: lang === 'ar' ? 'انقر على النجوم لتحديث مقاييس التقييم الإجمالية فوراً وضمان الجودة الكلية للمنصة.' : 'Click on the stars to instantly update the overall evaluation metrics.',
+    thankYou: lang === 'ar' ? 'نشكرك على تقييمك الفعّال والدائم!' : 'Thank you for your active feedback!',
+    notRated: lang === 'ar' ? 'لم يتم اختيار أي تقييم بعد. مرر وانقر للتجربة المباشرة!' : 'No rating selected yet. Hover and click to test!',
+    textSelection: lang === 'ar' ? 'اختيارك الحالي هو: ' : 'Your current selection: ',
+    contactTitle: lang === 'ar' ? 'الاستشارة المباشرة وإرسال رسالة' : 'Direct Consultation & Message',
+    contactSub: lang === 'ar' ? 'هل لديك استفسار حول تدريب مخصص للشركات؟ أرسل رسالة مباشرة إلى صندوق المدرب.' : 'Have a corporate training inquiry? Drop a message directly to the trainer.',
+    msgSuccess: lang === 'ar' ? '✨ تم إرسال استفسارك بنجاح إلى المدرب!' : '✨ Your inquiry has been dispatched successfully!',
+    labelName: lang === 'ar' ? 'الاسم الكامل' : 'Full Name',
+    labelEmail: lang === 'ar' ? 'البريد الإلكتروني للاستجابة' : 'Email Address',
+    labelMsg: lang === 'ar' ? 'تفاصيل رسالتك أو استشارتك' : 'Your Message',
+    btnSend: lang === 'ar' ? 'إرسال الرسالة الآن' : 'Send Message Now',
+    bioTitle: lang === 'ar' ? 'السيرة المهنية' : 'Biography',
+    phoneTitle: lang === 'ar' ? 'رقم الهاتف' : 'Phone'
+  };
+
   const { trainerId } = useParams();
-  const { t: globalShared, lang } = useLanguage();
-  const l = uiLabels[lang];
-  const isRTL = lang === 'ar';
 
-  // States مطابقة لـ StudentProfile
-  const [profile, setProfile] = useState(null);
+  const [rawData, setRawData] = useState(null);
+  const [trainer, setTrainer] = useState(null);
+  const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [formValues, setFormValues] = useState({ name: '', specialty: '', bio: '' });
-  const [saveState, setSaveState] = useState('idle'); // idle | saving | saved
+  const [error, setError] = useState(null);
 
-  // تفاعل التقييم وفورم التواصل
-  const [userRating, setUserRating] = useState(0);
-  const [hoverRating, setHoverRating] = useState(0);
+  const [rating, setRating] = useState(0);
+  const [hover, setHover] = useState(0);
   const [hasRated, setHasRated] = useState(false);
-  const [contactForm, setContactForm] = useState({ name: '', email: '', message: '' });
-  const [contactSubmitted, setContactSubmitted] = useState(false);
 
-  // 1. جلب البيانات ديناميكياً عند تحميل الصفحة (نفس منطق الطالب)
+  const [contactForm, setContactForm] = useState({ name: '', email: '', message: '' });
+  const [showFormSuccess, setShowFormSuccess] = useState(false);
+
   useEffect(() => {
     let isMounted = true;
-    setLoading(true);
-    setError(false);
-    getTrainerProfile(trainerId)
-      .then((res) => {
+    async function fetchData() {
+      try {
+        setLoading(true);
+        const response = await getTrainerProfile(trainerId);
         if (!isMounted) return;
-        if (res.success && res.data) {
-          setProfile(res.data);
-          setFormValues({ name: res.data.name, specialty: res.data.specialty, bio: res.data.bio });
+
+        if (response.success && response.data) {
+          setRawData(response.data);
+          setCourses(response.data.courses || []);
         } else {
-          setError(true);
+          setError(l.error);
         }
-        setLoading(false);
-      })
-      .catch(() => {
-        if (isMounted) { setError(true); setLoading(false); }
-      });
+      } catch (err) {
+        if (isMounted) setError(l.error);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    }
+    fetchData();
     return () => { isMounted = false; };
   }, [trainerId]);
 
-  // 2. معالجة حفظ التعديلات وإرسالها للـ API (نفس منطق الطالب)
-  const handleSave = async (e) => {
-    e.preventDefault();
-    setSaveState('saving');
-    const res = await updateTrainerProfile(formValues, trainerId);
-    if (res.success) {
-      setProfile({ ...profile, ...formValues });
-      setSaveState('saved');
-      setTimeout(() => { setIsEditing(false); setSaveState('idle'); }, 800);
-    } else {
-      setSaveState('idle');
+  // إصلاح آلية التحويل الفوري لبيانات المدرب بناءً على تغير متغيّر lang
+  useEffect(() => {
+    if (rawData) {
+      const isAr = lang === 'ar';
+      setTrainer({
+        fullName: isAr ? (rawData.nameAr || rawData.name) : (rawData.nameEn || rawData.name),
+        specialization: isAr ? (rawData.specialtyAr || rawData.specialty) : (rawData.specialtyEn || rawData.specialty),
+        bio: isAr ? (rawData.bioAr || rawData.bio) : (rawData.bioEn || rawData.bio),
+        email: rawData.email || "",
+        phone: rawData.phone || ""
+      });
     }
+  }, [rawData, lang]);
+
+  const handleContactSubmit = (e) => {
+    e.preventDefault();
+    setShowFormSuccess(true);
+    setContactForm({ name: '', email: '', message: '' });
+    setTimeout(() => setShowFormSuccess(false), 4000);
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F8FAFC] flex flex-col justify-between">
-        <Navbar activePage="companies" showAuthButtons={true} />
-        <div className="flex-grow flex items-center justify-center p-8"><div className="text-center font-bold text-slate-500 animate-pulse text-sm">{l.loading}</div></div>
-        <Footer />
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center font-sans">
+        <div className="text-center space-y-3">
+          <div className="w-10 h-10 border-4 border-[#00A499] border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="text-sm font-bold text-slate-600">{l.loading}</p>
+        </div>
       </div>
     );
   }
 
-  if (error || !profile) {
+  if (error || !trainer) {
     return (
-      <div className="min-h-screen bg-[#F8FAFC] flex flex-col justify-between">
-        <Navbar activePage="companies" showAuthButtons={true} />
-        <div className="flex-grow flex items-center justify-center p-8"><div className="text-center font-bold text-red-500 text-sm">{l.error}</div></div>
-        <Footer />
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center font-sans">
+        <div className="bg-white p-8 rounded-2xl shadow-sm max-w-md text-center border border-red-100">
+          <div className="text-red-500 text-4xl mb-3">⚠️</div>
+          <p className="text-sm font-black text-slate-800">{error || l.error}</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div dir={globalShared.dir} className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans text-slate-800 antialiased transition-all duration-300">
-      <Navbar activePage="companies" showAuthButtons={true} />
-      
-      <main className="flex-grow">
-        {/* HERO COMPONENT */}
-        <section className="relative w-full overflow-hidden bg-gradient-to-r from-[#06282E] via-[#0D4C54] to-[#14707C] pt-14 pb-28 md:py-20 text-white min-h-[240px] flex items-center shadow-inner">
-          <div className={`absolute top-1/2 -translate-y-1/2 z-10 pointer-events-none transition-all duration-500 ${isRTL ? 'left-6 md:left-16' : 'right-6 md:right-16'}`}>
-            <div className="relative w-44 h-24 sm:w-64 sm:h-32 flex items-center justify-center">
-              <div className="absolute w-full h-[70%] bg-black/20 backdrop-blur-md rounded-full transform rotate-[-25deg] translate-x-2 translate-y-3" />
-              <div className="absolute w-full h-[70%] bg-gradient-to-r from-[#C2950C] to-[#EAB308] rounded-full transform rotate-[-25deg] shadow-lg border border-white/10" />
-            </div>
-          </div>
-          <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-            <div className={`max-w-2xl text-center md:text-start ${isRTL ? 'md:pr-6' : 'md:pl-6'}`}>
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-white mb-3">{l.heroTitle}</h1>
-              <p className="text-sm sm:text-base text-white/80 font-medium leading-relaxed max-w-lg">{l.heroSub}</p>
-            </div>
-          </div>
-        </section>
+    <div className="min-h-screen bg-slate-50/50 font-sans text-slate-800 selection:bg-[#00A499]/10" dir={t.dir}>
+      <Navbar />
 
-        {/* MAIN WRAPPER CONTAINER */}
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 -mt-20 relative z-20 pb-16 space-y-8">
+      {/* Hero Cover Header */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-[#0D4C54] via-[#0A3A40] to-[#021E22] text-white pt-24 pb-20">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,164,153,0.15),transparent_50%)]"></div>
+        <div className="max-w-7xl mx-auto px-4 relative z-10">
+          <div className="inline-flex items-center gap-1.5 bg-[#00A499]/20 text-[#26FFE6] text-xs font-black px-3 py-1 rounded-full border border-[#00A499]/30 mb-4 tracking-wide uppercase">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#26FFE6] animate-pulse"></span>
+            {l.heroTitle}
+          </div>
+          <h1 className="text-3xl md:text-5xl font-black tracking-tight mb-3">{trainer.fullName}</h1>
+          <p className="text-slate-300 max-w-3xl text-sm md:text-base font-semibold leading-relaxed">{l.heroSub}</p>
+        </div>
+      </div>
+
+      {/* Main Container */}
+      <div className="max-w-7xl mx-auto px-4 py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
           
-          {/* PROFILE COMPONENT (With True Inline Editing) */}
-          <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-100 shadow-xl shadow-slate-200/40">
-            {!isEditing ? (
-              <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-                <div className="flex-1 space-y-4 text-center md:text-start w-full">
-                  <div>
-                    <h2 className="text-xl sm:text-2xl font-black text-[#0D4C54]">{profile.name}</h2>
-                    <p className="text-sm font-bold text-[#00A499] mt-0.5">{profile.specialty}</p>
-                  </div>
-                  <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-4 text-xs sm:text-sm font-semibold text-slate-500">
-                    <div className="flex items-center gap-2"><EnvelopeIcon className="w-4 h-4 text-slate-400" /><a href={`mailto:${profile.email}`} className="hover:text-[#00A499]">{profile.email}</a></div>
-                    <div className="hidden sm:block text-slate-300">|</div>
-                    <div className="flex items-center gap-2"><PhoneIcon className="w-4 h-4 text-slate-400" /><a href={`tel:${profile.phone}`} className="hover:text-[#00A499]">{profile.phone}</a></div>
-                  </div>
-                  <div className="flex items-center justify-center md:justify-start gap-2 text-sm font-bold text-slate-700 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 inline-flex">
-                    <BriefcaseIcon className="w-4 h-4 text-[#00A499]" /><span>{isRTL ? `الخبرة: ${profile.experience} سنوات` : `Experience: ${profile.experience} Years`}</span>
-                  </div>
-                  <p className="text-sm sm:text-base text-slate-600 font-medium leading-relaxed max-w-2xl">{profile.bio}</p>
-                  <div className="pt-2 flex justify-center md:justify-start">
-                    <button onClick={() => setIsEditing(true)} className="bg-[#387B84] hover:bg-[#2C6269] text-white font-bold text-sm px-6 py-2.5 rounded-xl shadow-sm transition-all">{l.editBtn}</button>
-                  </div>
-                </div>
-                <div className="flex-shrink-0 order-first md:order-last">
-                  <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-[#00A499] flex items-center justify-center text-white text-3xl sm:text-4xl font-black shadow-md">{profile.avatarLetter || 'A'}</div>
-                </div>
+          {/* Left Column: Trainer Card Profile */}
+          <div className="lg:col-span-1 bg-white border border-slate-100 rounded-3xl p-6 shadow-sm relative overflow-hidden">
+            <div className="absolute top-0 inset-x-0 h-2 bg-gradient-to-r from-[#00A499] to-[#0D4C54]"></div>
+            
+            <div className="flex flex-col items-center text-center pb-6 border-b border-slate-100">
+              <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-[#00A499]/10 to-[#0D4C54]/5 flex items-center justify-center text-[#0D4C54] mb-4 relative group border border-slate-100">
+                <UserIcon className="w-12 h-12" />
               </div>
-            ) : (
-              /* فورم التعديل الحقيقي المطابق لـ StudentProfile */
-              <form onSubmit={handleSave} className="space-y-4">
+              <h2 className="text-xl font-black text-slate-900">{trainer.fullName}</h2>
+              <p className="text-xs font-bold text-[#00A499] bg-[#00A499]/5 px-3 py-1 rounded-md mt-2 flex items-center gap-1">
+                <BriefcaseIcon className="w-3.5 h-3.5" />
+                {trainer.specialization}
+              </p>
+            </div>
+
+            {/* Biography Profile Info */}
+            <div className="py-6 border-b border-slate-100 space-y-4">
+              <div className="space-y-1.5">
+                <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <ChatBubbleLeftRightIcon className="w-3.5 h-3.5" />
+                  {l.bioTitle}
+                </h3>
+                <p className="text-sm font-semibold text-slate-600 leading-relaxed">
+                  {trainer.bio}
+                </p>
+              </div>
+            </div>
+
+            {/* Contact Information Details */}
+            <div className="pt-6 space-y-3.5">
+              <div className="flex items-center gap-3 text-slate-600 hover:text-slate-900 transition-colors">
+                <div className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 text-slate-400"><EnvelopeIcon className="w-4 h-4" /></div>
+                <div className="flex-1 min-w-0"><p className="text-xs font-bold text-slate-400">{l.labelEmail}</p><p className="text-sm font-bold truncate">{trainer.email}</p></div>
+              </div>
+              <div className="flex items-center gap-3 text-slate-600 hover:text-slate-900 transition-colors">
+                <div className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 text-slate-400"><PhoneIcon className="w-4 h-4" /></div>
+                <div className="flex-1 min-w-0"><p className="text-xs font-bold text-slate-400">{l.phoneTitle}</p><p className="text-sm font-bold truncate" dir="ltr">{trainer.phone}</p></div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: Courses, Ratings and Interactive Support */}
+          <div className="lg:col-span-2 space-y-8">
+            
+            {/* Table of active published courses */}
+            <div className="bg-white border border-slate-100 rounded-3xl shadow-sm overflow-hidden">
+              <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+                <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#00A499]"></span>
+                  {l.coursesTitle}
+                </h2>
+                <span className="bg-slate-100 text-slate-600 text-xs font-black px-2.5 py-1 rounded-md">{courses.length}</span>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse text-sm">
+                  <thead>
+                    <tr className="border-b border-slate-100 text-slate-400 text-xs font-bold bg-slate-50/20">
+                      <th className={`p-4 ${lang === 'ar' ? 'text-right' : 'text-left'}`}>{l.thName}</th>
+                      <th className="p-4 text-center">{l.thStudents}</th>
+                      <th className="p-4 text-center">{l.thStatus}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-50 font-semibold text-slate-700">
+                    {courses.map((course) => (
+                      <tr key={course.id} className="hover:bg-slate-50/40 transition-colors">
+                        <td className="p-4 font-bold text-slate-900 max-w-xs md:max-w-sm truncate">{course.name || course.title}</td>
+                        <td className="p-4 text-center text-slate-500 font-mono">{course.students ? course.students.toLocaleString() : 0}</td>
+                        <td className="p-4 text-center">
+                          <span className={`inline-flex items-center gap-1 text-[11px] font-black px-2.5 py-1 rounded-full ${course.status === 'published' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-amber-50 text-amber-600 border border-amber-100'}`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${course.status === 'published' ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
+                            {course.status === 'published' ? l.statusPub : l.statusRev}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Interactive Stars Reviews Section */}
+            <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-6">
+              <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#00A499]"></span>
+                {l.reviewsTitle}
+              </h2>
+              <div className="bg-slate-50/50 border border-slate-100 rounded-2xl p-5 text-center space-y-3">
+                
+                {/* Stars Logic Widget */}
+                <div className="flex justify-center items-center gap-1.5 pt-1">
+                  {[1, 2, 3, 4, 5].map((star) => {
+                    const isSolid = hover ? star <= hover : star <= rating;
+                    return (
+                      <button key={star} type="button" disabled={hasRated} onClick={() => { setRating(star); setHasRated(true); }} onMouseEnter={() => !hasRated && setHover(star)} onMouseLeave={() => !hasRated && setHover(0)} className={`transition-transform duration-100 ${!hasRated ? 'hover:scale-110 active:scale-95 cursor-pointer' : 'cursor-default'} ${isSolid ? 'text-amber-400' : 'text-slate-200'}`}>
+                        {isSolid ? <SolidStar className="w-8 h-8" /> : <OutlineStar className="w-8 h-8" />}
+                      </button>
+                    );
+                  })}
+                </div>
+                
+              </div>
+            </div>
+
+            {/* Direct Consultation Message Form Box */}
+            <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-5">
+              <div>
+                <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#00A499]"></span>
+                  {l.contactTitle}
+                </h2>
+                <p className="text-xs font-semibold text-slate-400 mt-1">{l.contactSub}</p>
+              </div>
+
+              {showFormSuccess && (
+                <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 text-emerald-700 text-sm font-bold flex items-center gap-2 animate-fade-in">
+                  {l.msgSuccess}
+                </div>
+              )}
+
+              <form onSubmit={handleContactSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-500">{isRTL ? 'الاسم الكامل' : 'Full Name'}</label>
-                    <input type="text" required value={formValues.name} onChange={(e) => setFormValues({ ...formValues, name: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-700 focus:outline-none focus:border-[#00A499]" />
+                    <label className="text-xs font-bold text-slate-500 flex items-center gap-1.5"><UserIcon className="w-3.5 h-3.5" />{l.labelName}</label>
+                    <input type="text" required value={contactForm.name} onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold focus:outline-none focus:border-[#00A499] focus:bg-white transition-all" />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-500">{isRTL ? 'التخصص التدريبي' : 'Specialty'}</label>
-                    <input type="text" required value={formValues.specialty} onChange={(e) => setFormValues({ ...formValues, specialty: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-700 focus:outline-none focus:border-[#00A499]" />
+                    <label className="text-xs font-bold text-slate-500 flex items-center gap-1.5"><EnvelopeIcon className="w-3.5 h-3.5" />{l.labelEmail}</label>
+                    <input type="email" required value={contactForm.email} onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold focus:outline-none focus:border-[#00A499] focus:bg-white transition-all" />
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-500">{isRTL ? 'النبذة التعريفية' : 'Biography'}</label>
-                  <textarea required rows={3} value={formValues.bio} onChange={(e) => setFormValues({ ...formValues, bio: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-700 focus:outline-none focus:border-[#00A499] resize-none" />
+                  <label className="text-xs font-bold text-slate-500 flex items-center gap-1.5"><ChatBubbleBottomCenterTextIcon className="w-3.5 h-3.5" />{l.labelMsg}</label>
+                  <textarea required rows={3} value={contactForm.message} onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold focus:outline-none focus:border-[#00A499] focus:bg-white transition-all resize-none" />
                 </div>
-                <div className="flex items-center gap-3 pt-2">
-                  <button type="submit" disabled={saveState === 'saving'} className="bg-[#0D4C54] hover:bg-[#003947] text-white font-bold text-sm px-5 py-2.5 rounded-xl shadow-xs disabled:opacity-75">
-                    {saveState === 'saving' ? l.saving : l.saveBtn}
-                  </button>
-                  <button type="button" onClick={() => { setIsEditing(false); setFormValues({ name: profile.name, specialty: profile.specialty, bio: profile.bio }); }} className="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-sm px-5 py-2.5 rounded-xl">
-                    {l.cancelBtn}
+                <div className="pt-1 flex justify-end">
+                  <button type="submit" className="w-full sm:w-auto bg-[#0D4C54] hover:bg-[#003947] text-white font-black text-sm px-8 py-3 rounded-xl shadow-md flex items-center justify-center gap-2 group transition-all">
+                    <span>{l.btnSend}</span>
+                    <PaperAirplaneIcon className="w-4 h-4 transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                   </button>
                 </div>
               </form>
-            )}
-          </div>
+            </div>
 
-          {/* STATS METRICS COMPONENT */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 w-full">
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-md p-6 flex flex-col justify-between items-center sm:items-start min-h-[110px]">
-              <span className="text-xs font-bold text-slate-400">{isRTL ? 'عدد الدورات' : 'Number of Courses'}</span>
-              <span className="text-4xl font-black text-[#0D4C54] mt-2 font-mono">{profile.stats?.coursesCount || 0}</span>
-            </div>
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-md p-6 flex flex-col justify-between items-center sm:items-start min-h-[110px]">
-              <span className="text-xs font-bold text-slate-400">{isRTL ? 'عدد الطلاب' : 'Number of Students'}</span>
-              <span className="text-4xl font-black text-[#00A499] mt-2 font-mono">{profile.stats?.studentsCount || 0}</span>
-            </div>
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-md p-6 flex flex-col justify-between items-center sm:items-start min-h-[110px]">
-              <span className="text-xs font-bold text-slate-400">{isRTL ? 'التقييم العام' : 'Global Rating'}</span>
-              <div className="flex items-center gap-2 mt-2"><span className="text-4xl font-black text-[#EAB308] font-mono">{profile.stats?.rating || '0.0'}</span><SolidStar className="w-7 h-7 text-[#EAB308]" /></div>
-            </div>
           </div>
-
-          {/* COURSES TABLE COMPONENT */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-xl p-6 space-y-4">
-            <h3 className="text-lg font-black text-[#0D4C54]">{l.coursesTitle}</h3>
-            <div className="overflow-x-auto rounded-xl border border-slate-100">
-              <table className="w-full text-sm">
-                <thead className="bg-slate-50 text-slate-500 font-bold border-b border-slate-100">
-                  <tr>
-                    <th className={`p-4 font-black ${isRTL ? 'text-right' : 'text-left'}`}>{l.thName}</th>
-                    <th className="p-4 text-center font-black">{l.thStudents}</th>
-                    <th className="p-4 text-center font-black">{l.thStatus}</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-50 font-semibold text-slate-700">
-                  {(profile.courses || []).map((course) => (
-                    <tr key={course.id} className="hover:bg-slate-50/50 transition-colors">
-                      <td className={`p-4 font-black text-[#0d4c54] ${isRTL ? 'text-right' : 'text-left'}`}>{course.name}</td>
-                      <td className="p-4 text-center text-slate-500 font-mono text-base">{course.students}</td>
-                      <td className="p-4 text-center">
-                        {course.status === 'published' ? (
-                          <span className="inline-flex items-center justify-center px-4 py-1.5 rounded-full text-xs font-bold bg-[#E6F7F0] text-[#00A499] min-w-[95px]">{l.statusPub}</span>
-                        ) : (
-                          <span className="inline-flex items-center justify-center px-4 py-1.5 rounded-full text-xs font-bold bg-[#FEF3C7] text-[#D97706] min-w-[95px]">{l.statusRev}</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* REVIEWS & RATINGS SYSTEM */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-xl p-6 space-y-6">
-            <div className="flex items-center gap-2 border-b border-slate-50 pb-3"><ChatBubbleLeftRightIcon className="w-5 h-5 text-[#00A499]" /><h3 className="text-lg font-black text-[#0D4C54]">{l.reviewsTitle}</h3></div>
-            <div className="p-5 rounded-2xl bg-slate-50/70 border border-slate-100 space-y-3 text-center sm:text-start">
-              <h4 className="text-sm font-black text-slate-700">{l.rateTitle}</h4>
-              <p className="text-xs font-semibold text-slate-400 max-w-xl leading-relaxed">{l.rateDesc}</p>
-              <div className="flex flex-col sm:flex-row sm:items-center gap-3 pt-1">
-                <div className="flex items-center justify-center gap-1 text-[#EAB308]">
-                  {starIndices.map((idx) => (
-                    <button key={idx} type="button" disabled={hasRated} onClick={() => { setUserRating(idx); setHasRated(true); }} onMouseEnter={() => !hasRated && setHoverRating(idx)} onMouseLeave={() => !hasRated && setHoverRating(0)} className={`transition-transform duration-100 ${hasRated ? 'cursor-default' : 'hover:scale-125 focus:outline-none'}`}>
-                      {(idx <= (hoverRating || userRating)) ? <SolidStar className="w-6 h-6" /> : <OutlineStar className="w-6 h-6 text-slate-300" />}
-                    </button>
-                  ))}
-                </div>
-                <div className="text-xs font-bold text-slate-500">{hasRated ? <span className="text-emerald-600 font-black">{l.thankYou}</span> : userRating > 0 ? <span>{l.textSelection} <strong className="text-[#EAB308] text-sm">{userRating}</strong></span> : <span className="text-slate-400 font-medium">{l.notRated}</span>}</div>
-              </div>
-            </div>
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 gap-4">
-                {(profile.reviews || []).map((review) => (
-                  <div key={review.id} className="p-5 rounded-xl border border-slate-100 bg-white hover:border-slate-200 transition-all space-y-3 shadow-xs">
-                    <div className="flex items-center justify-between gap-4">
-                      <div><h5 className="text-sm font-black text-[#0D4C54]">{review.name}</h5><span className="text-[11px] font-bold text-slate-400">{review.date}</span></div>
-                      <div className="flex items-center gap-0.5 text-[#EAB308]">
-                        {starIndices.slice(0, review.rating).map((_, i) => <SolidStar key={i} className="w-4 h-4" />)}
-                        {starIndices.slice(review.rating).map((_, i) => <OutlineStar key={i} className="w-4 h-4 text-slate-200" />)}
-                      </div>
-                    </div>
-                    <p className="text-xs sm:text-sm font-medium text-slate-600 leading-relaxed">"{review.comment}"</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* CONTACT TRAINER FORM CARD */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-xl p-6 space-y-6">
-            <div><h3 className="text-lg font-black text-[#0D4C54]">{l.contactTitle}</h3><p className="text-xs sm:text-sm font-semibold text-slate-400 max-w-2xl mt-1">{l.contactSub}</p></div>
-            {contactSubmitted && <div className="p-4 rounded-xl bg-[#E6F7F0] border border-[#00A499]/20 text-[#00A499] text-sm font-bold">{l.msgSuccess}</div>}
-            <form onSubmit={(e) => { e.preventDefault(); setContactSubmitted(true); setContactForm({ name: '', email: '', message: '' }); }} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-500 flex items-center gap-1.5"><UserIcon className="w-3.5 h-3.5" />{l.labelName}</label>
-                  <input type="text" required value={contactForm.name} onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold focus:outline-none focus:border-[#00A499] focus:bg-white transition-all" />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-500 flex items-center gap-1.5"><EnvelopeIcon className="w-3.5 h-3.5" />{l.labelEmail}</label>
-                  <input type="email" required value={contactForm.email} onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold focus:outline-none focus:border-[#00A499] focus:bg-white transition-all" />
-                </div>
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-500 flex items-center gap-1.5"><ChatBubbleBottomCenterTextIcon className="w-3.5 h-3.5" />{l.labelMsg}</label>
-                <textarea required rows={3} value={contactForm.message} onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold focus:outline-none focus:border-[#00A499] focus:bg-white transition-all resize-none" />
-              </div>
-              <div className="pt-1 flex justify-end">
-                <button type="submit" className="w-full sm:w-auto bg-[#0D4C54] hover:bg-[#003947] text-white font-black text-sm px-8 py-3 rounded-xl shadow-md flex items-center justify-center gap-2 group transition-all">
-                  <span>{l.btnSend}</span><PaperAirplaneIcon className={`w-4 h-4 transform ${isRTL ? 'rotate-180' : ''}`} />
-                </button>
-              </div>
-            </form>
-          </div>
-
         </div>
-      </main>
-      
+      </div>
+
       <Footer />
     </div>
   );

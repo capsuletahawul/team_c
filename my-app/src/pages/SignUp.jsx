@@ -83,7 +83,7 @@ if (!isPasswordValid) {
 
   // Company
   if (role === 2) {
-    navigate("/business-contract");
+    navigate("/company-dashboard");
     return;
   }
 };
