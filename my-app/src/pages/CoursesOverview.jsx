@@ -55,12 +55,21 @@ const navigate = useNavigate();
   const l = t.coursesOverview;
   const isRTL = t.dir === "rtl";
 
-  const [activeFilter, setActiveFilter] = useState("category");
+const [activeFilter, setActiveFilter] = useState("category");
+
+const [searchTerm, setSearchTerm] = useState("");
+
+const [selectedCategory, setSelectedCategory] = useState("");
+const [selectedPrice, setSelectedPrice] = useState("");
+const [selectedDuration, setSelectedDuration] = useState("");
+
+const [showCategoryMenu, setShowCategoryMenu] = useState(false);
+const [showPriceMenu, setShowPriceMenu] = useState(false);
+const [showDurationMenu, setShowDurationMenu] = useState(false);
 
   const filterGroups = useMemo(
     () => [
       { key: "category", label: l.filters.category, items: l.filterData.categories },
-      { key: "level", label: l.filters.level, items: l.filterData.levels },
       { key: "price", label: l.filters.price, items: l.filterData.prices },
       { key: "duration", label: l.filters.duration, items: l.filterData.durations },
     ],
@@ -103,6 +112,56 @@ const navigate = useNavigate();
     };
   });
 
+const filteredCourses = dynamicCourses.filter((course) => {
+  const search = searchTerm.trim().toLowerCase();
+
+  const matchesSearch =
+    !search ||
+    course.title.toLowerCase().includes(search) ||
+    course.instructor.toLowerCase().includes(search) ||
+    course.tag.toLowerCase().includes(search);
+
+const categoryMap = {
+  "برمجة": "Web Development",
+  "تصميم": "Artificial Intelligence",
+  "أمن سيبراني": "Cybersecurity",
+};
+
+const matchesCategory =
+  !selectedCategory ||
+  selectedCategory === "الكل" ||
+  course.tag === categoryMap[selectedCategory];
+
+const matchesPrice =
+  !selectedPrice ||
+  selectedPrice === "الكل" ||
+  (selectedPrice === "مجاني" && course.price === 0) ||
+  (selectedPrice === "مدفوع" && course.price > 0);
+
+
+  const hours = parseInt(course.hours);
+
+const matchesDuration =
+  !selectedDuration ||
+  selectedDuration === "الكل" ||
+  (selectedDuration === "أقل من 10 ساعات" && hours < 10) ||
+  (selectedDuration === "10 - 20 ساعة" && hours >= 10 && hours < 20) ||
+  (selectedDuration === "20 - 30 ساعة" && hours >= 20 && hours < 30) ||
+  (selectedDuration === "30 - 40 ساعة" && hours >= 30 && hours < 40) ||
+  (selectedDuration === "40 ساعة فأكثر" && hours >= 40);
+
+
+return (
+  matchesSearch &&
+  matchesCategory &&
+  matchesPrice &&
+  matchesDuration
+);
+});
+
+
+
+
   return (
     <div className="min-h-screen bg-capsule-bg text-capsule-navy font-sans antialiased flex flex-col" dir={t.dir} lang={lang}>
       <Navbar activePage="courses" showAuthButtons={true} />
@@ -140,65 +199,140 @@ const navigate = useNavigate();
           <div className="max-w-7xl mx-auto px-6 py-4 flex flex-wrap gap-3 items-center">
             <div className="flex items-center gap-2 bg-capsule-bg border border-gray-200 rounded-full px-4 py-2 flex-1 min-w-[220px]">
               <span className="text-gray-400">🔍</span>
-              <input 
-                type="text" 
-                placeholder={l.searchPlaceholder} 
-                className="bg-transparent border-none outline-none w-full text-sm text-capsule-navy placeholder:text-gray-400"
-              />
+              <input
+  type="text"
+  value={searchTerm}
+  onChange={(e) => setSearchTerm(e.target.value)}
+  placeholder={l.searchPlaceholder}
+  className="bg-transparent border-none outline-none w-full text-sm text-capsule-navy placeholder:text-gray-400"
+/>
             </div>
             
             <div className="flex gap-2 flex-wrap">
               {filterGroups.map((g) => (
-                <button
-                  key={g.key}
-                  className={`border rounded-full px-3.5 py-2 text-[13px] font-semibold cursor-pointer transition-colors ${
-                    activeFilter === g.key 
-                      ? "border-capsule-teal text-capsule-teal bg-capsule-teal/10" 
-                      : "border-gray-200 bg-white text-capsule-navy hover:bg-gray-50"
-                  }`}
-                  onClick={() => setActiveFilter(g.key)}
-                >
-                  {g.label} ⌄
-                </button>
-              ))}
+  <div key={g.key} className="relative">
+
+    <button
+      className={`border rounded-full px-3.5 py-2 text-[13px] font-semibold cursor-pointer transition-colors ${
+        activeFilter === g.key
+          ? "border-capsule-teal text-capsule-teal bg-capsule-teal/10"
+          : "border-gray-200 bg-white text-capsule-navy hover:bg-gray-50"
+      }`}
+      
+      onClick={() => {
+  setActiveFilter(g.key);
+
+  if (g.key === "category") {
+    setShowCategoryMenu(!showCategoryMenu);
+    setShowLevelMenu(false);
+    setShowPriceMenu(false);
+    setShowDurationMenu(false);
+  }
+
+
+  if (g.key === "price") {
+    setShowPriceMenu(!showPriceMenu);
+    setShowCategoryMenu(false);
+    setShowLevelMenu(false);
+    setShowDurationMenu(false);
+  }
+
+  if (g.key === "duration") {
+    setShowDurationMenu(!showDurationMenu);
+    setShowCategoryMenu(false);
+    setShowLevelMenu(false);
+    setShowPriceMenu(false);
+  }
+}}
+    >
+      {g.label} ⌄
+    </button>
+
+    {g.key === "category" && showCategoryMenu && (
+      <div className="absolute top-full mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-lg z-50">
+
+
+
+        {l.filterData.categories.map((category, index) => (
+  <button
+    key={index}
+    className="block w-full text-right px-4 py-2 hover:bg-gray-100"
+    onClick={() => {
+      setSelectedCategory(category.label);
+      setShowCategoryMenu(false);
+    }}
+  >
+    {category.label}
+  </button>
+))}
+      </div>
+    )}
+
+
+    {g.key === "price" && showPriceMenu && (
+  <div className="absolute top-full mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-lg z-50">
+
+    {l.filterData.prices.map((price, index) => (
+      <button
+        key={index}
+        className="block w-full text-right px-4 py-2 hover:bg-gray-100"
+        onClick={() => {
+          setSelectedPrice(price.label);
+          setShowPriceMenu(false);
+        }}
+      >
+        {price.label}
+      </button>
+    ))}
+
+  </div>
+)}
+
+{g.key === "duration" && showDurationMenu && (
+  <div className="absolute top-full mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-lg z-50">
+
+    {l.filterData.durations.map((duration, index) => (
+      <button
+        key={index}
+        className="block w-full text-right px-4 py-2 hover:bg-gray-100"
+        onClick={() => {
+          setSelectedDuration(duration.label);
+          setShowDurationMenu(false);
+        }}
+      >
+        {duration.label}
+      </button>
+    ))}
+
+  </div>
+)}
+
+
+  </div>
+))}
             </div>
             
-            <button className="bg-capsule-gold text-capsule-navy font-bold px-4 py-2 rounded-full text-[13px] cursor-pointer hover:bg-yellow-500 transition-colors">
-              {l.filters.apply}
-            </button>
+            <button
+  onClick={() => {
+    setSearchTerm("");
+    setSelectedCategory("");
+    setSelectedPrice("");
+    setSelectedDuration("");
+
+    setShowCategoryMenu(false);
+    setShowPriceMenu(false);
+    setShowDurationMenu(false);
+  }}
+  className="bg-capsule-gold text-capsule-navy font-bold px-4 py-2 rounded-full text-[13px] cursor-pointer hover:bg-yellow-500 transition-colors"
+>
+  {lang === "ar" ? "إعادة التعيين" : "Reset"}
+</button>
           </div>
         </section>
 
         {/* ---------- MAIN CONTENT ---------- */}
-        <section className="max-w-7xl mx-auto px-6 pt-7 pb-15 flex flex-col lg:flex-row gap-7 items-start">
+<section className="max-w-7xl mx-auto px-6 pt-7 pb-15">          
           
-          {/* Sidebar */}
-          <aside className="w-full lg:w-[250px] flex-shrink-0 flex flex-row lg:flex-col gap-4 overflow-x-auto lg:overflow-visible pb-2 lg:pb-0">
-            {filterGroups.map((g) => (
-              <div className="bg-white border border-gray-200 rounded-2xl p-4 min-w-[200px]" key={g.key}>
-                <div className="flex justify-between items-center font-bold text-[14.5px] text-capsule-navy mb-2.5">
-                  <span>{g.label}</span>
-                  <span className="text-gray-400">⌃</span>
-                </div>
-                <ul className="flex flex-col gap-2">
-                  {g.items.map((it, idx) => (
-                    <li key={idx}>
-                      <label className="flex items-center gap-2 text-[13.5px] cursor-pointer text-gray-700">
-                        <input type="checkbox" defaultChecked={idx === 0} className="accent-capsule-teal w-4 h-4" />
-                        <span>{it.label}</span>
-                        <span className={`text-[12px] text-[#537E84] ${t.dir === 'rtl' ? 'mr-auto' : 'ml-auto'}`}>
-                          {it.count}
-                        </span>
-                      </label>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-            <button className="bg-white border border-gray-200 rounded-xl p-2.5 font-bold text-capsule-navy cursor-pointer text-[13.5px] hover:bg-gray-50 transition min-w-[200px] lg:min-w-0">
-              {l.filters.clear}
-            </button>
-          </aside>
 
           {/* Results Area */}
           <div className="flex-1 min-w-0 w-full">
@@ -217,7 +351,7 @@ const navigate = useNavigate();
 
             {/* Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-              {dynamicCourses.map((c, i) => (
+              {filteredCourses.map((c, i) => (
                 <article className="bg-white border border-gray-200 rounded-2xl overflow-hidden flex flex-col transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:shadow-capsule-navy/10" key={i}>
                   
                   {/* Card Thumbnail */}
@@ -228,9 +362,13 @@ const navigate = useNavigate();
                         {l.results.badges[c.badgeKey]}
                       </span>
                     )}
-                    <button className={`absolute top-2.5 bg-white/85 border-none rounded-full w-7 h-7 cursor-pointer flex items-center justify-center text-gray-500 hover:text-red-500 transition ${t.dir === 'rtl' ? 'left-2.5' : 'right-2.5'}`} aria-label="wishlist">
-                      ♡
-                    </button>
+                     <button
+  onClick={() => alert("تمت إضافة الدورة إلى السلة")}
+  className={`absolute top-2.5 bg-white/85 border-none rounded-full w-7 h-7 cursor-pointer flex items-center justify-center text-gray-500 hover:text-capsule-teal transition ${t.dir === 'rtl' ? 'left-2.5' : 'right-2.5'}`}
+  aria-label="cart"
+>
+  <span className="text-base">🛒</span>
+</button>
                   </div>
 
                   {/* Card Body */}
