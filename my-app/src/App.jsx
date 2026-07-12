@@ -16,6 +16,8 @@ import CourseDetails from './pages/CourseDetails.jsx';
 import CoursesOverview from './pages/CoursesOverview.jsx';
 import StudentCoursesOverview from './pages/StudentCoursesOverview.jsx';
 import Contact from './pages/Contact.jsx';
+// Import the new CompanyDashboard component
+import CompanyDashboard from './pages/CompanyDashboard.jsx'; 
 
 // --- Small wrappers for pages that expect navigation callbacks as props ---
 
@@ -26,7 +28,8 @@ function LandingRoute() {
       onNavigateToRegister={() => navigate('/sign-up')}
       onNavigateToLogin={() => navigate('/sign-in')}
       onNavigateToTrainerOnboarding={() => navigate('/sign-up')}
-      onNavigateToCompanyOnboarding={() => navigate('/business-contract')}
+      // Keeping this pointing to the contract/onboarding form for first-time entries
+      onNavigateToCompanyOnboarding={() => navigate('/business-contract')} 
     />
   );
 }
@@ -74,13 +77,14 @@ function DevIndex() {
     ['/sign-up', 'Sign Up'],
     ['/student-dashboard', 'Student Dashboard'],
     ['/student-profile', 'Student Profile'],
+    ['/company-dashboard', 'Company Dashboard 🏢'], // Added to Dev Index
     ['/trainer-details', 'Trainer Details'],
     ['/trainer-profile', 'Trainer Profile (standalone)'],
     ['/trainer-dashboard', 'Trainer Dashboard'],
     ['/admin-dashboard', 'Admin Dashboard'],
     ['/courses-approval', 'Courses Approval'],
     ['/courses-overview', 'Courses Overview'],
-    ['./CourseDetails', 'Course Details'],
+    ['/course-details/1', 'Course Details'], // Corrected relative path typo from original code
     ['/business-contract', 'Business Contract Form'],
     ['/contact', 'Contact'],
   ];
@@ -108,13 +112,17 @@ function App() {
         <Route path="/sign-up" element={<SignUpRoute />} />
         <Route path="/student-dashboard" element={<StudentDashboardRoute />} />
         <Route path="/student-profile" element={<StudentProfileRoute />} />
+        
+        {/* Added route for the Company Dashboard */}
+        <Route path="/company-dashboard" element={<CompanyDashboard />} /> 
+        
         <Route path="/trainer-details/:trainerId" element={<TrainerDetails />} />
         <Route path="/trainer-details" element={<TrainerDetails />} />
         <Route path="/trainer-profile" element={<TrainerProfile />} />
         <Route path="/trainer-dashboard" element={<TrainerDashboard />} />
         <Route path="/admin-dashboard" element={<AdminDashboard />} />
         <Route path="/courses-approval" element={<SignInSignUpApproval />} />
-<Route path="/course-details/:id" element={<CourseDetails />} />
+        <Route path="/course-details/:id" element={<CourseDetails />} />
         <Route path="/courses-overview" element={<CoursesOverview />} />
         <Route path="/student-courses-overview" element={<StudentCoursesOverview />} />
         <Route path="/business-contract" element={<BusinessContractForm />} />
