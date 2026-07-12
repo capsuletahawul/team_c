@@ -291,10 +291,8 @@ admin: {
 
   filters: {
     category: "التصنيف",
-    level: "المستوى",
     price: "السعر",
     duration: "المدة",
-    apply: "تطبيق",
     clear: "إزالة الفلاتر"
   },
 
@@ -305,22 +303,20 @@ admin: {
       { label: "تصميم", count: 1 },
       { label: "أمن سيبراني", count: 1 }
     ],
-    levels: [
-      { label: "الكل", count: 8 },
-      { label: "مبتدئ", count: 4 },
-      { label: "متوسط", count: 3 },
-      { label: "متقدم", count: 1 }
-    ],
+
     prices: [
       { label: "الكل", count: 8 },
       { label: "مجاني", count: 4 },
       { label: "مدفوع", count: 4 }
     ],
     durations: [
-      { label: "الكل", count: 8 },
-      { label: "أقل من 10 ساعات", count: 2 },
-      { label: "10-20 ساعة", count: 6 }
-    ]
+  { label: "الكل", count: 8 },
+  { label: "أقل من 10 ساعات", count: 0 },
+  { label: "10 - 20 ساعة", count: 1 },
+  { label: "20 - 30 ساعة", count: 1 },
+  { label: "30 - 40 ساعة", count: 1 },
+  { label: "40 ساعة فأكثر", count: 1 }
+],
   },
 
   mockCourses: [
@@ -950,10 +946,8 @@ businessForm: {
 
   filters: {
     category: "Category",
-    level: "Level",
     price: "Price",
     duration: "Duration",
-    apply: "Apply",
     clear: "Clear Filters"
   },
 
@@ -964,22 +958,19 @@ businessForm: {
       { label: "Design", count: 1 },
       { label: "Cybersecurity", count: 1 }
     ],
-    levels: [
-      { label: "All", count: 8 },
-      { label: "Beginner", count: 4 },
-      { label: "Intermediate", count: 3 },
-      { label: "Advanced", count: 1 }
-    ],
     prices: [
       { label: "All", count: 8 },
       { label: "Free", count: 4 },
       { label: "Paid", count: 4 }
     ],
     durations: [
-      { label: "All", count: 8 },
-      { label: "Less than 10 hours", count: 2 },
-      { label: "10-20 hours", count: 6 }
-    ]
+  { label: "All", count: 8 },
+  { label: "Less than 10 Hours", count: 0 },
+  { label: "10 - 20 Hours", count: 1 },
+  { label: "20 - 30 Hours", count: 1 },
+  { label: "30 - 40 Hours", count: 1 },
+  { label: "40 Hours & Above", count: 1 }
+],
   },
 
   mockCourses: [
