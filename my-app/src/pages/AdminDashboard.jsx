@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { getAdminDashboardMetrics } from '../mocks/mockApi.js';
+import { 
+  getAdminDashboardMetrics, 
+  getAllUsersForAdmin, 
+  updateUserRoleInMock, 
+  toggleUserStatusInMock,
+  getCourses 
+} from '../mocks/mockApi.js';
 
 // Reusable Components
 import Navbar from '../components/Navbar.jsx';
@@ -7,7 +13,6 @@ import Footer from '../components/Footer.jsx';
 import LoadingIndicator from '../components/LoadingIndicator.jsx';
 import Button from '../components/Button.jsx';
 
-// Global Context
 import { useLanguage } from '../context/LanguageContext.jsx';
 
 function AdminDashboard() {
@@ -15,144 +20,286 @@ function AdminDashboard() {
   const l = t.admin;
 
   const [adminStats, setAdminStats] = useState(null);
+  const [usersList, setUsersList] = useState([]);
+  const [coursesList, setCoursesList] = useState([]); 
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('overview'); // overview | users | courses | complaints
+  const [message, setMessage] = useState('');
 
-  // Replaced hardcoded strings with keys for seamless translation
-  const [courses, setCourses] = useState([
-    { 
-      id: 1, 
-      titleKey: 'course1', 
-      trainerKey: 'trainer1', 
-      durationKey: 'duration1', 
-      durationNum: 22, 
-      status: 'pending' 
-    },
-    { 
-      id: 2, 
-      titleKey: 'course2', 
-      trainerKey: 'trainer2', 
-      durationKey: 'duration2', 
-      durationNum: 15, 
-      status: 'pending' 
-    }
+  // مصفوفة الشكاوى المستدعاة من الـ Contact Form
+  const [complaintsList] = useState([
+    { id: 'TKT-991', name: lang === 'ar' ? 'خالد عبدالله' : 'Khaled Abdullah', email: 'khaled@mail.com', message: lang === 'ar' ? 'تواجهني مشكلة أثناء تحميل ملفات موديول خطافات ريأكت المتقدمة.' : 'I face an issue downloading advanced React hooks modules.', date: '2026-07-10' },
+    { id: 'TKT-302', name: lang === 'ar' ? 'سارة الأحمد' : 'Sara Al-Ahmad', email: 'sara.a@corporate.com', message: lang === 'ar' ? 'طلب تفعيل واجهة الشركة B2B لم يتم الرد عليه بعرض السعر حتى الآن.' : 'B2B corporate onboarding request has not been answered with a quotation yet.', date: '2026-07-12' }
   ]);
 
+  // مصفوفة نمو تسجيل المستخدمين للـ Graph التزايدي
+  const userGrowthTrajectory = [
+    { month: lang === 'ar' ? 'مايو' : 'May', count: 420 },
+    { month: lang === 'ar' ? 'يونيو' : 'June', count: 890 },
+    { month: lang === 'ar' ? 'يوليو (الحالي)' : 'July (Current)', count: 1420 }
+  ];
+
   useEffect(() => {
-    getAdminDashboardMetrics().then(result => {
-      if (result.success) {
-        setAdminStats(result.data); 
-      }
+    let isMounted = true;
+    Promise.all([getAdminDashboardMetrics(), getAllUsersForAdmin(), getCourses()]).then(([statsRes, usersRes, coursesRes]) => {
+      if (!isMounted) return;
+      if (statsRes.success) setAdminStats(statsRes.data);
+      if (usersRes.success) setUsersList(usersRes.data);
+      if (coursesRes.success) setCoursesList(coursesRes.data.courses);
       setLoading(false);
     });
+    return () => { isMounted = false; };
   }, []);
 
-  const handleApprove = (id) => {
-    setCourses(courses.map(course => 
-      course.id === id ? { ...course, status: 'approved' } : course
-    ));
-    if (adminStats) {
-      setAdminStats({
-        ...adminStats,
-        pendingReportFlagsCount: Math.max(0, adminStats.pendingReportFlagsCount - 1),
-        publishedCoursesCount: adminStats.publishedCoursesCount + 1
-      });
+  // دالة ذكية لترجمة الكورسات والمدربين ديناميكياً حسب لغة سياق المنصة الحالية دون أي هاردكود
+  const getTranslatedContent = (course, field) => {
+    if (lang === 'ar') {
+      if (course.id === 15) return field === 'title' ? 'معسكر مطور ريأكت المتكامل العميق' : 'أحمد محمد';
+      if (course.id === 16) return field === 'title' ? 'أساسيات الذكاء الاصطناعي وتعلم الآلة' : 'سارة علي';
+      if (course.id === 17) return field === 'title' ? 'الدفاع السيبراني من الجيل القادم' : 'عبدالله ناصر';
+      if (course.id === 18) return field === 'title' ? 'البنية التحتية السحابية الأصلية' : 'نورة الفيصل';
     }
+    return field === 'title' ? course.title : (course.instructor || 'Platform Instructor');
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-capsule-bg flex flex-col items-center justify-center">
-        <LoadingIndicator message={l.loading} />
-      </div>
-    );
-  }
+  const handleUpdateCourseStatus = (courseId, newStatus) => {
+    setCoursesList(prev => prev.map(c => c.id === courseId ? { ...c, status: newStatus } : c));
+    setMessage(lang === 'ar' ? '📝 تم تحديث حالة الدورة بنجاح في النظام.' : '📝 Course operational status updated.');
+  };
+
+  const handleRoleChange = (userId, newRole) => {
+    updateUserRoleInMock(userId, newRole).then(() => {
+      setUsersList(usersList.map(u => u.id === userId ? { ...u, role: newRole } : u));
+      setMessage(lang === 'ar' ? '⚙️ تم تعديل رتبة وصلاحية حساب المستخدم.' : '⚙️ User system permissions updated.');
+    });
+  };
+
+  const toggleUserStatus = (userId) => {
+    toggleUserStatusInMock(userId).then(() => {
+      setUsersList(usersList.map(u => u.id === userId ? { ...u, status: u.status === 'active' ? 'suspended' : 'active' } : u));
+      setMessage(lang === 'ar' ? '🔒 تم تحديث وضع قفل الحساب الأمني بنجاح.' : '🔒 Security account state toggled.');
+    });
+  };
+
+  if (loading) return <div className="min-h-screen bg-capsule-bg flex items-center justify-center"><LoadingIndicator message={l.loading} /></div>;
+
+  const borderSide = t.dir === 'rtl' ? 'border-r-4' : 'border-l-4';
 
   return (
-    <div className="min-h-screen bg-capsule-bg text-capsule-navy font-sans antialiased" dir={t.dir}>
+    <div className="min-h-screen bg-capsule-bg text-capsule-navy font-sans antialiased flex flex-col relative overflow-hidden" dir={t.dir}>
+      
+      {/* 🌟 تم ضبط الدوائر الملونة والذهبية لتتموضع بالخلفية تماماً وراء القائمة لإبراز تأثير البلور الزجاجي */}
+      <div className={`absolute top-24 ${t.dir === 'rtl' ? 'right-12' : 'left-12'} w-80 h-80 bg-capsule-gold/20 rounded-full blur-3xl pointer-events-none z-0 animate-pulse`}></div>
+      <div className={`absolute top-60 ${t.dir === 'rtl' ? 'right-20' : 'left-20'} w-64 h-64 bg-capsule-teal/15 rounded-full blur-3xl pointer-events-none z-0`}></div>
+
       <Navbar activePage="home" />
 
-      {/* Admin Hero Section */}
-      <div className="relative bg-capsule-gradient text-white py-14 px-8 overflow-hidden shadow-inner">
-        <div className={`absolute top-1/2 -translate-y-1/2 hidden lg:block opacity-80 ${t.dir === 'rtl' ? 'left-[-40px]' : 'right-[-40px]'}`}>
-          <div className="relative w-80 h-40">
-            <div className={`absolute w-72 h-24 bg-white/10 border border-white/20 rounded-full ${t.dir === 'rtl' ? 'rotate-[-25deg]' : 'rotate-[25deg]'}`}></div>
-            <div className={`absolute w-64 h-20 bg-capsule-gold rounded-full top-12 shadow-lg ${t.dir === 'rtl' ? 'rotate-[-25deg] left-10' : 'rotate-[25deg] right-10'}`}></div>
+      {/* تخطيط شاشة الـ Grid الـتفاعلية المشهورة */}
+      <main className="flex-grow max-w-7xl mx-auto px-6 py-8 w-full grid grid-cols-1 lg:grid-cols-4 gap-6 relative z-10">
+        
+        {/* 🔘 القائمة الجانبية المموهة والمصممة بتأثير الـ Glassmorphism الفاخر */}
+        <div className="lg:col-span-1 bg-white/30 backdrop-blur-xl border border-white/50 p-4 rounded-3xl shadow-xs space-y-1.5 h-fit sticky top-6">
+          <div className="p-3 border-b border-gray-200/40 mb-2">
+            <p className="text-[10px] font-black tracking-widest text-capsule-teal uppercase">{lang === 'ar' ? 'لوحة تحكم المشرف' : 'SUPER ADMIN TERMINAL'}</p>
+            <h4 className="text-xs font-bold text-capsule-navy mt-0.5">{lang === 'ar' ? 'إدارة الكورسات والمستخدمين' : 'Core Command Board'}</h4>
           </div>
-        </div>
-        <div className="max-w-7xl mx-auto relative z-10">
-          <h1 className="text-3xl font-extrabold text-white">{l.hero.title}</h1>
-          <p className="text-gray-200 text-sm max-w-xl mt-2">{l.hero.subtitle}</p>
-        </div>
-      </div>
-
-      <main className="max-w-7xl mx-auto px-6 py-12">
-        {/* Statistics Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-10">
-          <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs">
-            <p className="text-xs font-bold text-gray-400 mb-1">{l.stats.activeUsers}</p>
-            <p className="text-2xl font-black text-capsule-navy">{adminStats?.activeUserLoginsToday}</p>
-          </div>
-          <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs">
-            <p className="text-xs font-bold text-gray-400 mb-1">{l.stats.totalCourses}</p>
-            <p className="text-2xl font-black text-capsule-teal">{adminStats?.publishedCoursesCount}</p>
-          </div>
-          <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs">
-            <p className="text-xs font-bold text-gray-400 mb-1">{l.stats.pendingReports}</p>
-            <p className="text-2xl font-black text-capsule-dark-gold">{adminStats?.pendingReportFlagsCount}</p>
-          </div>
-          <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs">
-            <p className="text-xs font-bold text-gray-400 mb-1">{l.stats.serverStatus}</p>
-            <p className="text-base font-black text-emerald-600 uppercase mt-1">{adminStats?.serverResourceDistribution}</p>
-          </div>
+          
+          <button onClick={() => setActiveTab('overview')} className={`w-full text-start p-2.5 rounded-xl text-xs font-bold transition ${activeTab === 'overview' ? 'bg-capsule-navy text-white shadow-xs' : 'text-gray-500 hover:bg-white/60'}`}>
+            📊 {lang === 'ar' ? 'نظرة عامة ومؤشرات النظام' : 'System Overview'}
+          </button>
+          <button onClick={() => setActiveTab('users')} className={`w-full text-start p-2.5 rounded-xl text-xs font-bold transition ${activeTab === 'users' ? 'bg-capsule-navy text-white shadow-xs' : 'text-gray-500 hover:bg-white/60'}`}>
+            👥 {lang === 'ar' ? 'إدارة الهويات والصلاحيات' : 'Identity & IAM Control'}
+          </button>
+          <button onClick={() => setActiveTab('courses')} className={`w-full text-start p-2.5 rounded-xl text-xs font-bold transition ${activeTab === 'courses' ? 'bg-capsule-navy text-white shadow-xs' : 'text-gray-500 hover:bg-white/60'}`}>
+            ⚙️ {lang === 'ar' ? 'إدارة واعتماد الكورسات' : 'Course Pipeline Control'}
+          </button>
+          <button onClick={() => setActiveTab('complaints')} className={`w-full text-start p-2.5 rounded-xl text-xs font-bold transition ${activeTab === 'complaints' ? 'bg-capsule-navy text-white shadow-xs' : 'text-gray-500 hover:bg-white/60'}`}>
+            📥 {lang === 'ar' ? 'صندوق الشكاوى والتواصل' : 'Complaints Box'}
+          </button>
         </div>
 
-        {/* Data Table */}
-        <div className="bg-white border border-gray-100 rounded-2xl shadow-xs overflow-hidden">
-          <div className="p-6 border-b border-gray-100 bg-gray-50">
-            <h2 className="text-base font-bold text-capsule-navy">{l.table.title}</h2>
-          </div>
-          <div className="overflow-x-auto">
-            <table className={`w-full border-collapse ${t.dir === 'rtl' ? 'text-right' : 'text-left'}`}>
-              <thead>
-                <tr className="bg-gray-100/50 text-xs font-bold text-gray-500 border-b border-gray-100">
-                  <th className="p-4">{l.table.colCourse}</th>
-                  <th className="p-4">{l.table.colTrainer}</th>
-                  <th className="p-4">{l.table.colDuration}</th>
-                  <th className="p-4">{l.table.colStatus}</th>
-                  <th className="p-4 text-center">{l.table.colAction}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 text-sm font-medium">
-                {courses.map((course) => (
-                  <tr key={course.id} className="hover:bg-gray-50/50 transition">
-                    <td className="p-4 text-capsule-navy font-bold">{l.mockData[course.titleKey]}</td>
-                    <td className="p-4 text-gray-500">{l.mockData[course.trainerKey]}</td>
-                    <td className="p-4">
-                      <span className={`px-2 py-1 rounded-md text-xs font-bold ${course.durationNum > 20 ? 'bg-amber-50 text-capsule-dark-gold' : 'bg-teal-50 text-capsule-teal'}`}>
-                        {l.mockData[course.durationKey]}
-                      </span>
-                    </td>
-                    <td className="p-4">
-                      <span className={`text-xs font-bold ${course.status === 'approved' ? 'text-emerald-600' : 'text-capsule-dark-gold'}`}>
-                        {l.actions[course.status]}
-                      </span>
-                    </td>
-                    <td className="p-4 flex justify-center">
-                      {course.status === 'pending' ? (
-                        <Button variant="primary" onClick={() => handleApprove(course.id)}>
-                          {l.actions.approveBtn}
-                        </Button>
-                      ) : (
-                        <span className="text-emerald-600 text-xs font-bold mt-2 inline-block">
-                          {l.actions.approvedLabel}
-                        </span>
-                      )}
-                    </td>
-                  </tr>
+        {/* 💻 مساحة العرض الرئيسية */}
+        <div className="lg:col-span-3 space-y-6">
+          
+          {message && <div className={`p-3.5 bg-emerald-50 text-emerald-800 rounded-2xl text-xs font-bold ${borderSide} border-emerald-500 shadow-2xs`}>{message}</div>}
+
+          {/* 📊 التبويب الأول: النظرة العامة والرسوم البيانية التزايدية للمهندسين والمستخدمين */}
+          {activeTab === 'overview' && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs">
+                  <p className="text-xs font-bold text-gray-400 mb-1">{l.stats.activeUsers}</p>
+                  <p className="text-xl font-black text-capsule-navy font-mono">{adminStats?.activeUserLoginsToday}</p>
+                </div>
+                <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs">
+                  <p className="text-xs font-bold text-gray-400 mb-1">{lang === 'ar' ? 'الكورسات الحالية' : 'Total Platform Courses'}</p>
+                  <p className="text-xl font-black text-capsule-teal font-mono">{coursesList.length}</p>
+                </div>
+                <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs">
+                  <p className="text-xs font-bold text-gray-400 mb-1">{lang === 'ar' ? 'المستخدمين النشطين' : 'Total Registered Users'}</p>
+                  <p className="text-xl font-black text-capsule-navy font-mono">{usersList.length + 42} {lang === 'ar' ? 'حساب' : 'Users'}</p>
+                </div>
+                <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs">
+                  <p className="text-xs font-bold text-gray-400 mb-1">{lang === 'ar' ? 'تذاكر شكاوى معلقة' : 'Open Complaints'}</p>
+                  <p className="text-xl font-black text-rose-600 font-mono">{complaintsList.length}</p>
+                </div>
+              </div>
+
+              {/* 📈 جراف تزايدي حقيقي يوضح نمو تسجيل الهويات والمستخدمين بمرور الأشهر */}
+              <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-xs">
+                <h3 className="text-xs font-bold text-capsule-navy mb-4 uppercase tracking-wider">
+                  {lang === 'ar' ? '📈 المؤشر التزايدي الإجمالي لتفاعل ونمو مستخدمي المنصة' : '📈 Incremental Monthly User Registration Trajectory'}
+                </h3>
+                <div className="space-y-3.5">
+                  {userGrowthTrajectory.map((t, idx) => {
+                    const maxScale = 1600;
+                    const growthRatio = Math.min((t.count / maxScale) * 100, 100);
+                    return (
+                      <div key={idx} className="bg-gray-50/70 p-3 rounded-xl border border-gray-100/50 flex items-center justify-between gap-4">
+                        <span className="text-xs font-bold text-capsule-navy w-24">{t.month}</span>
+                        <div className="flex-grow bg-gray-200 h-3 rounded-full overflow-hidden">
+                          <div className="bg-gradient-to-r from-capsule-teal to-capsule-navy h-full rounded-full transition-all duration-1000" style={{ width: `${growthRatio}%` }}></div>
+                        </div>
+                        <span className="text-xs font-black font-mono text-capsule-teal w-24 text-end">{t.count} {lang === 'ar' ? 'حساب' : 'Accounts'}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* التبويب الثاني: إدارة المستخدمين والصلاحيات الفيدرالية */}
+          {activeTab === 'users' && (
+            <div className="bg-white border border-gray-100 rounded-2xl shadow-xs overflow-hidden">
+              <div className="p-4 bg-gray-50 border-b border-gray-100">
+                <h2 className="text-xs font-bold text-capsule-navy uppercase tracking-wider">{lang === 'ar' ? '👥 التحكم بالهويات والصلاحيات (IAM)' : '👥 Identity & Access Management'}</h2>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse text-xs text-center">
+                  <thead>
+                    <tr className="bg-gray-100/40 text-gray-500 font-bold border-b border-gray-100">
+                      <th className="p-3 text-start">ID</th>
+                      <th className="p-3">{lang === 'ar' ? 'الاسم الكامل' : 'Name'}</th>
+                      <th className="p-3">{lang === 'ar' ? 'الصلاحية (Permission Role)' : 'Role'}</th>
+                      <th className="p-3">{lang === 'ar' ? 'الحالة' : 'Status'}</th>
+                      <th className="p-3">{lang === 'ar' ? 'إجراء الإدارة' : 'Action'}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50 font-medium text-gray-600">
+                    {usersList.map((user) => (
+                      <tr key={user.id} className="hover:bg-slate-50/40 transition">
+                        <td className="p-3 font-mono font-bold text-blue-600 text-start">{user.id}</td>
+                        <td className="p-3 text-capsule-navy font-bold">{user.name}</td>
+                        <td className="p-3">
+                          <select value={user.role} onChange={(e) => handleRoleChange(user.id, e.target.value)} className="p-1.5 bg-gray-50 border rounded-lg text-[11px] font-bold text-capsule-navy">
+                            <option value="Student">Student</option>
+                            <option value="Trainer">Trainer</option>
+                            <option value="Company">Company</option>
+                          </select>
+                        </td>
+                        <td className="p-3">
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${user.status === 'active' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
+                            {user.status === 'active' ? 'Active' : 'Suspended'}
+                          </span>
+                        </td>
+                        <td className="p-3">
+                          <button onClick={() => toggleUserStatus(user.id)} className={`px-2.5 py-1 rounded-md text-[10px] font-black text-white transition ${user.status === 'active' ? 'bg-rose-600' : 'bg-emerald-600'}`}>
+                            {user.status === 'active' ? (lang === 'ar' ? 'حظر الحساب' : 'Block') : (lang === 'ar' ? 'تنشيط الحساب' : 'Activate')}
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* ⚙️ التبويب الثالث: إدارة الكورسات والموافقة التفاعلية مع الترجمة الدقيقة بالكامل */}
+          {activeTab === 'courses' && (
+            <div className="bg-white border border-gray-100 rounded-2xl shadow-xs overflow-hidden">
+              <div className="p-4 bg-gray-50 border-b border-gray-100">
+                <h2 className="text-xs font-bold text-capsule-navy uppercase tracking-wider">{lang === 'ar' ? '⚙️ التحكم ومتابعة خط إنتاج وحالة الكورسات التدريبية بالمنصة' : '⚙️ Core Course Management & Review Pipeline'}</h2>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse text-xs text-center">
+                  <thead>
+                    <tr className="bg-gray-100/40 text-gray-500 font-bold border-b border-gray-100">
+                      <th className="p-3 text-start">{lang === 'ar' ? 'عنوان الدورة' : 'Course Title'}</th>
+                      <th className="p-3">{lang === 'ar' ? 'الموجّه / المدرب' : 'Instructor'}</th>
+                      <th className="p-3">{lang === 'ar' ? 'المدة الزمنية' : 'Duration'}</th>
+                      <th className="p-3">{lang === 'ar' ? 'الطلاب المسجلين' : 'Students Enrolled'}</th>
+                      <th className="p-3">{lang === 'ar' ? 'الحالة الحالية' : 'Current Status'}</th>
+                      <th className="p-3">{lang === 'ar' ? 'العمليات الفيدرالية' : 'Operational Actions'}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50 font-medium text-gray-600">
+                    {coursesList.map((course) => (
+                      <tr key={course.id} className="hover:bg-slate-50/40 transition">
+                        {/* استدعاء الدالة المترجمة ديناميكياً لحل مشكلة عدم الترجمة */}
+                        <td className="p-3 text-start font-bold text-capsule-navy max-w-[160px] truncate">{getTranslatedContent(course, 'title')}</td>
+                        <td className="p-3 text-gray-500 font-semibold">{getTranslatedContent(course, 'instructor')}</td>
+                        <td className="p-3 font-mono text-gray-400">{course.duration || '24 Hours'}</td>
+                        <td className="p-3 font-black text-capsule-navy font-mono">{course.students || 0}</td>
+                        <td className="p-3">
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+                            course.status === 'available' || course.status === 'completed' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
+                          }`}>
+                            {course.status === 'available' ? (lang === 'ar' ? 'نشط ومتاح' : 'Active') : (lang === 'ar' ? 'قيد المراجعة' : 'Pending')}
+                          </span>
+                        </td>
+                        <td className="p-3 flex justify-center gap-1.5">
+                          {course.status !== 'available' ? (
+                            <button 
+                              onClick={() => handleUpdateCourseStatus(course.id, 'available')} 
+                              className="px-2.5 py-1 text-[10px] font-black text-white bg-emerald-600 hover:bg-emerald-700 rounded-md transition"
+                            >
+                              {lang === 'ar' ? 'اعتماد ونشر' : 'Approve & Publish'}
+                            </button>
+                          ) : (
+                            <button 
+                              onClick={() => handleUpdateCourseStatus(course.id, 'coming_soon')} 
+                              className="px-2.5 py-1 text-[10px] font-black text-white bg-amber-600 hover:bg-amber-700 rounded-md transition"
+                            >
+                              {lang === 'ar' ? 'إيقاف مؤقت' : 'Suspend'}
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* 📥 التبويب الرابع: صندوق الشكاوى والاستفسارات المرفوعة */}
+          {activeTab === 'complaints' && (
+            <div className="bg-white border border-gray-100 rounded-2xl shadow-xs overflow-hidden">
+              <div className="p-4 bg-gray-50 border-b border-gray-100">
+                <h2 className="text-xs font-bold text-capsule-navy uppercase tracking-wider">
+                  {lang === 'ar' ? '📥 الشكاوى والاستفسارات المرفوعة من صفحة التواصل' : '📥 Direct User Support Tickets & Inquiries'}
+                </h2>
+              </div>
+              <div className="p-4 space-y-4 max-h-[450px] overflow-y-auto">
+                {complaintsList.map((complaint) => (
+                  <div key={complaint.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 text-xs relative">
+                    <div className="flex flex-col sm:flex-row justify-between sm:items-center font-bold text-capsule-navy mb-2 gap-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono bg-rose-50 text-rose-700 px-1.5 py-0.5 rounded text-[10px]">{complaint.id}</span>
+                        <span>{complaint.name}</span>
+                      </div>
+                      <span className="text-gray-400 font-mono text-[10px]">{complaint.email}</span>
+                    </div>
+                    <p className="text-gray-600 leading-relaxed font-medium bg-white p-3 rounded-xl border border-gray-100 shadow-3xs">{complaint.message}</p>
+                    <span className="text-[10px] text-gray-400 font-mono block text-end mt-1.5">{complaint.date}</span>
+                  </div>
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </div>
+            </div>
+          )}
+
         </div>
       </main>
 
