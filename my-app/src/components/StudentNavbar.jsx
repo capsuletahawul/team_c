@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
-
 import { Link } from "react-router-dom";
 import logo from "../assets/logo.png";
 
@@ -8,145 +7,123 @@ function StudentNavbar({ activePage = 'dashboard', showAuthButtons = false, onSi
   const [isOpen, setIsOpen] = useState(false);
   const { t, lang, toggleLanguage } = useLanguage();
 
-const navLinks = [
-  {
-    id: "home",
-    label: lang === "ar" ? "الرئيسية" : "Home",
-    to: "/student-dashboard",
-  },
-  {
-    id: "courses",
-    label: lang === "ar" ? "الدورات" : "Courses",
-    to: "/student-courses-overview",
-  },
-  {
-    id: "bootcamps",
-    label: lang === "ar" ? "المعسكرات" : "Bootcamps",
-    to: "#",
-  },
-  {
-    id: "profile",
-    label: lang === "ar" ? "الملف الشخصي" : "Profile",
-    to: "/student-profile",
-  },
-];
+  const navLinks = [
+    {
+      id: "home",
+      label: lang === "ar" ? "الرئيسية" : "Home",
+      to: "/student-dashboard",
+    },
+    {
+      id: "courses",
+      label: lang === "ar" ? "الدورات" : "Courses",
+      to: "/student-courses-overview",
+    },
+    {
+      id: "bootcamps",
+      label: lang === "ar" ? "المعسكرات" : "Bootcamps",
+      to: "#",
+    },
+    {
+      id: "profile",
+      label: lang === "ar" ? "الملف الشخصي" : "Profile",
+      to: "/student-profile",
+    },
+  ];
 
   return (
-
-<nav
-className="
-sticky top-0 z-50
-bg-white/90
-backdrop-blur-md
-border-b border-gray-200
-shadow-sm
-transition-all
-"
-dir={t.dir}
->
-
-<div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
+    <nav
+      className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200 shadow-sm transition-all"
+      dir={t.dir}
+    >
+      <div className="max-w-7xl mx-auto px-6 flex justify-between items-center h-16">
         
         {/* Logo and Main Links */}
-<div className="flex items-center gap-12">
+        <div className="flex items-center gap-12">
+          <Link to="/student-dashboard" className="flex items-center gap-3 cursor-pointer">
+            <img
+              src={logo}
+              alt="Capsula Tahawul Logo"
+              className="w-12 h-12 object-contain"
+            />
+            <span className="text-lg font-extrabold tracking-wide text-capsule-navy">
+              {t.brand}
+            </span>
+          </Link>
 
-
-<div className="flex items-center gap-3 cursor-pointer">
-  <img
-  src={logo}
-  alt="Capsula Tahawul Logo"
-  className="w-12 h-12 object-contain"
-/>
-
-  <span className="text-lg font-extrabold tracking-wide text-capsule-navy">
-    {t.brand}
-  </span>
-</div>
-
-          
           {/* Navigation Links */}
-<div className="hidden md:flex items-center gap-8 text-sm font-semibold">
-  {navLinks.map((link) => (
-    <Link
-  key={link.id}
-  to={link.to}
-      className={`group relative pb-2 transition-all duration-300 ${
-        activePage === link.id
-          ? "text-capsule-teal"
-          : "text-gray-600 hover:text-capsule-teal"
-      }`}
-    >
-      {link.label}
-
-      <span
-        className={`absolute bottom-0 left-0 h-0.5 bg-capsule-teal transition-all duration-300 ${
-          activePage === link.id
-            ? "w-full"
-            : "w-0 group-hover:w-full"
-        }`}
-      />
-    </Link>
-  ))}
-</div>
+          <div className="hidden md:flex items-center gap-8 text-sm font-semibold">
+            {navLinks.map((link) => (
+              <Link
+                key={link.id}
+                to={link.to}
+                className={`group relative pb-2 transition-all duration-300 ${
+                  activePage === link.id
+                    ? "text-capsule-teal"
+                    : "text-gray-600 hover:text-capsule-teal"
+                }`}
+              >
+                {link.label}
+                <span
+                  className={`absolute bottom-0 left-0 h-0.5 bg-capsule-teal transition-all duration-300 ${
+                    activePage === link.id
+                      ? "w-full"
+                      : "w-0 group-hover:w-full"
+                  }`}
+                />
+              </Link>
+            ))}
+          </div>
         </div>
 
         {/* Desktop Actions: Toggle + Auth */}
         <div className="hidden md:flex items-center gap-4 px-4">
+          
+          {/* 🛒 FIXED: Now an active routing Link pointing directly to /cart */}
+          <Link
+            to="/cart"
+            className={`w-10 h-10 flex items-center justify-center rounded-full transition ${
+              activePage === 'shopping-cart' ? 'bg-capsule-teal/10 text-capsule-teal' : 'hover:bg-gray-100 text-gray-700'
+            }`}
+            title={lang === "ar" ? "السلة" : "Cart"}
+          >
+            🛒
+          </Link>
 
-        <button
-  className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition"
-  title={lang === "ar" ? "السلة" : "Cart"}
->
-  🛒
-</button>
-
-                 
-     <button
-  className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-100 transition"
->
-  🌙
-</button>
-
-
+          <button className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-100 transition">
+            🌙
+          </button>
           
           {/* Language Toggle (Desktop) */}
           <button 
             onClick={toggleLanguage}
             className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-extrabold text-xs px-3 py-1.5 rounded-full transition-all duration-200 cursor-pointer border border-gray-200 shadow-xs"
           >
-
             {lang === 'ar' ? 'EN' : 'AR'}
           </button>
 
-
           {showAuthButtons ? (
-  <div className="flex items-center gap-3">
-    <button
-      onClick={onSignIn}
-      className="px-4 h-8 rounded-full border border-capsule-navy text-capsule-navy font-semibold hover:bg-capsule-navy hover:text-white transition-all duration-300 flex items-center justify-center cursor-pointer"
-    >
-      {t.tabs.login}
-    </button>
-
-    <button
-      onClick={onSignUp}
-      className="px-4 h-8 rounded-full bg-gradient-to-r from-capsule-teal to-capsule-navy text-white font-semibold shadow-md hover:scale-105 transition-all duration-300 flex items-center justify-center cursor-pointer"
-    >
-      {t.tabs.signup}
-    </button>
-  </div>
-) : (
-  <Link
-  to="/sign-in"
-  className="px-4 h-9 rounded-full bg-capsule-navy hover:bg-capsule-teal text-white font-semibold flex items-center justify-center transition-all duration-300"
->
-  {lang === "ar" ? "تسجيل الخروج" : "Log Out"}
-</Link>
-)}
+            <div className="flex items-center gap-3">
+              <button onClick={onSignIn} className="px-4 h-8 rounded-full border border-capsule-navy text-capsule-navy font-semibold hover:bg-capsule-navy hover:text-white transition-all duration-300 flex items-center justify-center cursor-pointer">
+                {t.tabs.login}
+              </button>
+              <button onClick={onSignUp} className="px-4 h-8 rounded-full bg-gradient-to-r from-capsule-teal to-capsule-navy text-white font-semibold shadow-md hover:scale-105 transition-all duration-300 flex items-center justify-center cursor-pointer">
+                {t.tabs.signup}
+              </button>
+            </div>
+          ) : (
+            <Link
+              to="/sign-in"
+              className="px-4 h-9 rounded-full bg-capsule-navy hover:bg-capsule-teal text-white font-semibold flex items-center justify-center transition-all duration-300"
+            >
+              {lang === "ar" ? "تسجيل الخروج" : "Log Out"}
+            </Link>
+          )}
         </div>
 
         {/* Mobile Hamburger Button */}
-        <div className="md:hidden">
+        <div className="md:hidden flex items-center gap-2">
+          {/* Mobile Shortcut to Cart */}
+          <Link to="/cart" className="p-2 text-lg">🛒</Link>
           <button onClick={() => setIsOpen(!isOpen)} className="text-capsule-navy focus:outline-none text-xl p-1 cursor-pointer">
             {isOpen ? '✕' : '☰'}
           </button>
@@ -155,8 +132,7 @@ dir={t.dir}
 
       {/* Mobile Dropdown Menu */}
       {isOpen && (
-        <div className="md:hidden mt-4 bg-gray-50 rounded-xl p-4 flex flex-col space-y-3 font-semibold text-sm border border-gray-100">
-          
+        <div className="md:hidden mt-4 bg-gray-50 rounded-xl p-4 flex flex-col space-y-3 font-semibold text-sm border border-gray-100 mx-6 mb-4">
           {/* Language Toggle (Mobile) */}
           <button 
             onClick={toggleLanguage}
@@ -167,34 +143,18 @@ dir={t.dir}
 
           {navLinks.map(link => (
             <Link
-  key={link.id}
-  to={link.to}
-  className={`p-2 rounded-lg ${
-    activePage === link.id
-      ? "bg-capsule-teal/10 text-capsule-teal"
-      : "text-gray-600"
-  }`}
->
-  {link.label}
-</Link>
+              key={link.id}
+              to={link.to}
+              onClick={() => setIsOpen(false)}
+              className={`p-2 rounded-lg ${
+                activePage === link.id
+                  ? "bg-capsule-teal/10 text-capsule-teal"
+                  : "text-gray-600"
+              }`}
+            >
+              {link.label}
+            </Link>
           ))}
-
-          {showAuthButtons && (
-            <div className="flex flex-col gap-2 pt-3 mt-1 border-t border-gray-200">
-              <button
-                onClick={onSignIn}
-                className={`p-2 rounded-lg font-bold text-capsule-navy hover:bg-gray-100 transition cursor-pointer ${t.dir === 'rtl' ? 'text-right' : 'text-left'}`}
-              >
-                {t.tabs.login}
-              </button>
-              <button
-                onClick={onSignUp}
-                className="p-2.5 rounded-lg text-center font-bold text-white bg-capsule-navy hover:bg-capsule-teal transition cursor-pointer"
-              >
-                {t.tabs.signup}
-              </button>
-            </div>
-          )}
         </div>
       )}
     </nav>

@@ -16,6 +16,7 @@ import CourseDetails from './pages/CourseDetails.jsx';
 import CoursesOverview from './pages/CoursesOverview.jsx';
 import StudentCoursesOverview from './pages/StudentCoursesOverview.jsx';
 import Contact from './pages/Contact.jsx';
+import Cart from './pages/Cart.jsx';
 
 // --- Small wrappers for pages that expect navigation callbacks as props ---
 
@@ -119,6 +120,7 @@ function App() {
         <Route path="/student-courses-overview" element={<StudentCoursesOverview />} />
         <Route path="/business-contract" element={<BusinessContractForm />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/cart" element={<Cart />} />
       </Routes>
     </BrowserRouter>
   );
