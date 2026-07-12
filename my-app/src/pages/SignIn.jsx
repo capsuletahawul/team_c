@@ -1,7 +1,7 @@
 // src/pages/SignIn.jsx
 import React from "react";
 import { useNavigate } from "react-router-dom";
-
+import { Link } from "react-router-dom";
 
 import { COPY } from "../i18n/copy";
 import { CapsuleMark, EyeIcon } from "../components/Icons";
@@ -126,7 +126,9 @@ const handleLogin = (e) => {
                   <input type="checkbox" />
                   <span>{form.remember}</span>
                 </label>
-                <a href="#" className="link-muted">{form.forgot}</a>
+                <Link to="/forgot-password" className="link-muted">
+  {form.forgot}
+</Link>
               </div>
 
               <button type="submit" className="submit-btn">{form.submit}</button>
