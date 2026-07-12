@@ -1,0 +1,415 @@
+import React, { useState, useEffect } from 'react';
+import { useLanguage } from '../context/LanguageContext';
+import Navbar from '../components/Navbar.jsx';
+import Footer from '../components/Footer.jsx';
+import { 
+  BuildingOffice2Icon, 
+  PlusCircleIcon, 
+  DocumentArrowUpIcon, 
+  TicketIcon, 
+  ArrowDownTrayIcon, 
+  UserGroupIcon, 
+  ClockIcon, 
+  ChartBarIcon, 
+  CheckCircleIcon,
+  XCircleIcon,
+  ArrowPathIcon
+} from '@heroicons/react/24/outline';
+
+export default function CompanyDashboard() {
+  const { t, lang } = useLanguage();
+  
+  // 1. Dual-Language Translation Dictionary Mapping
+  const l = t.companyDashboard || {
+    title: lang === 'ar' ? 'لوحة تحكم الشركات' : 'Company Dashboard',
+    subtitle: lang === 'ar' ? 'إدارة المعسكرات المخصصة، تتبع عروض الأسعار، ومراقبة أداء الموظفين.' : 'Manage custom bootcamps, track quotations, and monitor employee metrics.',
+    
+    // Tab Headers
+    tabRequest: lang === 'ar' ? 'طلب معسكر مخصص' : 'Request Bootcamp',
+    tabTickets: lang === 'ar' ? 'متابعة عروض الأسعار' : 'Quotations & Tickets',
+    tabAnalytics: lang === 'ar' ? 'إحصائيات الموظفين' : 'Employees Analytics',
+
+    // Form
+    formTitle: lang === 'ar' ? 'طلب برنامج تدريبي مخصص للشركات' : 'Request Custom B2B Training',
+    progName: lang === 'ar' ? 'اسم البرنامج التدريبي' : 'Program Name',
+    empCount: lang === 'ar' ? 'عدد الموظفين المستهدفين' : 'Target Employees Count',
+    budget: lang === 'ar' ? 'الميزانية التقريبية (ر.س)' : 'Approximate Budget (SAR)',
+    domain: lang === 'ar' ? 'المجال التقني' : 'Technical Domain',
+    rfpLabel: lang === 'ar' ? 'كراسة الشروط والمتطلبات (RFP)' : 'Requirements Document (RFP)',
+    rfpHint: lang === 'ar' ? 'اسحب وأفلت الملف هنا أو انقر للاختيار (PDF, DOCX)' : 'Drag & drop your file here or click to browse (PDF, DOCX)',
+    btnSubmit: lang === 'ar' ? 'إرسال طلب المعسكر الإستراتيجي' : 'Submit Strategic Request',
+    toastSuccess: lang === 'ar' ? '✨ تم إرسال طلبك بنجاح! تم إنشاء تذكرة جديدة وقيد المراجعة الإدارية.' : '✨ Request submitted successfully! A tracking ticket has been opened.',
+
+    // Tickets Table
+    tableTitle: lang === 'ar' ? 'سجل تذاكر وعروض أسعار الـ B2B' : 'B2B Tickets & Quotation Log',
+    searchPlaceholder: lang === 'ar' ? 'بحث برقم التذكرة أو البرنامج...' : 'Search by ticket ID or program...',
+    thId: lang === 'ar' ? 'رقم التذكرة' : 'Ticket ID',
+    thProgram: lang === 'ar' ? 'البرنامج' : 'Program',
+    thDate: lang === 'ar' ? 'التاريخ' : 'Date',
+    thStatus: lang === 'ar' ? 'الحالة الكلية' : 'Status',
+    thAction: lang === 'ar' ? 'إجراءات العرض المالي' : 'Financial Actions',
+    statusReview: lang === 'ar' ? 'قيد المراجعة الإدارية' : 'Under Review',
+    statusIssued: lang === 'ar' ? 'تم إصدار عرض السعر' : 'Quotation Issued',
+    statusApproved: lang === 'ar' ? 'معتمد ومقبول' : 'Approved',
+    viewQuoteBtn: lang === 'ar' ? 'عرض السعر المخصص' : 'View Custom Quote',
+    
+    // Quotation Modal
+    quoteHeader: lang === 'ar' ? 'تفاصيل عرض السعر المالي المخصص' : 'Custom Financial Quotation Details',
+    basePrice: lang === 'ar' ? 'الرسوم الأساسية لكل موظف' : 'Base Fee Per Employee',
+    groupDiscount: lang === 'ar' ? 'خصم المجموعات والشركات' : 'Corporate Group Discount',
+    totalPrice: lang === 'ar' ? 'إجمالي الصافي المستحق' : 'Net Total Amount',
+    btnAcceptQuote: lang === 'ar' ? 'قبول واعتماد العرض المالي' : 'Accept & Approve Quote',
+    btnAmendQuote: lang === 'ar' ? 'طلب تعديل العرض' : 'Request Amendment',
+
+    // Analytics Cards
+    cardActiveEmp: lang === 'ar' ? 'الموظفين النشطين حالياً' : 'Currently Active Employees',
+    cardHours: lang === 'ar' ? 'الساعات التدريبية المنجزة' : 'Training Hours Completed',
+    cardProgress: lang === 'ar' ? 'نسبة التقدم الإجمالية' : 'Overall Progress Rate',
+    exportBtn: lang === 'ar' ? 'تصدير التقرير المعتمد (CSV)' : 'Export Approved Report (CSV)',
+    empListTitle: lang === 'ar' ? 'بيانات ومعدلات إنجاز موظفي الشركة الكلية' : 'Company Employee Performance Roster',
+    thEmpName: lang === 'ar' ? 'اسم الموظف' : 'Employee Name',
+    thEmpProgress: lang === 'ar' ? 'نسبة الإنجاز' : 'Completion Rate'
+  };
+
+  // Mock initial tickets state to support fully functional interaction
+  const [tickets, setTickets] = useState([
+    { id: 'TKT-9021', program: 'Cybersecurity Blue Team Bootcamp', count: 25, date: '2026-07-01', status: 'issued', domain: 'Cybersecurity', base: 4500, discount: 15 },
+    { id: 'TKT-8411', program: 'Generative AI & LLMs Enterprise Track', count: 12, date: '2026-07-09', status: 'review', domain: 'Artificial Intelligence', base: 6000, discount: 10 },
+    { id: 'TKT-7102', program: 'Cloud Native DevOps Architectures', count: 40, date: '2026-06-15', status: 'approved', domain: 'Cloud Computing', base: 3800, discount: 20 },
+  ]);
+
+  const [employees] = useState([
+    { id: 1, name: lang === 'ar' ? 'أحمد بن عبد الله' : 'Ahmed Bin Abdullah', progress: 84 },
+    { id: 2, name: lang === 'ar' ? 'سارة القحطاني' : 'Sara Al-Qahtani', progress: 92 },
+    { id: 3, name: lang === 'ar' ? 'خالد الشمري' : 'Khaled Al-Shammari', progress: 41 },
+    { id: 4, name: lang === 'ar' ? 'ريم الدوسري' : 'Reem Al-Dossary', progress: 100 },
+  ]);
+
+  // UI States
+  const [activeTab, setActiveTab] = useState('request'); // request | tickets | analytics
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [showToast, setShowToast] = useState(false);
+  const [selectedQuote, setSelectedQuote] = useState(null); // stores active ticket item for popup modal
+
+  // Form States
+  const [form, setForm] = useState({ program: '', count: '', budget: '', domain: 'Cybersecurity' });
+  const [uploadedFileName, setUploadedFileName] = useState('');
+
+  const handleFormSubmit = (e) => {
+    e.preventDefault();
+    const newTicket = {
+      id: `TKT-${Math.floor(1000 + Math.random() * 9000)}`,
+      program: form.program,
+      count: parseInt(form.count) || 10,
+      date: new Date().toISOString().split('T')[0],
+      status: 'review',
+      domain: form.domain,
+      base: 5000,
+      discount: 10
+    };
+    
+    setTickets([newTicket, ...tickets]);
+    setShowToast(true);
+    setForm({ program: '', count: '', budget: '', domain: 'Cybersecurity' });
+    setUploadedFileName('');
+    setTimeout(() => setShowToast(false), 5000);
+  };
+
+  const handleFileUpload = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setUploadedFileName(e.target.files[0].name);
+    }
+  };
+
+  const handleUpdateQuoteStatus = (ticketId, nextStatus) => {
+    setTickets(tickets.map(tkt => tkt.id === ticketId ? { ...tkt, status: nextStatus } : tkt));
+    setSelectedQuote(null);
+  };
+
+  const handleExportCSV = () => {
+    alert(lang === 'ar' ? 'جاري إنشاء وتصدير ملف التقرير المالي الشامل...' : 'Generating and exporting complete data report stream...');
+  };
+
+  // Filter conditions for B2B Tickets matching requirement #4
+  const filteredTickets = tickets.filter(tkt => {
+    const matchesSearch = tkt.program.toLowerCase().includes(searchTerm.toLowerCase()) || tkt.id.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || tkt.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
+  return (
+    <div className="min-h-screen bg-slate-50/50 font-sans text-slate-800 selection:bg-[#00A499]/10" dir={t.dir}>
+      <Navbar activePage="dashboard" />
+
+      {/* Success Animated Floating Toast System */}
+      {showToast && (
+        <div className="fixed bottom-6 right-6 left-6 md:left-auto md:w-[450px] bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-5 py-4 rounded-2xl shadow-xl z-50 flex items-center gap-3 animate-bounce border border-emerald-400/20">
+          <CheckCircleIcon className="w-6 h-6 flex-shrink-0 text-emerald-200" />
+          <p className="text-xs font-black leading-relaxed">{l.toastSuccess}</p>
+        </div>
+      )}
+
+      {/* Hero Header Context */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-[#0D4C54] via-[#0A3A40] to-[#021E22] text-white pt-24 pb-16">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,164,153,0.12),transparent_50%)]"></div>
+        <div className="max-w-7xl mx-auto px-6 relative z-10">
+          <div className="inline-flex items-center gap-1.5 bg-[#00A499]/20 text-[#26FFE6] text-xs font-black px-3 py-1 rounded-full border border-[#00A499]/30 mb-4 tracking-wide uppercase">
+            <BuildingOffice2Icon className="w-3.5 h-3.5" />
+            {l.title}
+          </div>
+          <h1 className="text-2xl md:text-4xl font-black tracking-tight mb-2">{l.title}</h1>
+          <p className="text-slate-300 max-w-2xl text-xs md:text-sm font-semibold leading-relaxed">{l.subtitle}</p>
+        </div>
+      </div>
+
+      {/* Primary Dashboard Layout Workspace Container */}
+      <div className="max-w-7xl mx-auto px-6 py-10">
+        
+        {/* Navigation Section / Custom Segmented Tabs Selection layout */}
+        <div className="flex border-b border-slate-200/80 mb-8 gap-1 md:gap-2 overflow-x-auto">
+          <button onClick={() => setActiveTab('request')} className={`whitespace-nowrap px-4 py-3 font-black text-xs md:text-sm transition-all border-b-2 cursor-pointer ${activeTab === 'request' ? 'border-[#00A499] text-[#00A499]' : 'border-transparent text-slate-400 hover:text-slate-600'}`}>
+            <PlusCircleIcon className="w-4 h-4 inline-block mx-1" />
+            {l.tabRequest}
+          </button>
+          <button onClick={() => setActiveTab('tickets')} className={`whitespace-nowrap px-4 py-3 font-black text-xs md:text-sm transition-all border-b-2 cursor-pointer ${activeTab === 'tickets' ? 'border-[#00A499] text-[#00A499]' : 'border-transparent text-slate-400 hover:text-slate-600'}`}>
+            <TicketIcon className="w-4 h-4 inline-block mx-1" />
+            {l.tabTickets}
+          </button>
+          <button onClick={() => setActiveTab('analytics')} className={`whitespace-nowrap px-4 py-3 font-black text-xs md:text-sm transition-all border-b-2 cursor-pointer ${activeTab === 'analytics' ? 'border-[#00A499] text-[#00A499]' : 'border-transparent text-slate-400 hover:text-slate-600'}`}>
+            <ChartBarIcon className="w-4 h-4 inline-block mx-1" />
+            {l.tabAnalytics}
+          </button>
+        </div>
+
+        {/* 1️⃣ TAB CONTENT: BOOTCAMP REGISTRATION/REQUEST FORM */}
+        {activeTab === 'request' && (
+          <div className="max-w-3xl bg-white border border-slate-100 rounded-3xl p-6 md:p-8 shadow-sm relative overflow-hidden">
+            <div className="absolute top-0 inset-x-0 h-2 bg-gradient-to-r from-[#00A499] to-[#0D4C54]"></div>
+            <h2 className="text-lg font-black text-slate-900 mb-6 flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#00A499]"></span>
+              {l.formTitle}
+            </h2>
+
+            <form onSubmit={handleFormSubmit} className="space-y-5">
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500">{l.progName}</label>
+                <input type="text" required value={form.program} onChange={(e) => setForm({...form, program: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs md:text-sm font-semibold focus:outline-none focus:border-[#00A499] focus:bg-white transition-all" />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500">{l.empCount}</label>
+                  <input type="number" required value={form.count} onChange={(e) => setForm({...form, count: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs md:text-sm font-semibold focus:outline-none focus:border-[#00A499] focus:bg-white transition-all" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500">{l.budget}</label>
+                  <input type="number" required value={form.budget} onChange={(e) => setForm({...form, budget: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs md:text-sm font-semibold focus:outline-none focus:border-[#00A499] focus:bg-white transition-all" />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500">{l.domain}</label>
+                <select value={form.domain} onChange={(e) => setForm({...form, domain: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs md:text-sm font-semibold focus:outline-none focus:border-[#00A499] focus:bg-white transition-all cursor-pointer">
+                  <option value="Cybersecurity">Cybersecurity</option>
+                  <option value="Artificial Intelligence">Artificial Intelligence</option>
+                  <option value="Cloud Computing">Cloud Computing</option>
+                  <option value="Web Development">Web Development</option>
+                </select>
+              </div>
+
+              {/* RFP Requirements Upload UI Component Box */}
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500">{l.rfpLabel}</label>
+                <div className="relative border-2 border-dashed border-slate-200 hover:border-[#00A499] bg-slate-50/50 rounded-2xl p-6 transition-all text-center cursor-pointer group">
+                  <input type="file" onChange={handleFileUpload} accept=".pdf,.doc,.docx" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+                  <DocumentArrowUpIcon className="w-8 h-8 mx-auto text-slate-300 group-hover:text-[#00A499] transition-colors mb-2" />
+                  <p className="text-xs font-bold text-slate-600">{uploadedFileName || l.rfpHint}</p>
+                </div>
+              </div>
+
+              <div className="pt-2 flex justify-end">
+                <button type="submit" className="w-full sm:w-auto bg-[#0D4C54] hover:bg-[#003947] text-white font-black text-xs md:text-sm px-8 py-3.5 rounded-xl shadow-md transition-all cursor-pointer">
+                  {l.btnSubmit}
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {/* 2️⃣ TAB CONTENT: TICKETS TRACKING AND PROPOSAL AUDITING */}
+        {activeTab === 'tickets' && (
+          <div className="bg-white border border-slate-100 rounded-3xl shadow-sm overflow-hidden">
+            <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <h2 className="text-base font-black text-slate-900 flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#00A499]"></span>
+                {l.tableTitle}
+              </h2>
+              
+              {/* Dynamic Filtering Panel Matching UX Section #4 */}
+              <div className="flex flex-wrap items-center gap-3">
+                <input type="text" placeholder={l.searchPlaceholder} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:border-[#00A499] max-w-[200px]" />
+                <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:border-[#00A499] cursor-pointer">
+                  <option value="all">{lang === 'ar' ? 'الكل' : 'All States'}</option>
+                  <option value="review">{l.statusReview}</option>
+                  <option value="issued">{l.statusIssued}</option>
+                  <option value="approved">{l.statusApproved}</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-xs md:text-sm">
+                <thead>
+                  <tr className="border-b border-slate-100 text-slate-400 text-xs font-bold bg-slate-50/20">
+                    <th className={`p-4 ${lang === 'ar' ? 'text-right' : 'text-left'}`}>{l.thId}</th>
+                    <th className={`p-4 ${lang === 'ar' ? 'text-right' : 'text-left'}`}>{l.thProgram}</th>
+                    <th className="p-4 text-center">{l.thDate}</th>
+                    <th className="p-4 text-center">{l.thStatus}</th>
+                    <th className="p-4 text-center">{l.thAction}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50 font-semibold text-slate-700">
+                  {filteredTickets.map((tkt) => (
+                    <tr key={tkt.id} className="hover:bg-slate-50/40 transition-colors">
+                      <td className="p-4 font-mono font-bold text-[#0D4C54]">{tkt.id}</td>
+                      <td className="p-4 font-bold text-slate-900 max-w-xs truncate">
+                        <p>{tkt.program}</p>
+                        <span className="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-500 mt-1 inline-block">{tkt.domain}</span>
+                      </td>
+                      <td className="p-4 text-center text-slate-400 font-mono">{tkt.date}</td>
+                      <td className="p-4 text-center">
+                        <span className={`inline-flex items-center gap-1 text-[11px] font-black px-2.5 py-1 rounded-full ${
+                          tkt.status === 'approved' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
+                          tkt.status === 'issued' ? 'bg-indigo-50 text-indigo-600 border border-indigo-100' :
+                          'bg-amber-50 text-amber-600 border border-amber-100'
+                        }`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${
+                            tkt.status === 'approved' ? 'bg-emerald-500' : tkt.status === 'issued' ? 'bg-indigo-500' : 'bg-amber-500'
+                          }`}></span>
+                          {tkt.status === 'approved' ? l.statusApproved : tkt.status === 'issued' ? l.statusIssued : l.statusReview}
+                        </span>
+                      </td>
+                      <td className="p-4 text-center">
+                        {tkt.status === 'issued' ? (
+                          <button onClick={() => setSelectedQuote(tkt)} className="bg-[#00A499] hover:bg-[#00867D] text-white text-[11px] font-black px-3 py-1.5 rounded-lg transition-all shadow-xs cursor-pointer">
+                            {l.viewQuoteBtn}
+                          </button>
+                        ) : tkt.status === 'approved' ? (
+                          <span className="text-emerald-600 flex items-center justify-center gap-1 text-xs">✓ {l.statusApproved}</span>
+                        ) : (
+                          <span className="text-slate-400 font-normal italic text-xs">{lang === 'ar' ? 'بانتظار التسعير' : 'Awaiting pricing matrix'}</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* 3️⃣ TAB CONTENT: ANALYTICS & INTERACTIVE PROGRESS OVERVIEW */}
+        {activeTab === 'analytics' && (
+          <div className="space-y-8 animate-fade-in">
+            {/* KPI Cards Framework Metric Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-[#00A499]/10 flex items-center justify-center text-[#00A499]"><UserGroupIcon className="w-6 h-6" /></div>
+                <div><p className="text-xs font-bold text-slate-400">{l.cardActiveEmp}</p><p className="text-xl font-black text-slate-900 font-mono mt-0.5">77</p></div>
+              </div>
+              <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-600"><ClockIcon className="w-6 h-6" /></div>
+                <div><p className="text-xs font-bold text-slate-400">{l.cardHours}</p><p className="text-xl font-black text-slate-900 font-mono mt-0.5">1,240</p></div>
+              </div>
+              <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-600"><ChartBarIcon className="w-6 h-6" /></div>
+                <div><p className="text-xs font-bold text-slate-400">{l.cardProgress}</p><p className="text-xl font-black text-slate-900 font-mono mt-0.5">79.3%</p></div>
+              </div>
+            </div>
+
+            {/* Employees Progress Tracking List Board */}
+            <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#00A499]"></span>
+                  {l.empListTitle}
+                </h3>
+                <button onClick={handleExportCSV} className="inline-flex items-center gap-1.5 border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-bold px-3 py-2 rounded-xl transition-all cursor-pointer">
+                  <ArrowDownTrayIcon className="w-3.5 h-3.5" />
+                  {l.exportBtn}
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {employees.map((emp) => (
+                  <div key={emp.id} className="p-4 rounded-2xl bg-slate-50/50 border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-7 h-7 rounded-lg bg-slate-200/60 font-mono font-bold text-slate-600 text-xs flex items-center justify-center">#{emp.id}</div>
+                      <p className="text-xs font-black text-slate-800">{emp.name}</p>
+                    </div>
+                    
+                    <div className="flex items-center gap-4 flex-1 sm:max-w-md w-full">
+                      <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                        <div className="bg-gradient-to-r from-[#00A499] to-[#0D4C54] h-2 transition-all duration-500" style={{ width: `${emp.progress}%` }}></div>
+                      </div>
+                      <span className="text-xs font-mono font-bold text-slate-500 w-10 text-center">{emp.progress}%</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+      </div>
+
+      {/* 2️⃣ MODAL: INTERACTIVE QUOTATION OVERLAY VIEW SCREEN */}
+      {selectedQuote && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl max-w-xl w-full p-6 md:p-8 shadow-2xl border border-slate-100 relative max-h-[90vh] overflow-y-auto">
+            <h3 className="text-lg font-black text-slate-900 mb-2 flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#00A499]"></span>
+              {l.quoteHeader}
+            </h3>
+            <p className="text-xs text-slate-400 font-bold mb-6 font-mono">{selectedQuote.id} — {selectedQuote.program}</p>
+            
+            <div className="divide-y divide-slate-100 space-y-4 border-b border-slate-100 pb-6 mb-6 font-semibold">
+              <div className="flex justify-between items-center text-xs md:text-sm pt-2">
+                <span className="text-slate-500">{l.basePrice}</span>
+                <span className="font-mono font-bold text-slate-900">{selectedQuote.base} {lang === 'ar' ? 'ر.س' : 'SAR'}</span>
+              </div>
+              <div className="flex justify-between items-center text-xs md:text-sm pt-4">
+                <span className="text-slate-500">{l.empCount}</span>
+                <span className="font-mono font-bold text-slate-900">{selectedQuote.count}</span>
+              </div>
+              <div className="flex justify-between items-center text-xs md:text-sm pt-4 text-emerald-600">
+                <span>{l.groupDiscount}</span>
+                <span className="font-mono font-bold">-{selectedQuote.discount}%</span>
+              </div>
+              <div className="flex justify-between items-center text-base font-black pt-4 text-[#0D4C54]">
+                <span>{l.totalPrice}</span>
+                <span className="font-mono">
+                  {Math.round((selectedQuote.base * selectedQuote.count) * (1 - selectedQuote.discount / 100)).toLocaleString()} {lang === 'ar' ? 'ر.س' : 'SAR'}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button onClick={() => handleUpdateQuoteStatus(selectedQuote.id, 'approved')} className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-black text-xs md:text-sm px-4 py-3 rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+                <CheckCircleIcon className="w-4 h-4" />
+                {l.btnAcceptQuote}
+              </button>
+              <button onClick={() => handleUpdateQuoteStatus(selectedQuote.id, 'review')} className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 font-black text-xs md:text-sm px-4 py-3 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+                <ArrowPathIcon className="w-4 h-4" />
+                {l.btnAmendQuote}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <Footer />
+    </div>
+  );
+}
