@@ -67,11 +67,20 @@ export default function Cart() {
   const vatAmount = taxableBasis * 0.15;
   const finalTotalAmount = taxableBasis + vatAmount;
 
+  // التعديل المطلوب: صياغة الـ state بالشكل المتوافق تماماً مع صفحة الدفع لتجنب الـ Crash وتأمين النقل
   const handleCheckoutInit = () => {
     setCheckoutStatus(true);
     alert(l.checkoutSuccess);
-    // تم التعديل: الانتقال لصفحة الدفع مع تمرير عناصر السلة والمبلغ الإجمالي المستحق كحالة (state)
-    navigate('/payment', { state: { cartItems, totalAmount: finalTotalAmount } });
+    
+    navigate('/payment', { 
+      state: { 
+        courseName: cartItems.map(item => item.title).join(' + '), // دمج أسماء الكورسات لتظهر معاً بوضوح
+        trainer: lang === 'ar' ? 'نخبة من المدربين' : 'Expert Instructors',
+        price: subtotalAmount,
+        discount: discountAmount,
+        totalAmount: finalTotalAmount 
+      } 
+    });
   };
 
   return (
@@ -144,7 +153,6 @@ export default function Cart() {
                 </form>
 
                 <div className="pt-2 space-y-3">
-                  {/* تم التعديل: تفعيل الزر لاستدعاء handleCheckoutInit الذي يوجه الآن لصفحة الدفع مع البيانات */}
                   <button type="button" onClick={handleCheckoutInit} disabled={checkoutStatus} className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-black text-xs md:text-sm py-3 rounded-xl shadow-md flex items-center justify-center gap-1.5 transition-all cursor-pointer hover:shadow-lg disabled:opacity-50"><CreditCardIcon className="w-4 h-4" />{l.btnCheckout}</button>
                   <p className="text-[10px] text-slate-400 font-bold flex items-center justify-center gap-1"><ShieldCheckIcon className="w-3.5 h-3.5 text-emerald-500" />{l.secureBadge}</p>
                 </div>
