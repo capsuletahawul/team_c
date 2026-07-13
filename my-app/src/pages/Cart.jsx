@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+// تم التعديل: استيراد useNavigate للتنقل بين الصفحات
+import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
-import StudentNavbar from '../components/StudentNavbar.jsx'; // Updated to match context layout
+import StudentNavbar from '../components/StudentNavbar.jsx'; 
 import Footer from '../components/Footer.jsx';
 import { 
   ShoppingBagIcon, 
@@ -13,6 +15,8 @@ import {
 
 export default function Cart() {
   const { t, lang } = useLanguage();
+  // تم التعديل: تفعيل useNavigate لاستخدامه في توجيه المستخدم لصفحة الدفع
+  const navigate = useNavigate();
 
   const l = t.shoppingCart || {
     title: lang === 'ar' ? 'سلة التسوق' : 'Shopping Cart',
@@ -57,16 +61,18 @@ export default function Cart() {
     }
   };
 
-  const handleCheckoutInit = () => {
-    setCheckoutStatus(true);
-    alert(l.checkoutSuccess);
-  };
-
   const subtotalAmount = cartItems.reduce((acc, item) => acc + item.price, 0);
   const discountAmount = subtotalAmount * (appliedDiscountRate / 100);
   const taxableBasis = subtotalAmount - discountAmount;
   const vatAmount = taxableBasis * 0.15;
   const finalTotalAmount = taxableBasis + vatAmount;
+
+  const handleCheckoutInit = () => {
+    setCheckoutStatus(true);
+    alert(l.checkoutSuccess);
+    // تم التعديل: الانتقال لصفحة الدفع مع تمرير عناصر السلة والمبلغ الإجمالي المستحق كحالة (state)
+    navigate('/payment', { state: { cartItems, totalAmount: finalTotalAmount } });
+  };
 
   return (
     <div className="min-h-screen bg-slate-50/50 font-sans text-slate-800 selection:bg-[#00A499]/10" dir={t.dir}>
@@ -138,6 +144,7 @@ export default function Cart() {
                 </form>
 
                 <div className="pt-2 space-y-3">
+                  {/* تم التعديل: تفعيل الزر لاستدعاء handleCheckoutInit الذي يوجه الآن لصفحة الدفع مع البيانات */}
                   <button type="button" onClick={handleCheckoutInit} disabled={checkoutStatus} className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-black text-xs md:text-sm py-3 rounded-xl shadow-md flex items-center justify-center gap-1.5 transition-all cursor-pointer hover:shadow-lg disabled:opacity-50"><CreditCardIcon className="w-4 h-4" />{l.btnCheckout}</button>
                   <p className="text-[10px] text-slate-400 font-bold flex items-center justify-center gap-1"><ShieldCheckIcon className="w-3.5 h-3.5 text-emerald-500" />{l.secureBadge}</p>
                 </div>

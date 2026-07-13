@@ -1,146 +1,88 @@
 /**
  * CourseDetails.jsx
  * المكون الموحد لصفحة تفاصيل الدورة - كبسولة تحول
- * كل قسم في هذه الصفحة يعتمد على بيانات الكورس المجلوبة فعلياً عبر getCourseDetails(id)
- * ولا يوجد أي محتوى خاص بكورس معيّن مكتوب مباشرة داخل الكود (Hardcoded).
- * نصوص الواجهة العامة فقط (أسماء الأزرار والعناوين الثابتة) مأخوذة من uiText حسب اللغة.
  */
 
 import { useState, useEffect } from 'react';
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
+// استيراد سياق اللغة لتفادي مشكلة الصفحة البيضاء وللتحويل الفوري للغات
+import { useLanguage } from '../context/LanguageContext'; 
 import StudentNavbar from "../components/StudentNavbar.jsx";
 import Footer from '../components/Footer';
 import {
-  ChevronDownIcon, PlayIcon,
-  DocumentTextIcon, CodeBracketSquareIcon, ClockIcon, VideoCameraIcon,
-  AcademicCapIcon, CodeBracketIcon, CpuChipIcon, ShieldCheckIcon
+  ChevronDownIcon, PlayIcon, DocumentTextIcon, CodeBracketSquareIcon,
+  ClockIcon, VideoCameraIcon, AcademicCapIcon, CodeBracketIcon, CpuChipIcon, ShieldCheckIcon
 } from '@heroicons/react/24/outline';
 import { StarIcon, CalendarDaysIcon, ChartBarIcon, LanguageIcon, UsersIcon, CheckCircleIcon, SparklesIcon, CheckIcon } from '@heroicons/react/24/solid';
-
-// نستورد فقط دالة الجلب من الـ API + نصوص التنقل العامة (Nav) - لا نستورد أي محتوى خاص بكورس معيّن
 import { navTranslations, getCourseDetails } from "../mocks/mockApi";
 
-// نصوص الواجهة الثابتة (أزرار وعناوين أقسام) - عامة لكل الكورسات، وليست بيانات كورس
+// نصوص الواجهة الثابتة المترجمة (عناوين الأقسام والأزرار العامة)
 const uiText = {
-  ar: {
-    loading: 'جاري تحميل تفاصيل الدورة...',
-    notFound: 'لم يتم العثور على هذه الدورة.',
-    backToCourses: 'الرجوع إلى الدورات',
-    metaUpdated: 'آخر تحديث', metaLevel: 'المستوى', metaLanguage: 'لغة التدريس',
-    statsDuration: 'مدة الدورة', statsStudents: 'الطلاب المسجلون', statsRating: 'تقييم الدورة', statsPrice: 'السعر',
-    free: 'مجاني',
-    overviewTitle: 'ماذا ستتعلم',
-    curriculumTitle: 'منهج الدورة', curriculumSubtitle: 'استكشف خارطة الطريق الكاملة لهذه الدورة أسبوعاً بأسبوع.',
-    expandAll: 'توسيع الكل', collapseAll: 'إغلاق الكل', lessons: 'دروس',
-    instructorTitle: 'تعرّف على المدرب', verifiedExpert: 'مدرّب معتمد',
-    requirementsTitle: 'المتطلبات المسبقة', requirementsSubtitle: 'يرجى مراجعة المتطلبات التالية قبل الانضمام للدورة.',
-    enrollBtn: 'احجز مقعدك الآن', priceLabel: 'السعر الحالي',
-    ratingReviews: 'تقييم عام للدورة'
-  },
-  en: {
-    loading: 'Loading course details...',
-    notFound: 'This course could not be found.',
-    backToCourses: 'Back to Courses',
-    metaUpdated: 'Last updated', metaLevel: 'Level', metaLanguage: 'Language',
-    statsDuration: 'Duration', statsStudents: 'Enrolled Students', statsRating: 'Course Rating', statsPrice: 'Price',
-    free: 'Free',
-    overviewTitle: 'What You Will Learn',
-    curriculumTitle: 'Course Curriculum', curriculumSubtitle: 'Explore the full week-by-week roadmap for this course.',
-    expandAll: 'Expand All', collapseAll: 'Collapse All', lessons: 'Lessons',
-    instructorTitle: 'Meet Your Instructor', verifiedExpert: 'Verified Expert',
-    requirementsTitle: 'Prerequisites', requirementsSubtitle: 'Please review the following requirements before joining.',
-    enrollBtn: 'Secure Your Spot', priceLabel: 'Current Price',
-    ratingReviews: 'Overall Course Rating'
-  }
+  ar: { loading: 'جاري تحميل تفاصيل الدورة...', notFound: 'لم يتم العثور على هذه الدورة.', backToCourses: 'الرجوع إلى الدورات', metaUpdated: 'آخر تحديث', metaLevel: 'المستوى', metaLanguage: 'لغة التدريس', statsDuration: 'مدة الدورة', statsStudents: 'الطلاب المسجلون', statsRating: 'تقييم الدورة', statsPrice: 'السعر', free: 'مجاني', overviewTitle: 'ماذا ستتعلم', curriculumTitle: 'منهج الدورة', curriculumSubtitle: 'استكشف خارطة الطريق الكاملة لهذه الدورة أسبوعاً بأسبوع.', expandAll: 'توسيع الكل', collapseAll: 'إغلاق الكل', lessons: 'دروس', instructorTitle: 'تعرّف على المدرب', verifiedExpert: 'مدرّب معتمد', requirementsTitle: 'المتطلبات المسبقة', requirementsSubtitle: 'يرجى مراجعة المتطلبات التالية قبل الانضمام للدورة.', enrollBtn: 'احجز مقعدك الآن', priceLabel: 'السعر الحالي', ratingReviews: 'تقييم عام للدورة' },
+  en: { loading: 'Loading course details...', notFound: 'This course could not be found.', backToCourses: 'Back to Courses', metaUpdated: 'Last updated', metaLevel: 'Level', metaLanguage: 'Language', statsDuration: 'Duration', statsStudents: 'Enrolled Students', statsRating: 'Course Rating', statsPrice: 'Price', free: 'Free', overviewTitle: 'What You Will Learn', curriculumTitle: 'Course Curriculum', curriculumSubtitle: 'Explore the full week-by-week roadmap for this course.', expandAll: 'Expand All', collapseAll: 'Collapse All', lessons: 'Lessons', instructorTitle: 'Meet Your Instructor', verifiedExpert: 'Verified Expert', requirementsTitle: 'Prerequisites', requirementsSubtitle: 'Please review the following requirements before joining.', enrollBtn: 'Secure Your Spot', priceLabel: 'Current Price', ratingReviews: 'Overall Course Rating' }
 };
 
 export default function CourseDetails() {
-  const { id } = useParams();
-  
-  // الاعتماد المباشر على اللغة العالمية من الكونتيكست للاستجابة الفورية عند الضغط على الزر
-  const { lang, t } = useLanguage(); 
+  const { id } = useParams(); // جلب معرف الكورس من الرابط
+  const { lang } = useLanguage(); // جلب اللغة الحالية من الكونتيكست
   const ui = uiText[lang] || uiText['ar'];
+  const [rawData, setRawData] = useState(null); // تخزين البيانات الخام القادمة من السيرفر
+  const [course, setCourse] = useState(null); // تخزين بيانات الكورس المترجمة والمهيأة للعرض
+  const [status, setStatus] = useState('loading'); // حالة التحميل: loading | success | not_found
 
-  const [rawData, setRawData] = useState(null);
-  const [course, setCourse] = useState(null);
-  const [status, setStatus] = useState('loading'); // loading | success | not_found
-
+  // التأثير الجانبي الأول: جلب بيانات الكورس عند تحميل الصفحة أو تغير الـ ID
   useEffect(() => {
     let isMounted = true;
-
     async function loadCourse() {
       setStatus('loading');
       const response = await getCourseDetails(id);
-
       if (!isMounted) return;
-
-      if (response.success) {
-        setRawData(response.data);
-        setStatus('success');
-      } else {
-        setRawData(null);
-        setStatus('not_found');
-      }
+      if (response.success) { setRawData(response.data); setStatus('success'); }
+      else { setRawData(null); setStatus('not_found'); }
     }
-
     loadCourse();
     return () => { isMounted = false; };
   }, [id]);
 
-  // عمل تأثير جانبي لتحويل نصوص الكورس البرمجية القادمة من الموك فوراً بمجرد تغير لغة الكونتيكست
+  // التأثير الجانبي الثاني: ترجمة البيانات الخام تلقائياً فور تغير اللغة الحالية (lang)
   useEffect(() => {
     if (rawData) {
       const isAr = lang === 'ar';
+      const getVal = (arVal, enVal, fallback) => isAr ? (arVal || fallback) : (enVal || fallback);
       setCourse({
         ...rawData,
-        title: isAr ? (rawData.titleAr || rawData.title) : (rawData.titleEn || rawData.title),
-        category: isAr ? (rawData.categoryAr || rawData.category) : (rawData.categoryEn || rawData.category),
-        description: isAr ? (rawData.descriptionAr || rawData.description) : (rawData.descriptionEn || rawData.description),
-        subtitle: isAr ? (rawData.subtitleAr || rawData.subtitle) : (rawData.subtitleEn || rawData.subtitle),
-        instructor: isAr ? (rawData.instructorAr || rawData.instructor) : (rawData.instructorEn || rawData.instructor),
-        level: isAr ? (rawData.levelAr || rawData.level) : (rawData.levelEn || rawData.level),
-        language: isAr ? (rawData.languageAr || rawData.language) : (rawData.languageEn || rawData.language),
-        duration: isAr ? (rawData.durationAr || rawData.duration) : (rawData.durationEn || rawData.duration),
-        updated: isAr ? (rawData.updatedAr || rawData.updated) : (rawData.updatedEn || rawData.updated),
+        title: getVal(rawData.titleAr, rawData.titleEn, rawData.title),
+        category: getVal(rawData.categoryAr, rawData.categoryEn, rawData.category),
+        description: getVal(rawData.descriptionAr, rawData.descriptionEn, rawData.description),
+        subtitle: getVal(rawData.subtitleAr, rawData.subtitleEn, rawData.subtitle),
+        instructor: getVal(rawData.instructorAr, rawData.instructorEn, rawData.instructor),
+        level: getVal(rawData.levelAr, rawData.levelEn, rawData.level),
+        language: getVal(rawData.languageAr, rawData.languageEn, rawData.language),
+        duration: getVal(rawData.durationAr, rawData.durationEn, rawData.duration),
+        updated: getVal(rawData.updatedAr, rawData.updatedEn, rawData.updated),
         outcomes: isAr ? (rawData.outcomesAr || rawData.outcomes || []) : (rawData.outcomesEn || rawData.outcomes || []),
-        
         instructorProfile: rawData.instructorProfile ? {
-          role: isAr ? (rawData.instructorProfile.roleAr || rawData.instructorProfile.role) : (rawData.instructorProfile.roleEn || rawData.instructorProfile.role),
-          bio: isAr ? (rawData.instructorProfile.bioAr || rawData.instructorProfile.bio) : (rawData.instructorProfile.bioEn || rawData.instructorProfile.bio),
+          role: getVal(rawData.instructorProfile.roleAr, rawData.instructorProfile.roleEn, rawData.instructorProfile.role),
+          bio: getVal(rawData.instructorProfile.bioAr, rawData.instructorProfile.bioEn, rawData.instructorProfile.bio),
           avatarLabel: rawData.instructorProfile.avatarLabel || "",
-          ratingText: isAr ? (rawData.instructorProfile.ratingTextAr || rawData.instructorProfile.ratingText) : (rawData.instructorProfile.ratingTextEn || rawData.instructorProfile.ratingText),
-          studentsText: isAr ? (rawData.instructorProfile.studentsTextAr || rawData.instructorProfile.studentsText) : (rawData.instructorProfile.studentsTextEn || rawData.instructorProfile.studentsText),
+          ratingText: getVal(rawData.instructorProfile.ratingTextAr, rawData.instructorProfile.ratingTextEn, rawData.instructorProfile.ratingText),
+          studentsText: getVal(rawData.instructorProfile.studentsTextAr, rawData.instructorProfile.studentsTextEn, rawData.instructorProfile.studentsText),
           skills: isAr ? (rawData.instructorProfile.skillsAr || rawData.instructorProfile.skills || []) : (rawData.instructorProfile.skillsEn || rawData.instructorProfile.skills || [])
         } : null,
-
-        requirements: (rawData.requirements || []).map(req => ({
-          ...req,
-          title: isAr ? (req.titleAr || req.title) : (req.titleEn || req.title),
-          desc: isAr ? (req.descAr || req.desc) : (req.descEn || req.desc)
-        })),
-
+        requirements: (rawData.requirements || []).map(req => ({ ...req, title: getVal(req.titleAr, req.titleEn, req.title), desc: getVal(req.descAr, req.descEn, req.desc) })),
         curriculum: (rawData.curriculum || []).map(curr => ({
           ...curr,
-          week: isAr ? (curr.weekAr || curr.week) : (curr.weekEn || curr.week),
-          title: isAr ? (curr.titleAr || curr.title) : (curr.titleEn || curr.title),
-          duration: isAr ? (curr.durationAr || curr.duration) : (curr.durationEn || curr.duration),
-          topics: (curr.topics || []).map(topic => ({
-            ...topic,
-            name: isAr ? (topic.nameAr || topic.name) : (topic.nameEn || topic.name),
-            duration: isAr ? (topic.durationAr || topic.duration) : (topic.durationEn || topic.duration)
-          }))
+          week: getVal(curr.weekAr, curr.weekEn, curr.week), title: getVal(curr.titleAr, curr.titleEn, curr.title), duration: getVal(curr.durationAr, curr.durationEn, curr.duration),
+          topics: (curr.topics || []).map(t => ({ ...t, name: getVal(t.nameAr, t.nameEn, t.name), duration: getVal(t.durationAr, t.durationEn, t.duration) }))
         })),
-
-        enrollment: rawData.enrollment ? {
-          features: isAr ? (rawData.enrollment.featuresAr || rawData.enrollment.features || []) : (rawData.enrollment.featuresEn || rawData.enrollment.features || []),
-          timer: isAr ? (rawData.enrollment.timerAr || rawData.enrollment.timer) : (rawData.enrollment.timerEn || rawData.enrollment.timer)
-        } : null
+        enrollment: rawData.enrollment ? { features: isAr ? (rawData.enrollment.featuresAr || rawData.enrollment.features || []) : (rawData.enrollment.featuresEn || rawData.enrollment.features || []), timer: getVal(rawData.enrollment.timerAr, rawData.enrollment.timerEn, rawData.enrollment.timer) } : null
       });
     }
   }, [rawData, lang]);
 
-  const isRTL = lang === 'ar';
+  const isRTL = lang === 'ar'; // تحديد اتجاه الواجهة بناءً على اللغة
 
+  // عرض صفحة الخطأ في حال عدم وجود الكورس
   if (status === 'not_found') {
     return (
       <div className="min-h-screen bg-capsule-bg flex flex-col font-sans">
@@ -157,13 +99,12 @@ export default function CourseDetails() {
   return (
     <div className="min-h-screen bg-capsule-bg flex flex-col font-sans transition-colors duration-300" dir={isRTL ? 'rtl' : 'ltr'}>
       <StudentNavbar activePage="courses" />
-
-      {/* المحتوى الأساسي */}
       <main className="flex-grow">
         <CourseHero lang={lang} ui={ui} course={course} />
         {course && (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+              {/* قسم التفاصيل الأيمن */}
               <div className="lg:col-span-2 space-y-8">
                 <CourseStats ui={ui} course={course} />
                 <CourseOverview ui={ui} course={course} />
@@ -171,50 +112,33 @@ export default function CourseDetails() {
                 <CourseInstructor ui={ui} course={course} />
                 <CourseRequirements ui={ui} course={course} />
               </div>
-              <div className="lg:sticky lg:top-24">
-                <EnrollmentCard ui={ui} course={course} isRTL={isRTL} />
-              </div>
+              {/* كرت الدفع الجانبي المثبت */}
+              <div className="lg:sticky lg:top-24"><EnrollmentCard ui={ui} course={course} isRTL={isRTL} /></div>
             </div>
           </div>
         )}
       </main>
-
       <Footer />
     </div>
   );
 }
 
-// 1. مكون الهيرو الرئيسي - كل القيم من الكورس المجلوب
+// 1. مكون الهيرو الرئيسي (الواجهة العلوية للكورس)
 function CourseHero({ lang, ui, course }) {
-  if (!course) {
-    return (
-      <section className="w-full bg-gradient-to-br from-[#164961] via-[#1a5570] to-[#2B636B] py-24 text-white text-center">
-        {ui.loading}
-      </section>
-    );
-  }
-
+  if (!course) return <section className="w-full bg-gradient-to-br from-[#164961] via-[#1a5570] to-[#2B636B] py-24 text-white text-center">{ui.loading}</section>;
   const ratingRounded = Math.round(course.rating || 0);
-
   return (
     <section className="relative w-full overflow-hidden bg-gradient-to-br from-[#164961] via-[#1a5570] to-[#2B636B] py-16 lg:py-24 text-white">
-      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-45 w-96 h-96 rounded-full bg-[#FFD369] opacity-15 blur-[100px]" />
-      </div>
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none"><div className="absolute -top-40 -right-45 w-96 h-96 rounded-full bg-[#FFD369] opacity-15 blur-[100px]" /></div>
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 max-w-3xl">
         <div className="inline-block px-3 py-1.5 mb-6 rounded-full text-xs font-semibold bg-white/10 text-[#FFD369] border border-white/10">{course.category}</div>
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-4 leading-tight">{course.title}</h1>
         <p className="text-base sm:text-lg text-white/85 mb-6 leading-relaxed">{course.subtitle || course.description}</p>
         <div className="flex items-center gap-2 mb-8 bg-black/15 p-2 rounded-xl inline-flex border border-white/5">
-          <div className="flex items-center text-[#FFD369]">
-            {[...Array(5)].map((_, i) => (
-              <StarIcon key={i} className={`w-5 h-5 ${i < ratingRounded ? '' : 'opacity-30'}`} />
-            ))}
-          </div>
-          <span className="text-sm font-medium px-1">
-            {course.rating ? `${course.rating} (${ui.ratingReviews})` : ui.ratingReviews}
-          </span>
+          <div className="flex items-center text-[#FFD369]">{[...Array(5)].map((_, i) => <StarIcon key={i} className={`w-5 h-5 ${i < ratingRounded ? '' : 'opacity-30'}`} />)}</div>
+          <span className="text-sm font-medium px-1">{course.rating ? `${course.rating} (${ui.ratingReviews})` : ui.ratingReviews}</span>
         </div>
+        {/* بيانات الكورس الوصفية (التحديث والمستوى واللغة) */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6 border-t border-white/10">
           {[
             { label: ui.metaUpdated, val: course.updated || '—', icon: CalendarDaysIcon },
@@ -232,7 +156,7 @@ function CourseHero({ lang, ui, course }) {
   );
 }
 
-// 2. مكون الإحصائيات - كل قيمة من الكورس نفسه
+// 2. مكون الإحصائيات السريعة (المدة، الطلاب، التقييم، السعر)
 function CourseStats({ ui, course }) {
   const cards = [
     { key: 'duration', label: ui.statsDuration, val: course.duration || '—', icon: ClockIcon, color: 'from-cyan-500 to-blue-600', bg: 'bg-cyan-50', text: 'text-cyan-600' },
@@ -240,7 +164,6 @@ function CourseStats({ ui, course }) {
     { key: 'rating', label: ui.statsRating, val: course.rating ? course.rating : '—', icon: AcademicCapIcon, color: 'from-emerald-400 to-teal-600', bg: 'bg-emerald-50', text: 'text-emerald-600' },
     { key: 'price', label: ui.statsPrice, val: course.price === 0 ? ui.free : course.price, icon: VideoCameraIcon, color: 'from-amber-400 to-orange-500', bg: 'bg-amber-50', text: 'text-amber-600' }
   ];
-
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
       {cards.map((cfg) => {
@@ -260,11 +183,10 @@ function CourseStats({ ui, course }) {
   );
 }
 
-// 3. مكون ماذا ستتعلم - من outcomes الخاصة بالكورس
+// 3. مكون مخرجات التعلم (ماذا ستتعلم)
 function CourseOverview({ ui, course }) {
   const outcomes = course.outcomes || [];
   if (outcomes.length === 0) return null;
-
   return (
     <section className="bg-white p-6 sm:p-8 rounded-2xl border border-gray-100 shadow-md relative overflow-hidden">
       <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-capsule-teal to-cyan-500" />
@@ -284,20 +206,13 @@ function CourseOverview({ ui, course }) {
   );
 }
 
-// 4. مكون المنهج الدراسي المتفاعل (Accordion) - من curriculum الخاصة بالكورس
+// 4. مكون المنهج الدراسي القابل للتوسيع والإغلاق (Curriculum Accordion)
 function CourseCurriculum({ ui, course }) {
   const modules = course.curriculum || [];
   const [expanded, setExpanded] = useState([]);
-
-  // تحديث الموديول المفتوح تلقائياً عند تحميل الكورس لأول مرة
-  useEffect(() => {
-    if (modules.length && expanded.length === 0) {
-      setExpanded([modules[0].id]);
-    }
-  }, [modules]);
-
+  // فتح القسم الأول تلقائياً عند التحميل
+  useEffect(() => { if (modules.length && expanded.length === 0) setExpanded([modules[0].id]); }, [modules]);
   if (modules.length === 0) return null;
-
   return (
     <section className="bg-white p-6 sm:p-8 rounded-2xl border border-gray-100 shadow-md relative overflow-hidden">
       <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-purple-500 to-capsule-teal" />
@@ -347,11 +262,10 @@ function CourseCurriculum({ ui, course }) {
   );
 }
 
-// 5. مكون المدرب - من instructorProfile الخاصة بالكورس
+// 5. مكون السيرة الذاتية وخبرات المدرب
 function CourseInstructor({ ui, course }) {
   const profile = course.instructorProfile;
   if (!profile) return null;
-
   return (
     <section className="bg-white p-6 sm:p-8 rounded-2xl border border-gray-100 shadow-md relative overflow-hidden">
       <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-amber-400 to-orange-500" />
@@ -383,12 +297,11 @@ function CourseInstructor({ ui, course }) {
   );
 }
 
-// 6. مكون متطلبات الانضمام - من requirements الخاصة بالكورس
+// 6. مكون المتطلبات المسبقة للكورس
 function CourseRequirements({ ui, course }) {
   const items = course.requirements || [];
   const icons = { code: CodeBracketIcon, cpu: CpuChipIcon, shield: ShieldCheckIcon };
   if (items.length === 0) return null;
-
   return (
     <section className="bg-white p-6 sm:p-8 rounded-2xl border border-gray-100 shadow-md relative overflow-hidden">
       <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-cyan-400 to-purple-500" />
@@ -409,41 +322,35 @@ function CourseRequirements({ ui, course }) {
   );
 }
 
-// 7. كرت التسجيل والاشتراك الجانبي - من بيانات السعر والتسجيل الخاصة بالكورس
+// 7. كرت التسجيل والاشتراك الجانبي (المثبت) المسؤول عن توجيه المستخدم لصفحة الدفع
 function EnrollmentCard({ ui, course, isRTL }) {
+  const navigate = useNavigate();
   const enrollment = course.enrollment || {};
   const isFree = course.price === 0;
 
+  // إرسال كائن الكورس مع تفاصيل الحسابات لصفحة الدفع
+  const handleEnroll = () => {
+    const origPrice = course.originalPrice || course.price || 0;
+    const currentPrice = course.price || 0;
+    navigate('/payment', { state: { courseName: course.title, trainer: course.instructor, price: origPrice, discount: origPrice > currentPrice ? (origPrice - currentPrice) : 0, totalAmount: currentPrice } });
+  };
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-xl p-6 relative overflow-hidden" dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-2">
           <h3 className="text-3xl font-black text-capsule-navy">{isFree ? ui.free : course.price}</h3>
-          {course.originalPrice > (course.price || 0) && (
-            <span className="text-sm font-bold text-gray-400 line-through">{course.originalPrice}</span>
-          )}
-          {course.discount && (
-            <span className="text-xs font-bold bg-amber-100 text-amber-700 px-2 py-1 rounded-md">{course.discount}</span>
-          )}
+          {course.originalPrice > (course.price || 0) && <span className="text-sm font-bold text-gray-400 line-through">{course.originalPrice}</span>}
+          {course.discount && <span className="text-xs font-bold bg-amber-100 text-amber-700 px-2 py-1 rounded-md">{course.discount}</span>}
         </div>
         <h4 className="text-lg font-bold text-capsule-navy">{course.title}</h4>
       </div>
       <ul className="space-y-4 mb-8">
-        {(enrollment.features || []).map((f, idx) => (
-          <li key={idx} className="flex items-center gap-3 text-sm font-semibold text-capsule-navy/80"><CheckIcon className="w-5 h-5 text-capsule-teal" />{f}</li>
-        ))}
+        {(enrollment.features || []).map((f, idx) => <li key={idx} className="flex items-center gap-3 text-sm font-semibold text-capsule-navy/80"><CheckIcon className="w-5 h-5 text-capsule-teal" />{f}</li>)}
       </ul>
-      <button
-        disabled={course.status === 'coming_soon' || course.status === 'completed'}
-        className="w-full bg-gradient-to-r from-capsule-navy to-[#2B636B] text-white font-black py-4 rounded-xl shadow-lg hover:-translate-y-0.5 transition-all mb-4 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-      >
+      <button onClick={handleEnroll} disabled={course.status === 'coming_soon' || course.status === 'completed'} className="w-full bg-gradient-to-r from-capsule-navy to-[#2B636B] text-white font-black py-4 rounded-xl shadow-lg hover:-translate-y-0.5 transition-all mb-4 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
         <SparklesIcon className="w-5 h-5 text-amber-400" />{ui.enrollBtn}
       </button>
-      {enrollment.timer && (
-        <div className="flex items-center justify-center gap-2 text-xs font-bold text-gray-500 bg-gray-50 p-3 rounded-lg border">
-          <ClockIcon className="w-4 h-4 text-purple-500" />{enrollment.timer}
-        </div>
-      )}
+      {enrollment.timer && <div className="flex items-center justify-center gap-2 text-xs font-bold text-gray-500 bg-gray-50 p-3 rounded-lg border"><ClockIcon className="w-4 h-4 text-purple-500" />{enrollment.timer}</div>}
     </div>
   );
 }
