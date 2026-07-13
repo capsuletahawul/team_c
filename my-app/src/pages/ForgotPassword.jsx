@@ -1,8 +1,10 @@
 // src/pages/ForgotPassword.jsx
-import React from "react";
+import React, { useState } from "react";
 import { CapsuleMark } from "../components/Icons";
 import "../styles/auth.css";
 import { Link } from "react-router-dom";
+// ربط الصفحة بالسياق العالمي للغات لكي تعمل الترجمة فوراً
+import { useLanguage } from "../context/LanguageContext";
 
 const TEXT = {
   ar: {
@@ -10,16 +12,14 @@ const TEXT = {
     brand: "Capsule",
     tagline: "أدخل بريدك الإلكتروني وسنرسل لك رابط استعادة كلمة المرور",
     title: "نسيت كلمة المرور؟",
-    subtitle:
-      "أدخل بريدك الإلكتروني المسجل وسنرسل لك رابط إعادة تعيين كلمة المرور.",
+    subtitle: "أدخل بريدك الإلكتروني المسجل وسنرسل لك رابط إعادة تعيين كلمة المرور.",
     email: "البريد الإلكتروني",
     emailPlaceholder: "example@email.com",
     send: "إرسال",
     sending: "جارٍ الإرسال...",
     back: "العودة إلى تسجيل الدخول",
     successTitle: "تحقق من بريدك الإلكتروني",
-    successMessage:
-      "تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني.",
+    successMessage: "تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني.",
     resendText: "لم يصلك البريد الإلكتروني؟",
     resend: "إعادة الإرسال",
     invalidEmail: "الرجاء إدخال بريد إلكتروني صحيح.",
@@ -29,32 +29,29 @@ const TEXT = {
     brand: "Capsule",
     tagline: "Enter your email and we'll send you a password reset link",
     title: "Forgot Password?",
-    subtitle:
-      "Enter your registered email and we'll send you a password reset link.",
+    subtitle: "Enter your registered email and we'll send you a password reset link.",
     email: "Email",
     emailPlaceholder: "example@email.com",
     send: "Send",
     sending: "Sending...",
     back: "Back to Sign In",
     successTitle: "Check your email",
-    successMessage:
-      "A password reset link has been sent to your email.",
+    successMessage: "A password reset link has been sent to your email.",
     resendText: "Didn't receive the email?",
     resend: "Resend",
     invalidEmail: "Please enter a valid email address.",
   },
 };
 
-export default function ForgotPassword({
-  lang = "ar",
-  onToggleLang,
-}) {
+export default function ForgotPassword() {
+  // جلب حالة اللغة ودالة التبديل مباشرة من الـ Context المشترك للمشروع
+  const { lang, toggleLanguage } = useLanguage();
   const t = TEXT[lang] || TEXT.ar;
 
-  const [email, setEmail] = React.useState("");
-  const [error, setError] = React.useState("");
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [submitted, setSubmitted] = React.useState(false);
+  const [email, setEmail] = useState("");
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -79,9 +76,11 @@ export default function ForgotPassword({
     <div className="auth-root" dir={t.dir} lang={lang}>
       <div className="auth-shell">
         <div className="auth-visual">
+          {/* الزر الآن ينادي الدالة العالمية toggleLanguage مباشرة لتغيير لغة الموقع بالكامل */}
           <button
+            type="button"
             className="lang-toggle"
-            onClick={() => onToggleLang && onToggleLang()}
+            onClick={toggleLanguage}
           >
             {lang === "ar" ? "EN" : "AR"}
           </button>
@@ -114,14 +113,12 @@ export default function ForgotPassword({
                 <form className="auth-form" onSubmit={handleSubmit}>
                   <div className="field">
                     <label>{t.email}</label>
-
                     <input
                       type="email"
                       placeholder={t.emailPlaceholder}
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                     />
-
                     {error && <span className="field-error">{error}</span>}
                   </div>
 
