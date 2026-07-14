@@ -36,19 +36,26 @@ export default function Cart() {
     checkoutSuccess: lang === 'ar' ? 'تم تسجيل طلبك! جاري تحويلك لبوابة الدفع...' : 'Order registered! Redirecting to secure gateway...'
   };
 
-  const [cartItems, setCartItems] = useState([
-    { id: 101, title: 'Advanced React Architecture 2026', category: 'Web Development', duration: '6 Weeks', price: 1200 },
-    { id: 102, title: 'AI & Large Language Models for Enterprise', category: 'Artificial Intelligence', duration: '8 Weeks', price: 3500 },
-    { id: 103, title: 'Offensive Security & Ethical Hacking Core', category: 'Cybersecurity', duration: '10 Weeks', price: 2900 }
-  ]);
+  // تم التعديل: قراءة السلة من localStorage ديناميكياً مع الإبقاء على مصفوفة تجريبية في حال كانت فارغة لأول مرة
+  const [cartItems, setCartItems] = useState(() => {
+    const savedCart = localStorage.getItem('cartItems');
+    return savedCart ? JSON.parse(savedCart) : [
+      { id: 101, title: 'Advanced React Architecture 2026', category: 'Web Development', duration: '6 Weeks', price: 1200 },
+      { id: 102, title: 'AI & Large Language Models for Enterprise', category: 'Artificial Intelligence', duration: '8 Weeks', price: 3500 },
+      { id: 103, title: 'Offensive Security & Ethical Hacking Core', category: 'Cybersecurity', duration: '10 Weeks', price: 2900 }
+    ];
+  });
 
   const [couponCode, setCouponCode] = useState('');
   const [appliedDiscountRate, setAppliedDiscountRate] = useState(0);
   const [feedbackMessage, setFeedbackMessage] = useState({ text: '', isError: false });
   const [checkoutStatus, setCheckoutStatus] = useState(false);
 
+  // تم التعديل: تحديث localStorage عند حذف أي عنصر من السلة
   const handleRemoveItem = (id) => {
-    setCartItems(cartItems.filter(item => item.id !== id));
+    const updatedCart = cartItems.filter(item => item.id !== id);
+    setCartItems(updatedCart);
+    localStorage.setItem('cartItems', JSON.stringify(updatedCart));
   };
 
   const handleApplyCoupon = (e) => {

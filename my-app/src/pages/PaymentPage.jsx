@@ -165,10 +165,18 @@ export default function Payment() {
     if (paymentMethod === 'card') {
       if (validateForm()) {
         alert(t.successMsg);
+        
+        // التعديل: تفريغ السلة من الذاكرة المحلية بعد الدفع بنجاح
+        localStorage.removeItem('cartItems');
+        
         navigate('/courses-overview');
       }
     } else {
       alert(t.successMsg);
+      
+      // التعديل: تفريغ السلة من الذاكرة المحلية بعد الدفع بنجاح
+      localStorage.removeItem('cartItems');
+      
       navigate('/courses-overview');
     }
   };

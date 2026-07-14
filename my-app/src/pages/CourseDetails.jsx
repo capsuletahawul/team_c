@@ -322,18 +322,35 @@ function CourseRequirements({ ui, course }) {
   );
 }
 
-// 7. كرت التسجيل والاشتراك الجانبي (المثبت) المسؤول عن توجيه المستخدم لصفحة الدفع
+// 7. كرت التسجيل والاشتراك الجانبي (المثبت) المسؤول عن إضافة الكورس للسلة والذهاب إليها
 function EnrollmentCard({ ui, course, isRTL }) {
   const navigate = useNavigate();
+  const { id } = useParams(); // جلب معرف الكورس من الرابط لاستخدامه كـ id فريد بالسلة عند الحاجة
   const enrollment = course.enrollment || {};
   const isFree = course.price === 0;
 
-  // إرسال كائن الكورس مع تفاصيل الحسابات لصفحة الدفع
+  // تم التعديل: إضافة الكورس إلى السلة (localStorage) ثم الانتقال لصفحة السلة مباشرة
   const handleEnroll = () => {
-    const origPrice = course.originalPrice || course.price || 0;
-    const currentPrice = course.price || 0;
-    navigate('/payment', { state: { courseName: course.title, trainer: course.instructor, price: origPrice, discount: origPrice > currentPrice ? (origPrice - currentPrice) : 0, totalAmount: currentPrice } });
+    const currentCart = JSON.parse(localStorage.getItem('cartItems') || '[]');
+    
+    const newCourse = {
+      id: course.id || id || Date.now(), // استخدام أيدي الكورس أو معرف الرابط أو قيمة فريدة
+      title: course.title,
+      category: course.category,
+      duration: course.duration || '—',
+      price: course.price || 0
+    };
+
+    const isAlreadyInCart = currentCart.some(item => item.id === newCourse.id);
+    if (!isAlreadyInCart) {
+      currentCart.push(newCourse);
+      localStorage.setItem('cartItems', JSON.stringify(currentCart));
+    }
+
+    // التوجيه لصفحة السلة مباشرة
+    navigate('/cart');
   };
+
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-xl p-6 relative overflow-hidden" dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="mb-6">
