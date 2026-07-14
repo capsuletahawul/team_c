@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+// تم التعديل: استيراد useNavigate للتنقل بين الصفحات
+import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
-import StudentNavbar from '../components/StudentNavbar.jsx'; // Updated to match context layout
+import StudentNavbar from '../components/StudentNavbar.jsx'; 
 import Footer from '../components/Footer.jsx';
 import { 
   ShoppingBagIcon, 
@@ -13,6 +15,8 @@ import {
 
 export default function Cart() {
   const { t, lang } = useLanguage();
+  // تم التعديل: تفعيل useNavigate لاستخدامه في توجيه المستخدم لصفحة الدفع
+  const navigate = useNavigate();
 
   const l = t.shoppingCart || {
     title: lang === 'ar' ? 'سلة التسوق' : 'Shopping Cart',
@@ -32,19 +36,26 @@ export default function Cart() {
     checkoutSuccess: lang === 'ar' ? 'تم تسجيل طلبك! جاري تحويلك لبوابة الدفع...' : 'Order registered! Redirecting to secure gateway...'
   };
 
-  const [cartItems, setCartItems] = useState([
-    { id: 101, title: 'Advanced React Architecture 2026', category: 'Web Development', duration: '6 Weeks', price: 1200 },
-    { id: 102, title: 'AI & Large Language Models for Enterprise', category: 'Artificial Intelligence', duration: '8 Weeks', price: 3500 },
-    { id: 103, title: 'Offensive Security & Ethical Hacking Core', category: 'Cybersecurity', duration: '10 Weeks', price: 2900 }
-  ]);
+  // تم التعديل: قراءة السلة من localStorage ديناميكياً مع الإبقاء على مصفوفة تجريبية في حال كانت فارغة لأول مرة
+  const [cartItems, setCartItems] = useState(() => {
+    const savedCart = localStorage.getItem('cartItems');
+    return savedCart ? JSON.parse(savedCart) : [
+      { id: 101, title: 'Advanced React Architecture 2026', category: 'Web Development', duration: '6 Weeks', price: 1200 },
+      { id: 102, title: 'AI & Large Language Models for Enterprise', category: 'Artificial Intelligence', duration: '8 Weeks', price: 3500 },
+      { id: 103, title: 'Offensive Security & Ethical Hacking Core', category: 'Cybersecurity', duration: '10 Weeks', price: 2900 }
+    ];
+  });
 
   const [couponCode, setCouponCode] = useState('');
   const [appliedDiscountRate, setAppliedDiscountRate] = useState(0);
   const [feedbackMessage, setFeedbackMessage] = useState({ text: '', isError: false });
   const [checkoutStatus, setCheckoutStatus] = useState(false);
 
+  // تم التعديل: تحديث localStorage عند حذف أي عنصر من السلة
   const handleRemoveItem = (id) => {
-    setCartItems(cartItems.filter(item => item.id !== id));
+    const updatedCart = cartItems.filter(item => item.id !== id);
+    setCartItems(updatedCart);
+    localStorage.setItem('cartItems', JSON.stringify(updatedCart));
   };
 
   const handleApplyCoupon = (e) => {
@@ -57,16 +68,27 @@ export default function Cart() {
     }
   };
 
-  const handleCheckoutInit = () => {
-    setCheckoutStatus(true);
-    alert(l.checkoutSuccess);
-  };
-
   const subtotalAmount = cartItems.reduce((acc, item) => acc + item.price, 0);
   const discountAmount = subtotalAmount * (appliedDiscountRate / 100);
   const taxableBasis = subtotalAmount - discountAmount;
   const vatAmount = taxableBasis * 0.15;
   const finalTotalAmount = taxableBasis + vatAmount;
+
+  // التعديل المطلوب: صياغة الـ state بالشكل المتوافق تماماً مع صفحة الدفع لتجنب الـ Crash وتأمين النقل
+  const handleCheckoutInit = () => {
+    setCheckoutStatus(true);
+    alert(l.checkoutSuccess);
+    
+    navigate('/payment', { 
+      state: { 
+        courseName: cartItems.map(item => item.title).join(' + '), // دمج أسماء الكورسات لتظهر معاً بوضوح
+        trainer: lang === 'ar' ? 'نخبة من المدربين' : 'Expert Instructors',
+        price: subtotalAmount,
+        discount: discountAmount,
+        totalAmount: finalTotalAmount 
+      } 
+    });
+  };
 
   return (
     <div className="min-h-screen bg-slate-50/50 font-sans text-slate-800 selection:bg-[#00A499]/10" dir={t.dir}>

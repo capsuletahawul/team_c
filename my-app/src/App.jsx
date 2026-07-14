@@ -18,8 +18,8 @@ import StudentCoursesOverview from './pages/StudentCoursesOverview.jsx';
 import Contact from './pages/Contact.jsx';
 import Cart from './pages/Cart.jsx';
 import ForgotPassword from "./pages/ForgotPassword";
-// Import the new CompanyDashboard component
 import CompanyDashboard from './pages/CompanyDashboard.jsx'; 
+import PaymentPage from './pages/PaymentPage.jsx'; // صفحة الدفع الجديدة
 
 // --- Small wrappers for pages that expect navigation callbacks as props ---
 
@@ -30,7 +30,6 @@ function LandingRoute() {
       onNavigateToRegister={() => navigate('/sign-up')}
       onNavigateToLogin={() => navigate('/sign-in')}
       onNavigateToTrainerOnboarding={() => navigate('/sign-up')}
-      // Keeping this pointing to the contract/onboarding form for first-time entries
       onNavigateToCompanyOnboarding={() => navigate('/business-contract')} 
     />
   );
@@ -79,16 +78,18 @@ function DevIndex() {
     ['/sign-up', 'Sign Up'],
     ['/student-dashboard', 'Student Dashboard'],
     ['/student-profile', 'Student Profile'],
-    ['/company-dashboard', 'Company Dashboard 🏢'], // Added to Dev Index
+    ['/company-dashboard', 'Company Dashboard 🏢'],
     ['/trainer-details', 'Trainer Details'],
     ['/trainer-profile', 'Trainer Profile (standalone)'],
     ['/trainer-dashboard', 'Trainer Dashboard'],
     ['/admin-dashboard', 'Admin Dashboard'],
     ['/courses-approval', 'Courses Approval'],
     ['/courses-overview', 'Courses Overview'],
-    ['/course-details/1', 'Course Details'], // Corrected relative path typo from original code
+    ['/course-details/1', 'Course Details'],
     ['/business-contract', 'Business Contract Form'],
     ['/contact', 'Contact'],
+    ['/cart', 'Cart'],
+    ['/payment', 'Payment Page 💳'], // إضافة صفحة الدفع لقائمة Dev
   ];
   return (
     <div style={{ padding: 40, fontFamily: 'sans-serif' }}>
@@ -115,8 +116,6 @@ function App() {
         <Route path="/student-dashboard" element={<StudentDashboardRoute />} />
         <Route path="/student-profile" element={<StudentProfileRoute />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        
-        {/* Added route for the Company Dashboard */}
         <Route path="/company-dashboard" element={<CompanyDashboard />} /> 
         <Route path="/trainer-details/:trainerId" element={<TrainerDetails />} />
         <Route path="/trainer-details" element={<TrainerDetails />} />
@@ -130,6 +129,7 @@ function App() {
         <Route path="/business-contract" element={<BusinessContractForm />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/cart" element={<Cart />} />
+        <Route path="/payment" element={<PaymentPage />} /> {/* صفحة الدفع */}
       </Routes>
     </BrowserRouter>
   );
