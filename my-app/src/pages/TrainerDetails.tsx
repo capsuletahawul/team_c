@@ -1,17 +1,76 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { useLanguage } from '../context/LanguageContext.jsx';
-import Navbar from '../components/Navbar.jsx';
-import Footer from '../components/Footer.jsx';
-import { getTrainerProfile} from '../mocks/mockApi.js';
-import { PaperAirplaneIcon, UserIcon, EnvelopeIcon, ChatBubbleBottomCenterTextIcon, PhoneIcon, BriefcaseIcon, StarIcon as OutlineStar, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
+import { useLanguage } from '../context/LanguageContext'; // 🔄 استيراد سياق اللغة بدون ملحقات الملفات لضمان توافق TS
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
+import { getTrainerProfile } from '../mocks/mockApi';
+import { 
+  PaperAirplaneIcon, UserIcon, EnvelopeIcon, ChatBubbleBottomCenterTextIcon, 
+  PhoneIcon, BriefcaseIcon, StarIcon as OutlineStar, ChatBubbleLeftRightIcon 
+} from '@heroicons/react/24/outline';
 import { StarIcon as SolidStar } from '@heroicons/react/24/solid';
 
+// ==========================================
+// 🛠️ الأنواع والـ Interfaces لضمان كتابة كود TypeScript سليم وآمن (No Any)
+// ==========================================
+interface UIStrings {
+  loading: string; error: string; heroTitle: string; heroSub: string;
+  coursesTitle: string; thName: string; thStudents: string; thStatus: string;
+  statusPub: string; statusRev: string; reviewsTitle: string; rateTitle: string;
+  rateDesc: string; thankYou: string; notRated: string; textSelection: string;
+  contactTitle: string; contactSub: string; msgSuccess: string; labelName: string;
+  labelEmail: string; labelMsg: string; btnSend: string; bioTitle: string;
+  phoneTitle: string;
+}
+
+interface CourseItem {
+  id: string | number;
+  name?: string;
+  title?: string;
+  students?: number;
+  status?: 'published' | 'review' | string;
+}
+
+interface TrainerRawData {
+  id?: string | number;
+  name?: string; nameAr?: string; nameEn?: string;
+  specialty?: string; specialtyAr?: string; specialtyEn?: string;
+  bio?: string; bioAr?: string; bioEn?: string;
+  email?: string;
+  phone?: string;
+  courses?: CourseItem[];
+}
+
+interface TranslatedTrainer {
+  fullName: string;
+  specialization: string;
+  bio: string;
+  email: string;
+  phone: string;
+}
+
+interface LanguageContextType {
+  t: {
+    dir: 'rtl' | 'ltr';
+    trainerDetails?: Partial<UIStrings>;
+  };
+  lang: 'ar' | 'en';
+}
+
+interface ApiResponse {
+  success: boolean;
+  data?: TrainerRawData;
+}
+
+// ==========================================
+// 🚀 المكون الأساسي لصفحة تفاصيل المدرب
+// ==========================================
 export default function TrainerDetails() {
-  // الاعتماد الكامل على الكونتيكست العالمي[cite: 5]
-  const { t, lang } = useLanguage();
+  // 🗺️ جلب سياق اللغة والترجمات التلقائية للمنصة
+  const { t, lang } = useLanguage() as LanguageContextType;
   
-  const l = t.trainerDetails || {
+  // 📝 تهيئة النصوص والواجهات المترجمة لضمان استقرار العرض الفوري للأقسام
+  const l: UIStrings = {
     loading: lang === 'ar' ? 'جاري تحميل بيانات ملف المدرب الخبير...' : 'Loading trainer profile data...',
     error: lang === 'ar' ? 'فشل في تحميل تفاصيل المدرب، يرجى المحاولة لاحقاً.' : 'Failed to load trainer details.',
     heroTitle: lang === 'ar' ? 'ملف المدرب الشخصي' : 'Trainer Profile',
@@ -36,30 +95,37 @@ export default function TrainerDetails() {
     labelMsg: lang === 'ar' ? 'تفاصيل رسالتك أو استشارتك' : 'Your Message',
     btnSend: lang === 'ar' ? 'إرسال الرسالة الآن' : 'Send Message Now',
     bioTitle: lang === 'ar' ? 'السيرة المهنية' : 'Biography',
-    phoneTitle: lang === 'ar' ? 'رقم الهاتف' : 'Phone'
+    phoneTitle: lang === 'ar' ? 'رقم الهاتف' : 'Phone',
+    ...t.trainerDetails
   };
 
-  const { trainerId } = useParams();
+  // 🆔 استخراج الرقم التعريفي للمدرب من رابط الصفحة
+  const { trainerId } = useParams<{ trainerId: string }>();
 
-  const [rawData, setRawData] = useState(null);
-  const [trainer, setTrainer] = useState(null);
-  const [courses, setCourses] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  // 💾 إدارة حالة البيانات وحالة الاتصال بالسيرفر
+  const [rawData, setRawData] = useState<TrainerRawData | null>(null);
+  const [trainer, setTrainer] = useState<TranslatedTrainer | null>(null);
+  const [courses, setCourses] = useState<CourseItem[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const [rating, setRating] = useState(0);
-  const [hover, setHover] = useState(0);
-  const [hasRated, setHasRated] = useState(false);
+  // ⭐ إدارة تقييمات الطلاب التفاعلية (النجوم وحركة المؤشر)
+  const [rating, setRating] = useState<number>(0);
+  const [hover, setHover] = useState<number>(0);
+  const [hasRated, setHasRated] = useState<boolean>(false);
 
+  // 📧 نموذج التواصل والاستشارات الفورية
   const [contactForm, setContactForm] = useState({ name: '', email: '', message: '' });
-  const [showFormSuccess, setShowFormSuccess] = useState(false);
+  const [showFormSuccess, setShowFormSuccess] = useState<boolean>(false);
 
+  // 🛰️ تأثير جلب تفاصيل المدرب من الـ API عند تحميل الصفحة
   useEffect(() => {
     let isMounted = true;
     async function fetchData() {
+      if (!trainerId) return;
       try {
         setLoading(true);
-        const response = await getTrainerProfile(trainerId);
+        const response = await getTrainerProfile(trainerId) as ApiResponse;
         if (!isMounted) return;
 
         if (response.success && response.data) {
@@ -68,7 +134,7 @@ export default function TrainerDetails() {
         } else {
           setError(l.error);
         }
-      } catch (err) {
+      } catch {
         if (isMounted) setError(l.error);
       } finally {
         if (isMounted) setLoading(false);
@@ -78,27 +144,29 @@ export default function TrainerDetails() {
     return () => { isMounted = false; };
   }, [trainerId]);
 
-  // إصلاح آلية التحويل الفوري لبيانات المدرب بناءً على تغير متغيّر lang
+  // 🔄 تأثير معالجة اللغات (عربي / إنجليزي) وتحديث حقول البيانات فورياً
   useEffect(() => {
     if (rawData) {
       const isAr = lang === 'ar';
       setTrainer({
-        fullName: isAr ? (rawData.nameAr || rawData.name) : (rawData.nameEn || rawData.name),
-        specialization: isAr ? (rawData.specialtyAr || rawData.specialty) : (rawData.specialtyEn || rawData.specialty),
-        bio: isAr ? (rawData.bioAr || rawData.bio) : (rawData.bioEn || rawData.bio),
+        fullName: isAr ? (rawData.nameAr || rawData.name || "") : (rawData.nameEn || rawData.name || ""),
+        specialization: isAr ? (rawData.specialtyAr || rawData.specialty || "") : (rawData.specialtyEn || rawData.specialty || ""),
+        bio: isAr ? (rawData.bioAr || rawData.bio || "") : (rawData.bioEn || rawData.bio || ""),
         email: rawData.email || "",
         phone: rawData.phone || ""
       });
     }
   }, [rawData, lang]);
 
-  const handleContactSubmit = (e) => {
+  // 🎯 معالجة إرسال نموذج الاستشارة وتصفير المدخلات
+  const handleContactSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
     setShowFormSuccess(true);
     setContactForm({ name: '', email: '', message: '' });
     setTimeout(() => setShowFormSuccess(false), 4000);
   };
 
+  // 🛡️ معالجة حالة جاري التحميل لمنع وميض أو انهيار الصفحة
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center font-sans">
@@ -110,6 +178,7 @@ export default function TrainerDetails() {
     );
   }
 
+  // 🛡️ معالجة الأخطاء وحماية واجهة المستخدم من تعطل البيانات
   if (error || !trainer) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center font-sans">
@@ -125,7 +194,7 @@ export default function TrainerDetails() {
     <div className="min-h-screen bg-slate-50/50 font-sans text-slate-800 selection:bg-[#00A499]/10" dir={t.dir}>
       <Navbar />
 
-      {/* Hero Cover Header */}
+      {/* 🎨 مكون الـ Hero (رأس الصفحة والبيانات الأساسية للمدرب) */}
       <div className="relative overflow-hidden bg-gradient-to-br from-[#0D4C54] via-[#0A3A40] to-[#021E22] text-white pt-24 pb-20">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,164,153,0.15),transparent_50%)]"></div>
         <div className="max-w-7xl mx-auto px-4 relative z-10">
@@ -138,11 +207,11 @@ export default function TrainerDetails() {
         </div>
       </div>
 
-      {/* Main Container */}
+      {/* 📦 الحاوية الرئيسية ومقسم العناصر */}
       <div className="max-w-7xl mx-auto px-4 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
           
-          {/* Left Column: Trainer Card Profile */}
+          {/* 🪪 العمود الأيسر: بطاقة هوية المدرب والبيانات الشخصية */}
           <div className="lg:col-span-1 bg-white border border-slate-100 rounded-3xl p-6 shadow-sm relative overflow-hidden">
             <div className="absolute top-0 inset-x-0 h-2 bg-gradient-to-r from-[#00A499] to-[#0D4C54]"></div>
             
@@ -157,7 +226,7 @@ export default function TrainerDetails() {
               </p>
             </div>
 
-            {/* Biography Profile Info */}
+            {/* 📝 قسم السيرة الذاتية وخلفية المدرب */}
             <div className="py-6 border-b border-slate-100 space-y-4">
               <div className="space-y-1.5">
                 <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
@@ -170,23 +239,29 @@ export default function TrainerDetails() {
               </div>
             </div>
 
-            {/* Contact Information Details */}
+            {/* 📞 معلومات الاتصال السريع بالمدرب */}
             <div className="pt-6 space-y-3.5">
               <div className="flex items-center gap-3 text-slate-600 hover:text-slate-900 transition-colors">
                 <div className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 text-slate-400"><EnvelopeIcon className="w-4 h-4" /></div>
-                <div className="flex-1 min-w-0"><p className="text-xs font-bold text-slate-400">{l.labelEmail}</p><p className="text-sm font-bold truncate">{trainer.email}</p></div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-bold text-slate-400">{l.labelEmail}</p>
+                  <p className="text-sm font-bold truncate">{trainer.email}</p>
+                </div>
               </div>
               <div className="flex items-center gap-3 text-slate-600 hover:text-slate-900 transition-colors">
                 <div className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 text-slate-400"><PhoneIcon className="w-4 h-4" /></div>
-                <div className="flex-1 min-w-0"><p className="text-xs font-bold text-slate-400">{l.phoneTitle}</p><p className="text-sm font-bold truncate" dir="ltr">{trainer.phone}</p></div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-bold text-slate-400">{l.phoneTitle}</p>
+                  <p className="text-sm font-bold truncate" dir="ltr">{trainer.phone}</p>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Right Column: Courses, Ratings and Interactive Support */}
+          {/* 💻 العمود الأيمن: الدورات النشطة والتقييمات ونماذج الاستشارات */}
           <div className="lg:col-span-2 space-y-8">
             
-            {/* Table of active published courses */}
+            {/* 📊 جدول المقررات التدريبية النشطة للمدرب */}
             <div className="bg-white border border-slate-100 rounded-3xl shadow-sm overflow-hidden">
               <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
                 <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
@@ -207,8 +282,12 @@ export default function TrainerDetails() {
                   <tbody className="divide-y divide-slate-50 font-semibold text-slate-700">
                     {courses.map((course) => (
                       <tr key={course.id} className="hover:bg-slate-50/40 transition-colors">
-                        <td className="p-4 font-bold text-slate-900 max-w-xs md:max-w-sm truncate">{course.name || course.title}</td>
-                        <td className="p-4 text-center text-slate-500 font-mono">{course.students ? course.students.toLocaleString() : 0}</td>
+                        <td className="p-4 font-bold text-slate-900 max-w-xs md:max-w-sm truncate">
+                          {course.name || course.title}
+                        </td>
+                        <td className="p-4 text-center text-slate-500 font-mono">
+                          {course.students ? course.students.toLocaleString() : 0}
+                        </td>
                         <td className="p-4 text-center">
                           <span className={`inline-flex items-center gap-1 text-[11px] font-black px-2.5 py-1 rounded-full ${course.status === 'published' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-amber-50 text-amber-600 border border-amber-100'}`}>
                             <span className={`w-1.5 h-1.5 rounded-full ${course.status === 'published' ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
@@ -222,7 +301,7 @@ export default function TrainerDetails() {
               </div>
             </div>
 
-            {/* Interactive Stars Reviews Section */}
+            {/* ⭐ نظام التقييمات وآراء الطلاب المتفاعلة */}
             <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-6">
               <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-[#00A499]"></span>
@@ -230,12 +309,20 @@ export default function TrainerDetails() {
               </h2>
               <div className="bg-slate-50/50 border border-slate-100 rounded-2xl p-5 text-center space-y-3">
                 
-                {/* Stars Logic Widget */}
+                {/* ⭐️ أداة النجوم التفاعلية لدعم التقييم المباشر */}
                 <div className="flex justify-center items-center gap-1.5 pt-1">
-                  {[1, 2, 3, 4, 5].map((star) => {
+                  {[1, 2, 3, 4, 5].map((star: number) => {
                     const isSolid = hover ? star <= hover : star <= rating;
                     return (
-                      <button key={star} type="button" disabled={hasRated} onClick={() => { setRating(star); setHasRated(true); }} onMouseEnter={() => !hasRated && setHover(star)} onMouseLeave={() => !hasRated && setHover(0)} className={`transition-transform duration-100 ${!hasRated ? 'hover:scale-110 active:scale-95 cursor-pointer' : 'cursor-default'} ${isSolid ? 'text-amber-400' : 'text-slate-200'}`}>
+                      <button 
+                        key={star} 
+                        type="button" 
+                        disabled={hasRated} 
+                        onClick={() => { setRating(star); setHasRated(true); }} 
+                        onMouseEnter={() => !hasRated && setHover(star)} 
+                        onMouseLeave={() => !hasRated && setHover(0)} 
+                        className={`transition-transform duration-100 ${!hasRated ? 'hover:scale-110 active:scale-95 cursor-pointer' : 'cursor-default'} ${isSolid ? 'text-amber-400' : 'text-slate-200'}`}
+                      >
                         {isSolid ? <SolidStar className="w-8 h-8" /> : <OutlineStar className="w-8 h-8" />}
                       </button>
                     );
@@ -245,7 +332,7 @@ export default function TrainerDetails() {
               </div>
             </div>
 
-            {/* Direct Consultation Message Form Box */}
+            {/* ✉️ نموذج الاستشارة المباشرة وإرسال الرسائل */}
             <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-5">
               <div>
                 <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
@@ -255,26 +342,46 @@ export default function TrainerDetails() {
                 <p className="text-xs font-semibold text-slate-400 mt-1">{l.contactSub}</p>
               </div>
 
+              {/* رسالة إتمام الإرسال بنجاح */}
               {showFormSuccess && (
                 <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 text-emerald-700 text-sm font-bold flex items-center gap-2 animate-fade-in">
                   {l.msgSuccess}
                 </div>
               )}
 
+              {/* حقول الإدخال والتحقق الذاتي من البيانات */}
               <form onSubmit={handleContactSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-slate-500 flex items-center gap-1.5"><UserIcon className="w-3.5 h-3.5" />{l.labelName}</label>
-                    <input type="text" required value={contactForm.name} onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold focus:outline-none focus:border-[#00A499] focus:bg-white transition-all" />
+                    <input 
+                      type="text" 
+                      required 
+                      value={contactForm.name} 
+                      onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })} 
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold focus:outline-none focus:border-[#00A499] focus:bg-white transition-all" 
+                    />
                   </div>
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-slate-500 flex items-center gap-1.5"><EnvelopeIcon className="w-3.5 h-3.5" />{l.labelEmail}</label>
-                    <input type="email" required value={contactForm.email} onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold focus:outline-none focus:border-[#00A499] focus:bg-white transition-all" />
+                    <input 
+                      type="email" 
+                      required 
+                      value={contactForm.email} 
+                      onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })} 
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold focus:outline-none focus:border-[#00A499] focus:bg-white transition-all" 
+                    />
                   </div>
                 </div>
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-slate-500 flex items-center gap-1.5"><ChatBubbleBottomCenterTextIcon className="w-3.5 h-3.5" />{l.labelMsg}</label>
-                  <textarea required rows={3} value={contactForm.message} onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold focus:outline-none focus:border-[#00A499] focus:bg-white transition-all resize-none" />
+                  <textarea 
+                    required 
+                    rows={3} 
+                    value={contactForm.message} 
+                    onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })} 
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold focus:outline-none focus:border-[#00A499] focus:bg-white transition-all resize-none" 
+                  />
                 </div>
                 <div className="pt-1 flex justify-end">
                   <button type="submit" className="w-full sm:w-auto bg-[#0D4C54] hover:bg-[#003947] text-white font-black text-sm px-8 py-3 rounded-xl shadow-md flex items-center justify-center gap-2 group transition-all">
