@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import StudentNavbar from "../components/StudentNavbar.jsx";
+import Navbar from "../components/Navbar.jsx";
 import Footer from "../components/Footer.jsx";
 import Button from "../components/Button.jsx";
 import { getCourses } from "../mocks/mockApi.js";
@@ -120,7 +120,9 @@ export default function CoursesOverview() {
 
   return (
     <div className="min-h-screen bg-capsule-bg text-capsule-navy font-sans antialiased flex flex-col" dir={t.dir} lang={lang}>
-      <StudentNavbar activePage="courses" />
+      {/* التعديل هنا فقط: تم إرجاع المكون الاصلي مع الخاصية لضبط تسجيل الخروج */}
+      <Navbar activePage="courses" showAuthButtons={true} />
+      
       <main className="flex-grow">
         
         {/* Hero Section */}
