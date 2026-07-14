@@ -2,14 +2,29 @@ import React from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { Link } from "react-router-dom";
 
-function Footer() {
+// ============================================================================
+// COMPONENT
+// ============================================================================
+
+/**
+ * Footer Component
+ * 
+ * A responsive, accessible global footer supporting multilingual layouts (Arabic/English).
+ * It handles RTL-LTR layout inversion, links, and SVG graphic scaling automatically.
+ */
+function Footer(): React.JSX.Element {
+  // Pull localization translation object and layout properties from context
   const { t } = useLanguage();
 
   return (
-    <footer className="bg-capsule-footer text-white pt-12 pb-6 px-8 mt-24 border-t border-capsule-teal/20 font-sans" dir={t.dir}>
+    <footer 
+      // Establishes standard reading flow depending on active localization (LTR or RTL)
+      dir={t.dir}
+      className="bg-capsule-footer text-white pt-12 pb-6 px-8 mt-24 border-t border-capsule-teal/20 font-sans"
+    >
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 text-sm pb-8 border-b border-white/10">
         
-        {/* Brand & Description */}
+        {/* Brand & Description Block */}
         <div>
           <h3 className="text-base font-black mb-3">🚀 {t.brand}</h3>
           <p className="text-gray-300 text-xs leading-relaxed">
@@ -17,7 +32,7 @@ function Footer() {
           </p>
         </div>
 
-        {/* Quick Links */}
+        {/* Quick Links Nav List */}
         <ul className="space-y-2 text-xs text-gray-300">
           <li>
             <Link to="/" className="hover:text-capsule-gold transition">
@@ -41,14 +56,21 @@ function Footer() {
           </li>
         </ul>
 
-        {/* Social Media */}
+        {/* Social Media Links Block */}
         <div>
-          <h4 className="font-bold mb-4 text-capsule-gold text-xs uppercase tracking-wider">{t.footer.social}</h4>
-          {/* استخدام gap-5 يضمن مسافات متساوية تماماً بين الأيقونات */}
+          <h4 className="font-bold mb-4 text-capsule-gold text-xs uppercase tracking-wider">
+            {t.footer.social}
+          </h4>
+          
+          {/* gap-5 ensures clean, uniform alignment and spacing across icons */}
           <div className="flex items-center gap-5">
             
             {/* Instagram */}
-            <a href="#" className="text-white hover:text-capsule-gold transition duration-300 flex items-center justify-center">
+            <a 
+              href="#" 
+              aria-label="Instagram"
+              className="text-white hover:text-capsule-gold transition duration-300 flex items-center justify-center"
+            >
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
                 <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
@@ -57,21 +79,33 @@ function Footer() {
             </a>
 
             {/* TikTok */}
-            <a href="#" className="text-white hover:text-capsule-gold transition duration-300 flex items-center justify-center">
+            <a 
+              href="#" 
+              aria-label="TikTok"
+              className="text-white hover:text-capsule-gold transition duration-300 flex items-center justify-center"
+            >
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"></path>
               </svg>
             </a>
 
-            {/* X (Twitter) */}
-            <a href="#" className="text-white hover:text-capsule-gold transition duration-300 flex items-center justify-center">
+            {/* X (Formerly Twitter) */}
+            <a 
+              href="#" 
+              aria-label="X (Twitter)"
+              className="text-white hover:text-capsule-gold transition duration-300 flex items-center justify-center"
+            >
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
               </svg>
             </a>
 
             {/* LinkedIn */}
-            <a href="#" className="text-white hover:text-capsule-gold transition duration-300 flex items-center justify-center">
+            <a 
+              href="#" 
+              aria-label="LinkedIn"
+              className="text-white hover:text-capsule-gold transition duration-300 flex items-center justify-center"
+            >
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
                 <rect x="2" y="9" width="4" height="12"></rect>
@@ -84,8 +118,17 @@ function Footer() {
 
       </div>
 
-      {/* Copyright */}
-      <div className={`max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center pt-6 text-xs text-gray-400 gap-4 ${t.dir === 'rtl' ? 'sm:flex-row' : 'sm:flex-row-reverse'}`}>
+      {/* Copyright Footer Sub-section */}
+      <div 
+        /**
+         * Responsive alignment block swapping order on direction changes:
+         * - In RTL (Arabic), elements invert so copyright and metadata flow cleanly 
+         *   with the correct spatial orientation.
+         */
+        className={`max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center pt-6 text-xs text-gray-400 gap-4 ${
+          t.dir === 'rtl' ? 'sm:flex-row' : 'sm:flex-row-reverse'
+        }`}
+      >
         <p>{t.footer.copyright1}</p>
         <p className="text-gray-500">{t.footer.copyright2}</p>
       </div>
