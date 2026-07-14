@@ -1,56 +1,99 @@
-/**
- * CourseDetails.jsx
- * المكون الموحد لصفحة تفاصيل الدورة - كبسولة تحول
- */
-
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from "react-router-dom";
-// استيراد سياق اللغة لتفادي مشكلة الصفحة البيضاء وللتحويل الفوري للغات
-import { useLanguage } from '../context/LanguageContext'; 
-import StudentNavbar from "../components/StudentNavbar.jsx";
+import { useLanguage } from '../context/LanguageContext'; // 🔄 سياق اللغة للتحويل الفوري وتجنب الشاشة البيضاء
+import StudentNavbar from "../components/StudentNavbar";
 import Footer from '../components/Footer';
 import {
   ChevronDownIcon, PlayIcon, DocumentTextIcon, CodeBracketSquareIcon,
   ClockIcon, VideoCameraIcon, AcademicCapIcon, CodeBracketIcon, CpuChipIcon, ShieldCheckIcon
 } from '@heroicons/react/24/outline';
 import { StarIcon, CalendarDaysIcon, ChartBarIcon, LanguageIcon, UsersIcon, CheckCircleIcon, SparklesIcon, CheckIcon } from '@heroicons/react/24/solid';
-import { navTranslations, getCourseDetails } from "../mocks/mockApi";
+import { getCourseDetails } from "../mocks/mockApi";
 
-// نصوص الواجهة الثابتة المترجمة (عناوين الأقسام والأزرار العامة)
-const uiText = {
+// ==========================================
+// 🛠️ الأنواع والـ Interfaces لضمان كتابة كود TypeScript سليم وآمن (No Any)
+// ==========================================
+interface UIStrings {
+  loading: string; notFound: string; backToCourses: string; metaUpdated: string; metaLevel: string;
+  metaLanguage: string; statsDuration: string; statsStudents: string; statsRating: string; statsPrice: string;
+  free: string; overviewTitle: string; curriculumTitle: string; curriculumSubtitle: string; expandAll: string;
+  collapseAll: string; lessons: string; instructorTitle: string; verifiedExpert: string; requirementsTitle: string;
+  requirementsSubtitle: string; enrollBtn: string; priceLabel: string; ratingReviews: string;
+}
+
+interface Topic { name?: string; nameAr?: string; nameEn?: string; duration?: string; durationAr?: string; durationEn?: string; type?: string; }
+interface CurriculumModule { id: string | number; week?: string; weekAr?: string; weekEn?: string; title?: string; titleAr?: string; titleEn?: string; duration?: string; durationAr?: string; durationEn?: string; topics: Topic[]; }
+interface InstructorProfile { role?: string; roleAr?: string; roleEn?: string; bio?: string; bioAr?: string; bioEn?: string; avatarLabel?: string; ratingText?: string; ratingTextAr?: string; ratingTextEn?: string; studentsText?: string; studentsTextAr?: string; studentsTextEn?: string; skills?: string[]; skillsAr?: string[]; skillsEn?: string[]; }
+interface RequirementItem { id: string | number; type: string; title?: string; titleAr?: string; titleEn?: string; desc?: string; descAr?: string; descEn?: string; }
+interface EnrollmentInfo { features?: string[]; featuresAr?: string[]; featuresEn?: string[]; timer?: string; timerAr?: string; timerEn?: string; }
+
+interface CourseRawData {
+  id: string | number; title?: string; titleAr?: string; titleEn?: string; category?: string; categoryAr?: string; categoryEn?: string;
+  description?: string; descriptionAr?: string; descriptionEn?: string; subtitle?: string; subtitleAr?: string; subtitleEn?: string;
+  instructor?: string; instructorAr?: string; instructorEn?: string; level?: string; levelAr?: string; levelEn?: string;
+  language?: string; languageAr?: string; languageEn?: string; duration?: string; durationAr?: string; durationEn?: string;
+  updated?: string; updatedAr?: string; updatedEn?: string; outcomes?: string[]; outcomesAr?: string[]; outcomesEn?: string[];
+  rating?: number; price?: number; originalPrice?: number; discount?: string; students?: number; status?: string;
+  instructorProfile?: InstructorProfile; requirements?: RequirementItem[]; curriculum?: CurriculumModule[]; enrollment?: EnrollmentInfo;
+}
+
+interface TranslatedCourse {
+  id: string | number; title: string; category: string; description: string; subtitle: string; instructor: string;
+  level: string; language: string; duration: string; updated: string; outcomes: string[]; rating?: number;
+  price?: number; originalPrice?: number; discount?: string; students?: number; status?: string;
+  instructorProfile: { role: string; bio: string; avatarLabel: string; ratingText: string; studentsText: string; skills: string[]; } | null;
+  requirements: { id: string | number; type: string; title: string; desc: string; }[];
+  curriculum: { id: string | number; week: string; title: string; duration: string; topics: { name: string; duration: string; type?: string; }[]; }[];
+  enrollment: { features: string[]; timer: string; } | null;
+}
+
+// ==========================================
+// 🗺️ نصوص الواجهة المترجمة (عربي / إنجليزي) لمنع وميض الشاشة أثناء التحميل
+// ==========================================
+const uiText: Record<'ar' | 'en', UIStrings> = {
   ar: { loading: 'جاري تحميل تفاصيل الدورة...', notFound: 'لم يتم العثور على هذه الدورة.', backToCourses: 'الرجوع إلى الدورات', metaUpdated: 'آخر تحديث', metaLevel: 'المستوى', metaLanguage: 'لغة التدريس', statsDuration: 'مدة الدورة', statsStudents: 'الطلاب المسجلون', statsRating: 'تقييم الدورة', statsPrice: 'السعر', free: 'مجاني', overviewTitle: 'ماذا ستتعلم', curriculumTitle: 'منهج الدورة', curriculumSubtitle: 'استكشف خارطة الطريق الكاملة لهذه الدورة أسبوعاً بأسبوع.', expandAll: 'توسيع الكل', collapseAll: 'إغلاق الكل', lessons: 'دروس', instructorTitle: 'تعرّف على المدرب', verifiedExpert: 'مدرّب معتمد', requirementsTitle: 'المتطلبات المسبقة', requirementsSubtitle: 'يرجى مراجعة المتطلبات التالية قبل الانضمام للدورة.', enrollBtn: 'احجز مقعدك الآن', priceLabel: 'السعر الحالي', ratingReviews: 'تقييم عام للدورة' },
   en: { loading: 'Loading course details...', notFound: 'This course could not be found.', backToCourses: 'Back to Courses', metaUpdated: 'Last updated', metaLevel: 'Level', metaLanguage: 'Language', statsDuration: 'Duration', statsStudents: 'Enrolled Students', statsRating: 'Course Rating', statsPrice: 'Price', free: 'Free', overviewTitle: 'What You Will Learn', curriculumTitle: 'Course Curriculum', curriculumSubtitle: 'Explore the full week-by-week roadmap for this course.', expandAll: 'Expand All', collapseAll: 'Collapse All', lessons: 'Lessons', instructorTitle: 'Meet Your Instructor', verifiedExpert: 'Verified Expert', requirementsTitle: 'Prerequisites', requirementsSubtitle: 'Please review the following requirements before joining.', enrollBtn: 'Secure Your Spot', priceLabel: 'Current Price', ratingReviews: 'Overall Course Rating' }
 };
 
+// ==========================================
+// 🚀 المكون الأساسي لصفحة تفاصيل الكورس
+// ==========================================
 export default function CourseDetails() {
-  const { id } = useParams(); // جلب معرف الكورس من الرابط
-  const { lang } = useLanguage(); // جلب اللغة الحالية من الكونتيكست
+  const { id } = useParams<{ id: string }>();
+  const { lang } = useLanguage() as { lang: 'ar' | 'en' };
   const ui = uiText[lang] || uiText['ar'];
-  const [rawData, setRawData] = useState(null); // تخزين البيانات الخام القادمة من السيرفر
-  const [course, setCourse] = useState(null); // تخزين بيانات الكورس المترجمة والمهيأة للعرض
-  const [status, setStatus] = useState('loading'); // حالة التحميل: loading | success | not_found
+  
+  // 💾 إدارة حالة البيانات وحالة الاتصال بالسيرفر
+  const [rawData, setRawData] = useState<CourseRawData | null>(null);
+  const [course, setCourse] = useState<TranslatedCourse | null>(null);
+  const [status, setStatus] = useState<'loading' | 'success' | 'not_found'>('loading');
 
-  // التأثير الجانبي الأول: جلب بيانات الكورس عند تحميل الصفحة أو تغير الـ ID
+  // 🛰️ تأثير جلب بيانات الكورس من الـ API عند تحميل الصفحة
   useEffect(() => {
     let isMounted = true;
     async function loadCourse() {
+      if (!id) return;
       setStatus('loading');
-      const response = await getCourseDetails(id);
-      if (!isMounted) return;
-      if (response.success) { setRawData(response.data); setStatus('success'); }
-      else { setRawData(null); setStatus('not_found'); }
+      try {
+        const response = await getCourseDetails(id) as { success: boolean; data: CourseRawData };
+        if (!isMounted) return;
+        if (response?.success) { setRawData(response.data); setStatus('success'); }
+        else { setRawData(null); setStatus('not_found'); }
+      } catch {
+        if (isMounted) { setRawData(null); setStatus('not_found'); }
+      }
     }
     loadCourse();
     return () => { isMounted = false; };
   }, [id]);
 
-  // التأثير الجانبي الثاني: ترجمة البيانات الخام تلقائياً فور تغير اللغة الحالية (lang)
+  // 🔄 تأثير معالجة اللغات (عربي / إنجليزي) وتصفية البيانات فور تغير اللغة
   useEffect(() => {
     if (rawData) {
       const isAr = lang === 'ar';
-      const getVal = (arVal, enVal, fallback) => isAr ? (arVal || fallback) : (enVal || fallback);
+      const getVal = (arVal?: string, enVal?: string, fallback?: string): string => isAr ? (arVal || fallback || '') : (enVal || fallback || '');
       setCourse({
-        ...rawData,
+        id: rawData.id, rating: rawData.rating, price: rawData.price, originalPrice: rawData.originalPrice, discount: rawData.discount, students: rawData.students, status: rawData.status,
         title: getVal(rawData.titleAr, rawData.titleEn, rawData.title),
         category: getVal(rawData.categoryAr, rawData.categoryEn, rawData.category),
         description: getVal(rawData.descriptionAr, rawData.descriptionEn, rawData.description),
@@ -69,20 +112,19 @@ export default function CourseDetails() {
           studentsText: getVal(rawData.instructorProfile.studentsTextAr, rawData.instructorProfile.studentsTextEn, rawData.instructorProfile.studentsText),
           skills: isAr ? (rawData.instructorProfile.skillsAr || rawData.instructorProfile.skills || []) : (rawData.instructorProfile.skillsEn || rawData.instructorProfile.skills || [])
         } : null,
-        requirements: (rawData.requirements || []).map(req => ({ ...req, title: getVal(req.titleAr, req.titleEn, req.title), desc: getVal(req.descAr, req.descEn, req.desc) })),
+        requirements: (rawData.requirements || []).map(req => ({ id: req.id, type: req.type, title: getVal(req.titleAr, req.titleEn, req.title), desc: getVal(req.descAr, req.descEn, req.desc) })),
         curriculum: (rawData.curriculum || []).map(curr => ({
-          ...curr,
-          week: getVal(curr.weekAr, curr.weekEn, curr.week), title: getVal(curr.titleAr, curr.titleEn, curr.title), duration: getVal(curr.durationAr, curr.durationEn, curr.duration),
-          topics: (curr.topics || []).map(t => ({ ...t, name: getVal(t.nameAr, t.nameEn, t.name), duration: getVal(t.durationAr, t.durationEn, t.duration) }))
+          id: curr.id, week: getVal(curr.weekAr, curr.weekEn, curr.week), title: getVal(curr.titleAr, curr.titleEn, curr.title), duration: getVal(curr.durationAr, curr.durationEn, curr.duration),
+          topics: (curr.topics || []).map(t => ({ type: t.type, name: getVal(t.nameAr, t.nameEn, t.name), duration: getVal(t.durationAr, t.durationEn, t.duration) }))
         })),
         enrollment: rawData.enrollment ? { features: isAr ? (rawData.enrollment.featuresAr || rawData.enrollment.features || []) : (rawData.enrollment.featuresEn || rawData.enrollment.features || []), timer: getVal(rawData.enrollment.timerAr, rawData.enrollment.timerEn, rawData.enrollment.timer) } : null
       });
     }
   }, [rawData, lang]);
 
-  const isRTL = lang === 'ar'; // تحديد اتجاه الواجهة بناءً على اللغة
+  const isRTL = lang === 'ar';
 
-  // عرض صفحة الخطأ في حال عدم وجود الكورس
+  // 🛡️ معالجة الخطأ وحالة عدم وجود الكورس لحماية واجهة المستخدم من الانهيار
   if (status === 'not_found') {
     return (
       <div className="min-h-screen bg-capsule-bg flex flex-col font-sans">
@@ -96,6 +138,7 @@ export default function CourseDetails() {
     );
   }
 
+  // ✨ بناء هيكل الصفحة الرئيسي وتقسيمها لجزئين (المحتوى + بطاقة الدفع الجانبية)
   return (
     <div className="min-h-screen bg-capsule-bg flex flex-col font-sans transition-colors duration-300" dir={isRTL ? 'rtl' : 'ltr'}>
       <StudentNavbar activePage="courses" />
@@ -104,7 +147,7 @@ export default function CourseDetails() {
         {course && (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-              {/* قسم التفاصيل الأيمن */}
+              {/* القسم الأيمن/الأيسر: تفاصيل الكورس، المنهج، المدرس، والمتطلبات */}
               <div className="lg:col-span-2 space-y-8">
                 <CourseStats ui={ui} course={course} />
                 <CourseOverview ui={ui} course={course} />
@@ -112,7 +155,7 @@ export default function CourseDetails() {
                 <CourseInstructor ui={ui} course={course} />
                 <CourseRequirements ui={ui} course={course} />
               </div>
-              {/* كرت الدفع الجانبي المثبت */}
+              {/* القسم الجانبي المثبت: بطاقة الدفع والانضمام للكورس */}
               <div className="lg:sticky lg:top-24"><EnrollmentCard ui={ui} course={course} isRTL={isRTL} /></div>
             </div>
           </div>
@@ -123,8 +166,10 @@ export default function CourseDetails() {
   );
 }
 
-// 1. مكون الهيرو الرئيسي (الواجهة العلوية للكورس)
-function CourseHero({ lang, ui, course }) {
+// ==========================================
+// 🎨 مكون الـ Hero (رأس الصفحة والبيانات الأساسية)
+// ==========================================
+function CourseHero({ ui, course }: { lang: 'ar' | 'en'; ui: UIStrings; course: TranslatedCourse | null }) {
   if (!course) return <section className="w-full bg-gradient-to-br from-[#164961] via-[#1a5570] to-[#2B636B] py-24 text-white text-center">{ui.loading}</section>;
   const ratingRounded = Math.round(course.rating || 0);
   return (
@@ -138,7 +183,6 @@ function CourseHero({ lang, ui, course }) {
           <div className="flex items-center text-[#FFD369]">{[...Array(5)].map((_, i) => <StarIcon key={i} className={`w-5 h-5 ${i < ratingRounded ? '' : 'opacity-30'}`} />)}</div>
           <span className="text-sm font-medium px-1">{course.rating ? `${course.rating} (${ui.ratingReviews})` : ui.ratingReviews}</span>
         </div>
-        {/* بيانات الكورس الوصفية (التحديث والمستوى واللغة) */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6 border-t border-white/10">
           {[
             { label: ui.metaUpdated, val: course.updated || '—', icon: CalendarDaysIcon },
@@ -156,8 +200,10 @@ function CourseHero({ lang, ui, course }) {
   );
 }
 
-// 2. مكون الإحصائيات السريعة (المدة، الطلاب، التقييم، السعر)
-function CourseStats({ ui, course }) {
+// ==========================================
+// 📊 مكون الإحصائيات السريعة (المدة، عدد الطلاب، التقييم، السعر)
+// ==========================================
+function CourseStats({ ui, course }: { ui: UIStrings; course: TranslatedCourse }) {
   const cards = [
     { key: 'duration', label: ui.statsDuration, val: course.duration || '—', icon: ClockIcon, color: 'from-cyan-500 to-blue-600', bg: 'bg-cyan-50', text: 'text-cyan-600' },
     { key: 'students', label: ui.statsStudents, val: course.students ?? 0, icon: UsersIcon, color: 'from-purple-500 to-indigo-600', bg: 'bg-purple-50', text: 'text-purple-600' },
@@ -166,25 +212,24 @@ function CourseStats({ ui, course }) {
   ];
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-      {cards.map((cfg) => {
-        const Icon = cfg.icon;
-        return (
-          <div key={cfg.key} className="group relative bg-white p-5 rounded-2xl border border-gray-100 shadow-md overflow-hidden transform hover:-translate-y-1 transition-all">
-            <div className={`absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r ${cfg.color}`} />
-            <div className={`p-3 rounded-xl inline-block ${cfg.bg} ${cfg.text}`}><Icon className="w-6 h-6 stroke-[2]" /></div>
-            <div className="space-y-1 mt-4">
-              <h3 className={`text-xl font-black bg-gradient-to-r ${cfg.color} bg-clip-text text-transparent`}>{cfg.val}</h3>
-              <p className="text-xs font-semibold text-capsule-navy/70 leading-snug">{cfg.label}</p>
-            </div>
+      {cards.map((cfg) => (
+        <div key={cfg.key} className="group relative bg-white p-5 rounded-2xl border border-gray-100 shadow-md overflow-hidden transform hover:-translate-y-1 transition-all">
+          <div className={`absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r ${cfg.color}`} />
+          <div className={`p-3 rounded-xl inline-block ${cfg.bg} ${cfg.text}`}><cfg.icon className="w-6 h-6 stroke-[2]" /></div>
+          <div className="space-y-1 mt-4">
+            <h3 className={`text-xl font-black bg-gradient-to-r ${cfg.color} bg-clip-text text-transparent`}>{cfg.val}</h3>
+            <p className="text-xs font-semibold text-capsule-navy/70 leading-snug">{cfg.label}</p>
           </div>
-        );
-      })}
+        </div>
+      ))}
     </div>
   );
 }
 
-// 3. مكون مخرجات التعلم (ماذا ستتعلم)
-function CourseOverview({ ui, course }) {
+// ==========================================
+// 💡 مكون نظرة عامة على الكورس ومخرجات التعلم
+// ==========================================
+function CourseOverview({ ui, course }: { ui: UIStrings; course: TranslatedCourse }) {
   const outcomes = course.outcomes || [];
   if (outcomes.length === 0) return null;
   return (
@@ -206,12 +251,13 @@ function CourseOverview({ ui, course }) {
   );
 }
 
-// 4. مكون المنهج الدراسي القابل للتوسيع والإغلاق (Curriculum Accordion)
-function CourseCurriculum({ ui, course }) {
+// ==========================================
+// 📚 مكون المنهج الدراسي وتفاصيل المحاضرات (أكورديون)
+// ==========================================
+function CourseCurriculum({ ui, course }: { ui: UIStrings; course: TranslatedCourse }) {
   const modules = course.curriculum || [];
-  const [expanded, setExpanded] = useState([]);
-  // فتح القسم الأول تلقائياً عند التحميل
-  useEffect(() => { if (modules.length && expanded.length === 0) setExpanded([modules[0].id]); }, [modules]);
+  const [expanded, setExpanded] = useState<(string | number)[]>([]);
+  useEffect(() => { if (modules.length && expanded.length === 0) setExpanded([modules[0].id]); }, [modules, expanded.length]);
   if (modules.length === 0) return null;
   return (
     <section className="bg-white p-6 sm:p-8 rounded-2xl border border-gray-100 shadow-md relative overflow-hidden">
@@ -262,8 +308,10 @@ function CourseCurriculum({ ui, course }) {
   );
 }
 
-// 5. مكون السيرة الذاتية وخبرات المدرب
-function CourseInstructor({ ui, course }) {
+// ==========================================
+// 👨‍🏫 مكون المدرب (الخبرات، المهارات والسيرة الذاتية)
+// ==========================================
+function CourseInstructor({ ui, course }: { ui: UIStrings; course: TranslatedCourse }) {
   const profile = course.instructorProfile;
   if (!profile) return null;
   return (
@@ -297,10 +345,12 @@ function CourseInstructor({ ui, course }) {
   );
 }
 
-// 6. مكون المتطلبات المسبقة للكورس
-function CourseRequirements({ ui, course }) {
+// ==========================================
+// 🛡️ مكون المتطلبات التقنية والمسبقة قبل البدء
+// ==========================================
+function CourseRequirements({ ui, course }: { ui: UIStrings; course: TranslatedCourse }) {
   const items = course.requirements || [];
-  const icons = { code: CodeBracketIcon, cpu: CpuChipIcon, shield: ShieldCheckIcon };
+  const icons: Record<string, React.ComponentType<{ className?: string }>> = { code: CodeBracketIcon, cpu: CpuChipIcon, shield: ShieldCheckIcon };
   if (items.length === 0) return null;
   return (
     <section className="bg-white p-6 sm:p-8 rounded-2xl border border-gray-100 shadow-md relative overflow-hidden">
@@ -322,51 +372,49 @@ function CourseRequirements({ ui, course }) {
   );
 }
 
-// 7. كرت التسجيل والاشتراك الجانبي (المثبت) المسؤول عن إضافة الكورس للسلة والذهاب إليها
-function EnrollmentCard({ ui, course, isRTL }) {
+// ==========================================
+// ⚡ بطاقة الدفع الجانبية (Enrollment Card) وحجز المقعد
+// ==========================================
+function EnrollmentCard({ ui, course, isRTL }: { ui: UIStrings; course: TranslatedCourse; isRTL: boolean }) {
   const navigate = useNavigate();
-  const { id } = useParams(); // جلب معرف الكورس من الرابط لاستخدامه كـ id فريد بالسلة عند الحاجة
-  const enrollment = course.enrollment || {};
+  const { id } = useParams<{ id: string }>();
+  const enrollment = course.enrollment || { features: [], timer: "" };
   const isFree = course.price === 0;
 
-  // تم التعديل: إضافة الكورس إلى السلة (localStorage) ثم الانتقال لصفحة السلة مباشرة
-  const handleEnroll = () => {
-    const currentCart = JSON.parse(localStorage.getItem('cartItems') || '[]');
-    
-    const newCourse = {
-      id: course.id || id || Date.now(), // استخدام أيدي الكورس أو معرف الرابط أو قيمة فريدة
-      title: course.title,
-      category: course.category,
-      duration: course.duration || '—',
-      price: course.price || 0
-    };
-
-    const isAlreadyInCart = currentCart.some(item => item.id === newCourse.id);
-    if (!isAlreadyInCart) {
+  // 🛒 دالة الدفع وحفظ بيانات الكورس في السلة والانتقال لصفحة الدفع
+  const handleEnroll = (): void => {
+    const currentCart: { id: string | number; title: string; category: string; duration: string; price: number; }[] = JSON.parse(localStorage.getItem('cartItems') || '[]');
+    const newCourse = { id: course.id || id || Date.now(), title: course.title, category: course.category, duration: course.duration || '—', price: course.price || 0 };
+    if (!currentCart.some(item => item.id === newCourse.id)) {
       currentCart.push(newCourse);
       localStorage.setItem('cartItems', JSON.stringify(currentCart));
     }
-
-    // التوجيه لصفحة السلة مباشرة
     navigate('/cart');
   };
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-xl p-6 relative overflow-hidden" dir={isRTL ? 'rtl' : 'ltr'}>
+      {/* عرض تفاصيل السعر والخصومات الحالية */}
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-2">
           <h3 className="text-3xl font-black text-capsule-navy">{isFree ? ui.free : course.price}</h3>
-          {course.originalPrice > (course.price || 0) && <span className="text-sm font-bold text-gray-400 line-through">{course.originalPrice}</span>}
+          {course.originalPrice && course.originalPrice > (course.price || 0) && <span className="text-sm font-bold text-gray-400 line-through">{course.originalPrice}</span>}
           {course.discount && <span className="text-xs font-bold bg-amber-100 text-amber-700 px-2 py-1 rounded-md">{course.discount}</span>}
         </div>
         <h4 className="text-lg font-bold text-capsule-navy">{course.title}</h4>
       </div>
+      
+      {/* قائمة الميزات والشهادات التي يحصل عليها الطالب */}
       <ul className="space-y-4 mb-8">
         {(enrollment.features || []).map((f, idx) => <li key={idx} className="flex items-center gap-3 text-sm font-semibold text-capsule-navy/80"><CheckIcon className="w-5 h-5 text-capsule-teal" />{f}</li>)}
       </ul>
+      
+      {/* زر حجز المقعد وبدء الدفع المباشر */}
       <button onClick={handleEnroll} disabled={course.status === 'coming_soon' || course.status === 'completed'} className="w-full bg-gradient-to-r from-capsule-navy to-[#2B636B] text-white font-black py-4 rounded-xl shadow-lg hover:-translate-y-0.5 transition-all mb-4 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
         <SparklesIcon className="w-5 h-5 text-amber-400" />{ui.enrollBtn}
       </button>
+      
+      {/* مؤقت العرض والتحذير قبل انتهاء الخصم */}
       {enrollment.timer && <div className="flex items-center justify-center gap-2 text-xs font-bold text-gray-500 bg-gray-50 p-3 rounded-lg border"><ClockIcon className="w-4 h-4 text-purple-500" />{enrollment.timer}</div>}
     </div>
   );
