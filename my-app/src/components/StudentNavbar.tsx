@@ -3,11 +3,37 @@ import { useLanguage } from '../context/LanguageContext';
 import { Link } from "react-router-dom";
 import logo from "../assets/logo.png";
 
-function StudentNavbar({ activePage = 'dashboard', showAuthButtons = false, onSignIn, onSignUp }) {
-  const [isOpen, setIsOpen] = useState(false);
+// ============================================================================
+// TYPES & INTERFACES
+// ============================================================================
+
+interface NavLinkItem {
+  id: string;
+  label: string;
+  to: string;
+}
+
+interface StudentNavbarProps {
+  activePage?: string;
+  showAuthButtons?: boolean;
+  onSignIn?: () => void;
+  onSignUp?: () => void;
+}
+
+// ============================================================================
+// COMPONENT
+// ============================================================================
+
+function StudentNavbar({ 
+  activePage = 'dashboard', 
+  showAuthButtons = false, 
+  onSignIn, 
+  onSignUp 
+}: StudentNavbarProps) {
+  const [isOpen, setIsOpen] = useState<boolean>(false);
   const { t, lang, toggleLanguage } = useLanguage();
 
-  const navLinks = [
+  const navLinks: NavLinkItem[] = [
     {
       id: "home",
       label: lang === "ar" ? "الرئيسية" : "Home",
