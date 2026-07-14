@@ -1,41 +1,79 @@
 import React, { useState, useEffect } from 'react';
-import { getStudentProfile, getPurchasedCourses, getNotifications } from '../mocks/mockApi.js';
+import { getStudentProfile } from '../mocks/mockApi.js';
 
 // Reusable Components
 import StudentNavbar from "../components/StudentNavbar.jsx";
 import Footer from '../components/Footer.jsx';
 import LoadingIndicator from '../components/LoadingIndicator.jsx';
 import ErrorMessage from '../components/ErrorMessage.jsx';
-import Button from '../components/Button.jsx';
+import Button from '../components/Button.js';
 
 // Global Context
 import { useLanguage } from '../context/LanguageContext.jsx';
 
-function StudentDashboard({ onNavigateToProfile }) {
+// ============================================================================
+// TYPES & INTERFACES
+// ============================================================================
+
+interface Course {
+  id: number;
+  titleKey: string;
+  catKey: string;
+  durKey: string;
+  progress: number;
+  status: 'Active' | 'Completed';
+}
+
+interface Notification {
+  notificationId: number;
+  titleKey: string;
+  msgKey: string;
+  isRead: boolean;
+}
+
+interface Profile {
+  id: number;
+  fullName: string;
+  email: string;
+  role: string;
+  avatar: string;
+  joinedAt: string;
+  completedCourses: number;
+  activeCourses: number;
+  companyAffiliation: string;
+}
+
+interface StudentDashboardProps {
+  onNavigateToProfile: () => void;
+}
+
+// ============================================================================
+// COMPONENT
+// ============================================================================
+
+function StudentDashboard({ onNavigateToProfile }: StudentDashboardProps) {
   const { t, lang } = useLanguage();
   const l = t.studentDashboard;
 
-  const [profile, setProfile] = useState(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   
-  // Hardcoded mock data using translation keys to ensure bilingual functionality 
-  // before the backend is fully translated.
-  const [courses, setCourses] = useState([
+  // Local state with strong types
+  const [courses, setCourses] = useState<Course[]>([
     { id: 1, titleKey: 'course1Title', catKey: 'course1Cat', durKey: 'course1Dur', progress: 45, status: 'Active' },
     { id: 2, titleKey: 'course2Title', catKey: 'course2Cat', durKey: 'course2Dur', progress: 100, status: 'Completed' }
   ]);
-  const [notifications, setNotifications] = useState([
+  const [notifications, setNotifications] = useState<Notification[]>([
     { notificationId: 1, titleKey: 'notif1Title', msgKey: 'notif1Msg', isRead: false },
     { notificationId: 2, titleKey: 'notif2Title', msgKey: 'notif2Msg', isRead: true }
   ]);
 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string>('');
 
   useEffect(() => {
     let isMounted = true;
 
-    // We still fetch the profile data from the mock API. 
-    // The courses and notifications are handled via local state above for translation mapping purposes.
+    // Fetch profile data from mock database
     getStudentProfile()
       .then((profileRes) => {
         if (!isMounted) return;
@@ -43,7 +81,8 @@ function StudentDashboard({ onNavigateToProfile }) {
         if (!profileRes.success) {
           setError(l.errorProfile);
         } else {
-          setProfile(profileRes.data);
+          // Explicitly cast mock response data to Profile
+          setProfile(profileRes.data as Profile);
         }
 
         setLoading(false);
@@ -55,7 +94,7 @@ function StudentDashboard({ onNavigateToProfile }) {
       });
 
     return () => { isMounted = false; };
-  }, [lang, l.errorProfile, l.errorNetwork]); // Refetch/update on lang change
+  }, [lang, l.errorProfile, l.errorNetwork]);
 
   if (loading) {
     return (
@@ -69,7 +108,7 @@ function StudentDashboard({ onNavigateToProfile }) {
   const completedCourses = courses.filter(c => c.status === 'Completed');
   const unreadNotifications = notifications.filter(n => !n.isRead);
 
-  // Extract first name for the greeting
+  // Safe fallback calculation for profile name
   const firstName = profile?.fullName?.split(' ')[0] || l.hero.fallbackName;
 
   return (
