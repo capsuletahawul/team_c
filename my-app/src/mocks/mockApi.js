@@ -1,8 +1,7 @@
 /**
  * Capsule Tahawul Mock API Layer
  * Location: src/mocks/mockApi.js
- * 
- * This file simulates a backend database and server processing environment.
+ * * This file simulates a backend database and server processing environment.
  * Every response strictly adheres to the mandated bootcamp envelope format.
  */
 
@@ -14,10 +13,220 @@ const delay = (ms) => new Promise(res => setTimeout(res, ms));
 // ============================================================================
 
 let mockCourses = [
-  { id: 15, title: "React Bootcamp Deep Dive", category: "Web Development", price: 250, duration: "32 Hours", rating: 4.8, status: "available", students: 1240, thumbnail: "react-bootcamp.jpg", prerequisites: ["HTML", "CSS", "JavaScript"] },
-  { id: 16, title: "AI & Machine Learning Fundamentals", category: "Artificial Intelligence", price: 0, duration: "12 Hours", rating: 4.9, status: "available", students: 850, thumbnail: "ai-funds.jpg", prerequisites: ["Basic Python"] },
-  { id: 17, title: "Cybersecurity Next-Gen Defense", category: "Cybersecurity", price: 499, duration: "40 Hours", rating: 0, status: "coming_soon", students: 0, thumbnail: "cyber.jpg", prerequisites: ["Basic Networking"] },
-  { id: 18, title: "Cloud Native Infrastructure", category: "Cloud Computing", price: 199, duration: "24 Hours", rating: 4.5, status: "completed", students: 430, thumbnail: "cloud.jpg", prerequisites: ["Linux Basics"] }
+{
+  id: 15,
+  title: "React Bootcamp Deep Dive",
+  category: "Web Development",
+  description: "Learn React from beginner to advanced with hands-on projects.",
+  subtitle: "Master building production-ready React applications with hooks, state management, and real-world project architecture.",
+  instructor: "Ahmed Mohammed",
+  trainerId: "ahmed-mohammed",
+
+  price: 250,
+  originalPrice: 450,
+  discount: "45% OFF",
+  duration: "32 Hours",
+  level: "Intermediate",
+  language: "Arabic / English",
+  updated: "06/2026",
+  rating: 4.8,
+  status: "available",
+  students: 1240,
+  thumbnail: "react-bootcamp.jpg",
+
+  prerequisites: ["HTML", "CSS", "JavaScript"],
+
+  outcomes: [
+    "Build modern React applications",
+    "Use React Hooks",
+    "Manage application state",
+    "Structure scalable component architecture",
+    "Integrate REST APIs into React apps",
+    "Deploy production-ready front-end projects"
+  ],
+
+  instructorProfile: {
+    role: "Senior Front-End Engineer",
+    bio: "Ahmed has spent over 8 years building production React applications for startups and enterprises across the region.",
+    avatarLabel: "AM",
+    ratingText: "4.8 Instructor Rating",
+    studentsText: "1,240+ Students",
+    coursesText: "3 Bootcamps",
+    skills: ["React", "Hooks", "State Management", "REST APIs"]
+  },
+
+  requirements: [
+    { id: "tech", title: "Technical Background", desc: "Basic knowledge of HTML, CSS, and JavaScript fundamentals.", type: "code" },
+    { id: "hardware", title: "Hardware Setup", desc: "A laptop with at least 8GB RAM and a stable internet connection.", type: "cpu" },
+    { id: "mindset", title: "Commitment & Mindset", desc: "Readiness to invest 8-10 hours per week on coding exercises and projects.", type: "shield" }
+  ],
+
+  curriculum: [
+    { id: 1, week: "Week 1 - 2", title: "React Fundamentals & JSX", duration: "10 Hours",
+      topics: [
+        { type: "video", name: "Introduction to Components & JSX", duration: "40 mins" },
+        { type: "code", name: "Hands-on: Building Your First Components", duration: "2 hours" },
+        { type: "doc", name: "Reading: Component Lifecycle Overview", duration: "15 mins" }
+      ] },
+    { id: 2, week: "Week 3 - 4", title: "State, Props & Hooks", duration: "12 Hours",
+      topics: [
+        { type: "video", name: "useState & useEffect in Depth", duration: "50 mins" },
+        { type: "code", name: "Lab: Building a Todo Application", duration: "3 hours" },
+        { type: "code", name: "Project: Custom Hooks for Data Fetching", duration: "3 hours" }
+      ] },
+    { id: 3, week: "Week 5 - 6", title: "Routing & Production Deployment", duration: "10 Hours",
+      topics: [
+        { type: "video", name: "React Router & Protected Routes", duration: "45 mins" },
+        { type: "code", name: "Capstone: Full Application Deployment", duration: "5 hours" }
+      ] }
+  ],
+
+  enrollment: {
+    features: ["4 Weeks Intensive", "Live Mentorship", "Job Guarantee Support", "Lifetime Access"],
+    timer: "Enrollment closes in: 04:12:45"
+  }
+},
+
+  { id: 16, title: "AI & Machine Learning Fundamentals", category: "Artificial Intelligence",
+    description: "A hands-on introduction to AI and Machine Learning concepts using real datasets and Python.",
+    subtitle: "Learn the core building blocks of AI and Machine Learning through practical, project-based lessons.",
+    instructor: "Sara Ali",
+    trainerId: "sara-ali",
+    price: 0, originalPrice: 0, discount: "Free",
+    duration: "12 Hours", level: "Beginner", language: "Arabic / English", updated: "06/2026",
+    rating: 4.9, status: "available", students: 850, thumbnail: "ai-funds.jpg",
+    prerequisites: ["Basic Python"],
+    outcomes: [
+      "Understand core Machine Learning concepts",
+      "Work with real-world datasets in Python",
+      "Train and evaluate simple ML models",
+      "Understand the fundamentals of neural networks"
+    ],
+    instructorProfile: {
+      role: "AI & Data Science Instructor",
+      bio: "Sara has taught Machine Learning fundamentals to thousands of students, focusing on practical, project-first learning.",
+      avatarLabel: "SA",
+      ratingText: "4.9 Instructor Rating",
+      studentsText: "850+ Students",
+      coursesText: "2 Bootcamps",
+      skills: ["Python", "Machine Learning", "Data Analysis", "Neural Networks"]
+    },
+    requirements: [
+      { id: "tech", title: "Technical Background", desc: "Basic familiarity with Python syntax and programming logic.", type: "code" },
+      { id: "hardware", title: "Hardware Setup", desc: "A laptop with at least 8GB RAM to run Python notebooks smoothly.", type: "cpu" },
+      { id: "mindset", title: "Commitment & Mindset", desc: "Readiness to invest 4-6 hours per week on exercises and mini projects.", type: "shield" }
+    ],
+    curriculum: [
+      { id: 1, week: "Week 1", title: "Introduction to AI & ML", duration: "4 Hours",
+        topics: [
+          { type: "video", name: "What is Machine Learning?", duration: "30 mins" },
+          { type: "doc", name: "Reading: Types of ML Problems", duration: "15 mins" }
+        ] },
+      { id: 2, week: "Week 2", title: "Working with Data", duration: "4 Hours",
+        topics: [
+          { type: "code", name: "Lab: Data Cleaning with Pandas", duration: "2 hours" }
+        ] },
+      { id: 3, week: "Week 3", title: "Building Your First Model", duration: "4 Hours",
+        topics: [
+          { type: "code", name: "Project: Training a Classification Model", duration: "3 hours" }
+        ] }
+    ],
+    enrollment: { features: ["Self-Paced", "Community Support", "Certificate of Completion"], timer: "Open enrollment" }
+  },
+
+  { id: 17, title: "Cybersecurity Next-Gen Defense", category: "Cybersecurity",
+    description: "Learn modern cybersecurity defense strategies to protect networks and systems from evolving threats.",
+    subtitle: "Build practical skills in network defense, threat detection, and incident response.",
+    instructor: "Abdullah Nasser",
+    trainerId: "abdullah-nasser",
+    price: 499, originalPrice: 699, discount: "28% OFF",
+    duration: "40 Hours", level: "Advanced", language: "Arabic / English", updated: "07/2026",
+    rating: 0, status: "coming_soon", students: 0, thumbnail: "cyber.jpg",
+    prerequisites: ["Basic Networking"],
+    outcomes: [
+      "Understand modern attack vectors and threat models",
+      "Configure firewalls and intrusion detection systems",
+      "Perform basic incident response procedures",
+      "Harden systems against common vulnerabilities"
+    ],
+    instructorProfile: {
+      role: "Senior Cybersecurity Engineer",
+      bio: "Abdullah has over 10 years of experience securing enterprise infrastructure and leading incident response teams.",
+      avatarLabel: "AN",
+      ratingText: "New Instructor",
+      studentsText: "0 Students (Coming Soon)",
+      coursesText: "1 Bootcamp",
+      skills: ["Network Security", "Incident Response", "Threat Detection", "Penetration Testing"]
+    },
+    requirements: [
+      { id: "tech", title: "Technical Background", desc: "Basic understanding of networking concepts (IP, DNS, ports).", type: "code" },
+      { id: "hardware", title: "Hardware Setup", desc: "A laptop capable of running a virtual lab environment (16GB RAM recommended).", type: "cpu" },
+      { id: "mindset", title: "Commitment & Mindset", desc: "Readiness to invest 10-12 hours per week on labs and simulations.", type: "shield" }
+    ],
+    curriculum: [
+      { id: 1, week: "Week 1 - 3", title: "Network Security Foundations", duration: "14 Hours",
+        topics: [
+          { type: "video", name: "Threat Landscape Overview", duration: "45 mins" },
+          { type: "code", name: "Lab: Configuring Firewalls", duration: "3 hours" }
+        ] },
+      { id: 2, week: "Week 4 - 6", title: "Threat Detection & Monitoring", duration: "14 Hours",
+        topics: [
+          { type: "code", name: "Lab: Setting Up an IDS", duration: "4 hours" }
+        ] },
+      { id: 3, week: "Week 7 - 8", title: "Incident Response", duration: "12 Hours",
+        topics: [
+          { type: "code", name: "Capstone: Simulated Breach Response", duration: "6 hours" }
+        ] }
+    ],
+    enrollment: { features: ["8 Weeks Intensive", "Hands-on Labs", "Industry Certificate"], timer: "Coming soon — join the waitlist" }
+  },
+
+  { id: 18, title: "Cloud Native Infrastructure", category: "Cloud Computing",
+    description: "Master cloud-native architecture, containers, and infrastructure automation on modern cloud platforms.",
+    subtitle: "Design, deploy, and scale cloud-native infrastructure using industry-standard tools.",
+    instructor: "Noura Al-Faisal",
+    trainerId: "noura-alfaisal",
+    price: 199, originalPrice: 199, discount: null,
+    duration: "24 Hours", level: "Intermediate", language: "Arabic / English", updated: "05/2026",
+    rating: 4.5, status: "completed", students: 430, thumbnail: "cloud.jpg",
+    prerequisites: ["Linux Basics"],
+    outcomes: [
+      "Deploy applications using Docker containers",
+      "Orchestrate workloads with Kubernetes basics",
+      "Automate infrastructure with Infrastructure-as-Code",
+      "Design scalable cloud-native architectures"
+    ],
+    instructorProfile: {
+      role: "Cloud Solutions Architect",
+      bio: "Noura has led cloud migration and infrastructure automation projects for enterprise clients across the Gulf region.",
+      avatarLabel: "NF",
+      ratingText: "4.5 Instructor Rating",
+      studentsText: "430+ Students",
+      coursesText: "2 Bootcamps",
+      skills: ["Docker", "Kubernetes", "Cloud Architecture", "Infrastructure as Code"]
+    },
+    requirements: [
+      { id: "tech", title: "Technical Background", desc: "Comfortable working with the Linux command line.", type: "code" },
+      { id: "hardware", title: "Hardware Setup", desc: "A laptop with at least 8GB RAM able to run Docker containers.", type: "cpu" },
+      { id: "mindset", title: "Commitment & Mindset", desc: "Readiness to invest 6-8 hours per week on labs and deployments.", type: "shield" }
+    ],
+    curriculum: [
+      { id: 1, week: "Week 1 - 2", title: "Containers with Docker", duration: "10 Hours",
+        topics: [
+          { type: "video", name: "Docker Fundamentals", duration: "40 mins" },
+          { type: "code", name: "Lab: Containerizing an Application", duration: "3 hours" }
+        ] },
+      { id: 2, week: "Week 3", title: "Orchestration with Kubernetes", duration: "8 Hours",
+        topics: [
+          { type: "code", name: "Lab: Deploying to a Kubernetes Cluster", duration: "4 hours" }
+        ] },
+      { id: 3, week: "Week 4", title: "Infrastructure as Code", duration: "6 Hours",
+        topics: [
+          { type: "code", name: "Capstone: Automated Cloud Deployment", duration: "4 hours" }
+        ] }
+    ],
+    enrollment: { features: ["4 Weeks Intensive", "Cloud Lab Credits", "Certificate of Completion"], timer: "This course has ended" }
+  }
 ];
 
 let mockUser = {
@@ -44,6 +253,178 @@ let mockNotifications = [
 let mockSupportTickets = [];
 let mockB2BRequests = [];
 let mockCourseDrafts = [];
+
+// ============================================================================
+// NEW STATIC DATA FOR INTEGRATION (Course Details, Trainer Details, Contact)
+// ============================================================================
+
+export const courseHeroData = {
+  en: {
+    category: 'Advanced Tech & Artificial Intelligence',
+    title: 'Full-Stack Generative AI & Digital Transformation Bootcamp',
+    subtitle: 'Master building scalable AI applications, fine-tuning LLMs, and leading enterprise-level digital transformations using cutting-edge modern frameworks.',
+    rating: '4.9 (1,240 global reviews)',
+    meta: { updated: 'Last updated 06/2026', level: 'Intermediate to Advanced', language: 'Arabic / English' }
+  },
+  ar: {
+    category: 'التقنيات المتقدمة والذكاء الاصطناعي',
+    title: 'معسكر مطور الذكاء الاصطناعي التوليدي المتكامل والتحول الرقمي',
+    subtitle: 'أتقن بناء تطبيقات الذكاء الاصطناعي القابلة للتوسع، وضبط النماذج اللغوية الكبيرة (LLMs)، وقيادة التحول الرقمي للشركات باستخدام أحدث الإطارات التقنية.',
+    rating: '4.9 (1,240 تقييم عالمي)',
+    meta: { updated: 'آخر تحديث 06/2026', level: 'متوسط إلى متقدم', language: 'العربية / الإنجليزية' }
+  }
+};
+
+export const curriculumData = {
+  en: {
+    title: 'Bootcamp Curriculum',
+    subtitle: 'Explore the structured operational roadmap designed to take you from foundational engineering to high-tier enterprise architecture.',
+    expandAll: 'Expand All', collapseAll: 'Collapse All', lessons: 'Lessons',
+    modules: [
+      {
+        id: 1, week: 'Week 1 - 2', title: 'Deep-Dive Into LLM Architectures & Foundations', duration: '20 Hours',
+        topics: [
+          { type: 'video', name: 'Introduction to Transformers & Attention Mechanisms', duration: '45 mins' },
+          { type: 'code', name: 'Hands-on: Building Tokenizers from Scratch', duration: '2 hours' },
+          { type: 'doc', name: 'Reading: Corporate AI Compliance & Open-Source vs Proprietary', duration: '15 mins' }
+        ]
+      },
+      {
+        id: 2, week: 'Week 3 - 5', title: 'Advanced Production-Grade RAG Systems', duration: '35 Hours',
+        topics: [
+          { type: 'video', name: 'Vector Databases, Embeddings, & Chunking Tactical Strategies', duration: '60 mins' },
+          { type: 'code', name: 'Lab: Hybrid Search Pipelines (Dense + Sparse Retrieval)', duration: '4 hours' },
+          { type: 'code', name: 'Project: Implementing Re-ranking & Query Expansion', duration: '6 hours' }
+        ]
+      },
+      {
+        id: 3, week: 'Week 6 - 8', title: 'Multi-Agent Systems & Autonomous Pipelines', duration: '40 Hours',
+        topics: [
+          { type: 'video', name: 'Orchestration Frameworks: LangGraph, AutoGen, & CrewAI', duration: '90 mins' },
+          { type: 'code', name: 'Lab: Memory Management & State Control in Long-Running Agents', duration: '5 hours' },
+          { type: 'code', name: 'Capstone: Enterprise Multi-Agent Deployment via Docker', duration: '12 hours' }
+        ]
+      }
+    ]
+  },
+  ar: {
+    title: 'المنهج وخطة المعسكر المتقدمة',
+    subtitle: 'استكشف خارطة الطريق الهيكلية والعملية المصممة لنقلك من الأساسيات البرمجية إلى هندسة الأنظمة الضخمة للشركات.',
+    expandAll: 'توسيع الكل', collapseAll: 'إغلاق الكل', lessons: 'دروس',
+    modules: [
+      {
+        id: 1, week: 'الأسبوع 1 - 2', title: 'الغوص العميق في بنيات النماذج اللغوية الكبيرة (LLMs)', duration: '20 ساعة',
+        topics: [
+          { type: 'video', name: 'مقدمة في نماذج الـ Transformers وآليات الانتباه (Attention)', duration: '45 دقيقة' },
+          { type: 'code', name: 'تطبيق عملي: بناء الـ Tokenizers البرمجية من الصفر', duration: 'ساعتين' },
+          { type: 'doc', name: 'قراءة موجهة: حوكمة الذكاء الاصطناعي والمفتوح مقابل المغلق', duration: '15 دقيقة' }
+        ]
+      },
+      {
+        id: 2, week: 'الأسبوع 3 - 5', title: 'أنظمة استرجاع المعلومات المعززة بالتوليد (RAG) للإنتاج الحقيقي', duration: '35 ساعة',
+        topics: [
+          { type: 'video', name: 'قواعد البيانات المتجهة (Vector DBs) واستراتيجيات تقسيم النصوص', duration: '60 دقيقة' },
+          { type: 'code', name: 'معمل عملي: بناء خطوط البحث الهجين (Hybrid Search Pipelines)', duration: '4 ساعات' },
+          { type: 'مشروع: تنفيذ أنظمة إعادة الترتيب (Re-ranking) وتوسيع الاستعلام', duration: '6 ساعات' }
+        ]
+      },
+      {
+        id: 3, week: 'الأسبوع 6 - 8', title: 'الأنظمة متعددة الوكلاء (Multi-Agent Systems) والتدفقات المستقلة', duration: '40 ساعة',
+        topics: [
+          { type: 'video', name: 'إطارات الإدارة والربط: LangGraph، AutoGen، و CrewAI', duration: '90 دقيقة' },
+          { type: 'code', name: 'معمل: إدارة الذاكرة والتحكم في الحالات (State Control) للوكلاء البرمجيين', duration: '5 ساعات' },
+          { type: 'مشروع التخرج: نشر وكلاء الذكاء الاصطناعي للشركات عبر Docker', duration: '12 ساعة' }
+        ]
+      }
+    ]
+  }
+};
+
+export const instructorData = {
+  en: {
+    sectionTitle: 'Meet Your Instructor', name: 'Dr. Rayan Al-Qahtani', role: 'Chief AI Architect & Digital Transformation Advisor',
+    bio: 'With over 15 years of industry experience, Dr. Rayan has directed core enterprise AI system deployments across elite cloud technology hubs in Silicon Valley and Saudi Arabia.',
+    stats: { rating: '4.9 Instructor Rating', students: '18,500+ Students', courses: '7 Deep-Tech Bootcamps' },
+    skills: ['LLMOps Architecture', 'Fine-Tuning Expert', 'Cloud Security', 'Corporate Strategy']
+  },
+  ar: {
+    sectionTitle: 'تعرّف على موجّه المعسكر', name: 'د. ريان القحطاني', role: 'كبير مهندسي الذكاء الاصطناعي ومستشار التحول الرقمي',
+    bio: 'على مدى أكثر من 15 عاماً من الخبرة العملية، قاد الدكتور ريان مشاريع كبرى لنشر أنظمة الذكاء الاصطناعي في نخبة من مراكز الحوسبة السحابية في وادي السيليكون والمملكة العربية السعودية.',
+    stats: { rating: '4.9 تقييم المدرب', students: '+18,500 طالب وطالبة', courses: '7 معسكرات تقنية عميقة' },
+    skills: ['هندسة الـ LLMOps', 'ضبط النماذج الرقمية', 'أمن الحوسبة السحابية', 'الاستراتيجية الرقمية']
+  }
+};
+
+export const overviewData = {
+  en: {
+    title: 'What You Will Master',
+    description: 'This elite bootcamp bridges advanced software architecture with generative artificial intelligence, providing hands-on pipelines to upgrade your technical engineering capabilities completely.',
+    outcomes: [
+      'Architect and deploy end-to-end cloud-native Generative AI applications.',
+      'Fine-tune open-source Large Language Models (LLMs) on private enterprise datasets.',
+      'Build advanced Retrieval-Augmented Generation (RAG) knowledge intelligence architectures.',
+      'Implement multi-agent autonomous workflows using modern AI orchestration tools.',
+      'Optimize AI training pipelines for maximum performance and cost efficiency.',
+      'Lead tactical enterprise digital transformations with safe corporate AI compliance.'
+    ]
+  },
+  ar: {
+    title: 'ما الذي ستتقنه في هذا المعسكر',
+    description: 'يجمع هذا المعسكر النخبي بين هندسة البرمجيات المتقدمة والذكاء الاصطناعي التوليدي، مما يوفر لك خطوط إنتاج وتطبيق برمجية حية لترقية قدراتك التقنية والهندسية بالكامل.',
+    outcomes: [
+      'بناء وتطوير تطبيقات الذكاء الاصطناعي التوليدي السحابية من الصفر وحتى الإنتاج.',
+      'ضبط وتعديل النماذج اللغوية الكبيرة (LLMs) مفتوحة المصدر على بيانات الشركات الخاصة.',
+      'تأسيس بنية متقدمة لأنظمة استرجاع المعلومات المعززة بالتوليد (RAG) الذكية.',
+      'تنفيذ تدفقات عمل برمجية ذاتية القيادة ومتعددة الوكلاء (Multi-Agent Systems).',
+      'تحسين خطوط معالجة وتدريب نماذج الذكاء الاصطناعي لأعلى كفاءة وأقل تكلفة حوسبية.',
+      'قيادة استراتيجيات التحول الرقمي بامتثال أمني وحوكمة تقنية صارمة للشركات.'
+    ]
+  }
+};
+
+export const requirementsData = {
+  en: {
+    title: 'Bootcamp Prerequisites',
+    subtitle: 'Please review the technical background and hardware requirements needed to ensure an optimal learning experience.',
+    items: [
+      { id: 'tech', title: 'Technical Background', desc: 'Intermediate knowledge of JavaScript/Python and basic familiarity with modern web architectures and APIs.', type: 'code' },
+      { id: 'hardware', title: 'Hardware Setup', desc: 'A laptop (Mac/Windows/Linux) with at least 8GB RAM (16GB recommended) and stable internet connection.', type: 'cpu' },
+      { id: 'mindset', title: 'Commitment & Mindset', desc: 'Readiness to invest 10-15 hours per week for building engineering tasks, coding challenges, and interactive team review sessions.', type: 'shield' }
+    ]
+  },
+  ar: {
+    title: 'المتطلبات المسبقة للانضمام',
+    subtitle: 'يرجى مراجعة الخلفية التقنية والمواصفات اللازمة لضمان تحقيق أقصى استفادة ممكنة من غرف المعمل والتطبيق المتقدم.',
+    items: [
+      { id: 'tech', title: 'الخلفية التقنية المطلوبة', desc: 'معرفة متوسطة بلغة JavaScript أو Python، وفهم أساسي لكيفية التعامل مع واجهات برمجة التطبيقات (APIs).', type: 'code' },
+      { id: 'hardware', title: 'مواصفات جهاز الكمبيوتر', desc: 'جهاز كمبيوتر بذاكرة عشوائية لا تقل عن 8 جيجابايت (يفضل 16 جيجابايت)، مع اتصال إنترنت مستقر للمختبرات عن بعد.', type: 'cpu' },
+      { id: 'mindset', title: 'الالتزام الذهني والوقتي', desc: 'الاستعداد المكامل لتخصيص 10 إلى 15 ساعة أسبوعياً لحل التحديات البرمجية وبناء المشاريع وجلسات التوجيه الجماعية.', type: 'shield' }
+    ]
+  }
+};
+
+export const enrollmentData = {
+  en: {
+    price: '$499', originalPrice: '$899', discount: '45% OFF', title: 'Ready to Transform?',
+    features: ['8 Weeks Intensive', 'Live Mentorship', 'Job Guarantee Support', 'Lifetime Access'],
+    btnText: 'Secure Your Spot', timer: 'Enrollment closes in: 04:12:45'
+  },
+  ar: {
+    price: '1,899 ر.س', originalPrice: '3,499 ر.س', discount: 'خصم 45%', title: 'جاهز لبدء رحلة التحول？',
+    features: ['8 أسابيع تدريب مكثف', 'جلسات توجيه مباشرة', 'دعم التوظيف الاحترافي', 'وصول دائم للمحتوى'],
+    btnText: 'احجز مقعدك الآن', timer: 'ينتهي التسجيل خلال: 04:12:45'
+  }
+};
+
+export const navTranslations = {
+  en: { nav: { home: 'Home', courses: 'Courses', bootcamps: 'Bootcamps', companies: 'Companies', about: 'About Us', contact: 'Contact' }, langBtn: 'AR' },
+  ar: { nav: { home: 'الرئيسية', courses: 'الدورات', bootcamps: 'المعسكرات', companies: 'الشركات', about: 'من نحن', contact: 'تواصل معنا' }, langBtn: 'EN' }
+};
+
+export const contactPageData = {
+  en: { title: 'Get in Touch', subtitle: 'We are here to help you deploy your digital shift. Reach out anytime.', formName: 'Your Name', formEmail: 'Email Address', formPhone: 'Phone Number', formMessage: 'Message Description', submitBtn: 'Send Message' },
+  ar: { title: 'تواصل معنا الآن', subtitle: 'نحن هنا لمساعدتك في قيادة تحولك الرقمي وبناء مسيرتك التقنية.', formName: 'الاسم الكامل', formEmail: 'البريد الإلكتروني', formPhone: 'رقم الجوال', formMessage: 'تفاصيل الرسالة', submitBtn: 'إرسال الرسالة' }
+};
 
 // ============================================================================
 // MODULE 1: AUTHENTICATION APIs (Feature 3)
@@ -94,7 +475,6 @@ export async function loginUser(payload) {
     };
   }
 
-  // Simulating successful auth log for presentation flow
   return {
     success: true,
     message: "Login successful.",
@@ -140,7 +520,7 @@ export async function getCourses(filters = {}) {
   };
 }
 
-export async function getCourseDetails(courseId) {
+export async function getCourseDetails(courseId, locale = 'en') {
   await delay(400);
   const course = mockCourses.find(c => c.id === parseInt(courseId));
   
@@ -152,7 +532,32 @@ export async function getCourseDetails(courseId) {
     };
   }
 
-  return { success: true, data: course };
+  // If requesting the translation-supported Advanced GenAI bootcamp (ID 15 or similar mock matching), inject localizations
+  const lang = locale === 'ar' ? 'ar' : 'en';
+  const localizedHero = courseHeroData[lang];
+  const localizedCurriculum = curriculumData[lang];
+  const localizedOverview = overviewData[lang];
+  const localizedRequirements = requirementsData[lang];
+  const localizedEnrollment = enrollmentData[lang];
+  const localizedInstructor = instructorData[lang];
+
+  // Return the base data merged with responsive structural translations
+  return { 
+    success: true, 
+    data: {
+      ...course,
+      title: localizedHero.title || course.title,
+      subtitle: localizedHero.subtitle || course.subtitle,
+      category: localizedHero.category || course.category,
+      outcomes: localizedOverview.outcomes || course.outcomes,
+      // Inject translated modular curriculum structure
+      translatedCurriculum: localizedCurriculum,
+      translatedRequirements: localizedRequirements,
+      translatedEnrollment: localizedEnrollment,
+      translatedInstructor: localizedInstructor,
+      currentLocale: lang
+    }
+  };
 }
 
 // ============================================================================
@@ -248,7 +653,7 @@ export async function submitQuiz(quizId, payload) {
 export async function submitContactForm(data) {
   await delay(800);
   
-  if (!data.name || data.name.length < 3) {
+  if (!data.fullName || data.fullName.length < 3) {
     return { success: false, error: "validation_error", details: { name: "Name must be at least 3 characters." } };
   }
   if (!data.email.includes("@")) {
@@ -345,4 +750,122 @@ export async function getAdminDashboardMetrics() {
       publishedCoursesCount: mockCourses.length
     }
   };
+}
+
+// ============================================================================
+// MODULE 9: TRAINER PROFILE
+// ============================================================================
+
+// Trainer profiles are NOT stored as separate static objects. They are derived
+// dynamically from mockCourses (the same source of truth used by the course
+// catalog), keyed by course.trainerId. This keeps the trainer's courses/stats
+// always in sync with the actual course data, and lets any course's instructor
+// name link to its own real trainer page instead of a fixed/hardcoded one.
+
+// Small pieces of contact info that don't live on a course record.
+const trainerContactInfo = {
+  "ahmed-mohammed": { email: "ahmed.mohammed@capsule.com", phone: "+966500000011", experience: 8 },
+  "sara-ali": { email: "sara.ali@capsule.com", phone: "+966500000012", experience: 6 },
+  "abdullah-nasser": { email: "abdullah.nasser@capsule.com", phone: "+966500000013", experience: 10 },
+  "noura-alfaisal": { email: "noura.alfaisal@capsule.com", phone: "+966500000014", experience: 7 },
+};
+
+// Generic feedback pool (mock placeholder, reused across trainers).
+const genericTrainerReviews = [
+  { id: 1, name: "Khalid", rating: 5, date: "2026-07-01", comment: "Excellent trainer, very clear explanations." },
+  { id: 2, name: "Lama", rating: 4, date: "2026-07-03", comment: "Very informative and well-structured sessions." },
+];
+
+function buildTrainerProfile(trainerId) {
+  const trainerCourses = mockCourses.filter(c => c.trainerId === trainerId);
+  if (trainerCourses.length === 0) return null;
+
+  const base = trainerCourses[0].instructorProfile || {};
+  const contact = trainerContactInfo[trainerId] || {};
+  const totalStudents = trainerCourses.reduce((sum, c) => sum + (c.students || 0), 0);
+  const ratedCourses = trainerCourses.filter(c => c.rating);
+  const avgRating = ratedCourses.length
+    ? +(ratedCourses.reduce((sum, c) => sum + c.rating, 0) / ratedCourses.length).toFixed(1)
+    : 0;
+
+  const derivedProfile = {
+    trainerId,
+    name: trainerCourses[0].instructor,
+    specialty: base.role || "Trainer",
+    bio: base.bio || "",
+    email: contact.email || `${trainerId}@capsule.com`,
+    phone: contact.phone || "+966500000000",
+    experience: contact.experience || 5,
+    avatarLetter: base.avatarLabel || trainerCourses[0].instructor.charAt(0),
+
+    stats: {
+      coursesCount: trainerCourses.length,
+      studentsCount: totalStudents,
+      rating: avgRating,
+    },
+
+    courses: trainerCourses.map(c => ({
+      id: c.id,
+      name: c.title,
+      students: c.students,
+      status: (c.status === "available" || c.status === "completed") ? "published" : "review",
+    })),
+
+    reviews: genericTrainerReviews,
+  };
+
+  return derivedProfile;
+}
+
+export async function getTrainerProfile(trainerId) {
+  await delay(300);
+
+  // Backwards-compatible fallback: default to the first known trainer when no id is passed.
+  const id = trainerId || mockCourses.find(c => c.trainerId)?.trainerId;
+  const profile = buildTrainerProfile(id);
+
+  if (!profile) {
+    return {
+      success: false,
+      error: "trainer_not_found",
+      details: { trainerId: "The requested trainer does not exist on the index." }
+    };
+  }
+
+  return { success: true, data: profile };
+}
+// ============================================================================
+// MODULE 10: ADMIN IAM & USER MANAGEMENT DATA
+// ============================================================================
+
+let mockUsersPermissions = [
+  { id: 'USR-882', name: 'أحمد Mohammed', email: 'ahmed@capsule.com', role: 'Trainer', status: 'active' },
+  { id: 'USR-412', name: 'Alex Mercer', email: 'alex.mercer@corporate.com', role: 'Student', status: 'active' },
+  { id: 'USR-109', name: 'شركة التقنية المحدودة', email: 'b2b@tech.com', role: 'Company', status: 'active' },
+  { id: 'USR-554', name: 'سارة Ali', email: 'sara@capsule.com', role: 'Trainer', status: 'suspended' }
+];
+
+export async function getAllUsersForAdmin() {
+  await delay(300);
+  return { success: true, data: mockUsersPermissions };
+}
+
+export async function updateUserRoleInMock(userId, newRole) {
+  await delay(200);
+  mockUsersPermissions = mockUsersPermissions.map(user => 
+    user.id === userId ? { ...user, role: newRole } : user
+  );
+  return { success: true };
+}
+
+export async function toggleUserStatusInMock(userId) {
+  await delay(200);
+  mockUsersPermissions = mockUsersPermissions.map(user => {
+    if (user.id === userId) {
+      const nextStatus = user.status === 'active' ? 'suspended' : 'active';
+      return { ...user, status: nextStatus };
+    }
+    return user;
+  });
+  return { success: true };
 }

@@ -4,15 +4,28 @@ import { useLanguage } from '../context/LanguageContext';
 import { Link } from "react-router-dom";
 import logo from "../assets/logo.png";
 
-function Navbar({ activePage = 'dashboard', showAuthButtons = false, onSignIn, onSignUp }) {
+function TrainerNavbar({ activePage = 'dashboard', showAuthButtons = false, onSignIn, onSignUp }) {
   const [isOpen, setIsOpen] = useState(false);
   const { t, lang, toggleLanguage } = useLanguage();
 
 const navLinks = [
-  { id: "home", label: t.nav.home, to: "/" },
-  { id: "courses", label: t.nav.courses, to: "/courses-overview" },
-  { id: "bootcamps", label: t.nav.bootcamps, to: "/courses-overview" },
-  ];
+  {
+    id: "dashboard",
+    label: lang === "ar" ? "الرئيسية" : "Home",
+    to: "/trainer-dashboard",
+  },
+  {
+    id: "courses",
+    label: lang === "ar" ? "دوراتي" : "My Courses",
+    to: "#",
+  },
+  {
+    id: "profile",
+    label: lang === "ar" ? "ملفي الشخصي" : "My Profile",
+    to: "/trainer-profile",
+  },
+  
+];
 
   return (
 
@@ -50,25 +63,25 @@ dir={t.dir}
           {/* Navigation Links */}
 <div className="hidden md:flex items-center gap-8 text-sm font-semibold">
   {navLinks.map((link) => (
-    <Link
+   <Link
   key={link.id}
   to={link.to}
-      className={`group relative pb-2 transition-all duration-300 ${
-        activePage === link.id
-          ? "text-capsule-teal"
-          : "text-gray-600 hover:text-capsule-teal"
-      }`}
-    >
-      {link.label}
+  className={`group relative pb-2 transition-all duration-300 ${
+    activePage === link.id
+      ? "text-capsule-teal"
+      : "text-gray-600 hover:text-capsule-teal"
+  }`}
+>
+  {link.label}
 
-      <span
-        className={`absolute bottom-0 left-0 h-0.5 bg-capsule-teal transition-all duration-300 ${
-          activePage === link.id
-            ? "w-full"
-            : "w-0 group-hover:w-full"
-        }`}
-      />
-    </Link>
+  <span
+    className={`absolute bottom-0 left-0 h-0.5 bg-capsule-teal transition-all duration-300 ${
+      activePage === link.id
+        ? "w-full"
+        : "w-0 group-hover:w-full"
+    }`}
+  />
+</Link>
   ))}
 </div>
         </div>
@@ -84,7 +97,7 @@ dir={t.dir}
             {lang === 'ar' ? 'EN' : 'AR'}
           </button>
 
-          <button
+<button
   className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-100 transition"
 >
   🌙
@@ -137,13 +150,17 @@ dir={t.dir}
           </button>
 
           {navLinks.map(link => (
-            <a 
-              key={link.id} 
-              href={link.href} 
-              className={`p-2 rounded-lg ${activePage === link.id ? 'bg-capsule-teal/10 text-capsule-teal' : 'text-gray-600'}`}
-            >
-              {link.label}
-            </a>
+            <Link
+  key={link.id}
+  to={link.to}
+  className={`p-2 rounded-lg ${
+    activePage === link.id
+      ? "bg-capsule-teal/10 text-capsule-teal"
+      : "text-gray-600"
+  }`}
+>
+  {link.label}
+</Link>
           ))}
 
           {showAuthButtons && (
@@ -168,4 +185,4 @@ dir={t.dir}
   );
 }
 
-export default Navbar;
+export default TrainerNavbar;
