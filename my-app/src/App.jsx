@@ -15,11 +15,11 @@ import SignInSignUpApproval from './pages/CoursesApproval.jsx';
 import CourseDetails from './pages/CourseDetails.jsx';
 import CoursesOverview from "./pages/CoursesOverview.jsx";
 import StudentCoursesOverview from './pages/StudentCoursesOverview.jsx';
-import Contact from './pages/Contact.jsx';
+import Contact from './pages/Contact';
 import Cart from './pages/Cart.jsx';
 import ForgotPassword from "./pages/ForgotPassword";
 import CompanyDashboard from './pages/CompanyDashboard.jsx'; 
-import PaymentPage from './pages/PaymentPage.jsx'; // صفحة الدفع الجديدة
+import PaymentPage from './pages/PaymentPage'; // صفحة الدفع الجديدة
 
 // --- Small wrappers for pages that expect navigation callbacks as props ---
 
