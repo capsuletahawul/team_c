@@ -2,44 +2,94 @@ import React, { useState, useEffect } from 'react';
 import { getStudentProfile, updateStudentProfile, getPurchasedCourses } from '../mocks/mockApi.js';
 
 // Reusable Components
-import StudentNavbar from "../components/StudentNavbar.jsx";
+import StudentNavbar from "../components/StudentNavbar.js";
 import Footer from '../components/Footer.jsx';
 import LoadingIndicator from '../components/LoadingIndicator.jsx';
 import ErrorMessage from '../components/ErrorMessage.jsx';
-import Button from '../components/Button.jsx';
+import Button from '../components/Button.js';
 
 // Global Context
 import { useLanguage } from '../context/LanguageContext.jsx';
 
-function StudentProfile({ onBack }) {
+// ============================================================================
+// TYPES & INTERFACES
+// ============================================================================
+
+interface Profile {
+  id: number;
+  fullName: string;
+  email: string;
+  role: string;
+  avatar: string;
+  joinedAt: string;
+  completedCourses: number;
+  activeCourses: number;
+  companyAffiliation: string;
+}
+
+interface Course {
+  id: number;
+  title: string;
+  category: string;
+  duration: string;
+  progress: number;
+  status: 'In Progress' | 'Completed';
+}
+
+interface FormValues {
+  fullName: string;
+  avatar: string;
+}
+
+interface FieldErrors {
+  global?: string;
+  fullName?: string;
+  avatar?: string;
+  [key: string]: string | undefined;
+}
+
+interface StudentProfileProps {
+  onBack: () => void;
+}
+
+type SaveState = 'idle' | 'saving' | 'saved';
+
+// ============================================================================
+// COMPONENT
+// ============================================================================
+
+function StudentProfile({ onBack }: StudentProfileProps) {
   const { t, lang } = useLanguage();
   const l = t.studentProfile;
 
-  const [profile, setProfile] = useState(null);
-  const [courses, setCourses] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [isEditing, setIsEditing] = useState(false);
-  const [formValues, setFormValues] = useState({ fullName: '', avatar: '' });
-  const [fieldErrors, setFieldErrors] = useState({});
-  const [saveState, setSaveState] = useState('idle'); // idle | saving | saved
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [formValues, setFormValues] = useState<FormValues>({ fullName: '', avatar: '' });
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [saveState, setSaveState] = useState<SaveState>('idle');
 
   useEffect(() => {
     let isMounted = true;
 
     Promise.all([getStudentProfile(), getPurchasedCourses()]).then(([profileRes, coursesRes]) => {
       if (!isMounted) return;
-      if (profileRes.success) {
-        setProfile(profileRes.data);
-        setFormValues({ fullName: profileRes.data.fullName, avatar: profileRes.data.avatar });
+      if (profileRes.success && profileRes.data) {
+        const profileData = profileRes.data as Profile;
+        setProfile(profileData);
+        setFormValues({ fullName: profileData.fullName, avatar: profileData.avatar });
       }
-      if (coursesRes.success) setCourses(coursesRes.data);
+      if (coursesRes.success && coursesRes.data) {
+        setCourses(coursesRes.data as Course[]);
+      }
       setLoading(false);
     });
 
     return () => { isMounted = false; };
   }, []);
 
-  const handleChange = (field, value) => {
+  const handleChange = (field: keyof FormValues, value: string) => {
     setFormValues(prev => ({ ...prev, [field]: value }));
   };
 
@@ -50,24 +100,30 @@ function StudentProfile({ onBack }) {
     const result = await updateStudentProfile(formValues);
 
     if (!result.success) {
-      setFieldErrors(result.details || {});
+      setFieldErrors((result.details as FieldErrors) || {});
       setSaveState('idle');
       return;
     }
 
-    setProfile(result.data);
+    if (result.data) {
+      const updatedProfile = result.data as Profile;
+      setProfile(updatedProfile);
+      setFormValues({ fullName: updatedProfile.fullName, avatar: updatedProfile.avatar });
+    }
     setIsEditing(false);
     setSaveState('saved');
     setTimeout(() => setSaveState('idle'), 2000);
   };
 
   const handleCancel = () => {
-    setFormValues({ fullName: profile.fullName, avatar: profile.avatar });
+    if (profile) {
+      setFormValues({ fullName: profile.fullName, avatar: profile.avatar });
+    }
     setFieldErrors({});
     setIsEditing(false);
   };
 
-  if (loading) {
+  if (loading || !profile) {
     return (
       <div className="min-h-screen bg-capsule-bg flex flex-col items-center justify-center">
         <LoadingIndicator message={l.loading} />
@@ -80,9 +136,7 @@ function StudentProfile({ onBack }) {
 
   return (
     <div className="min-h-screen bg-capsule-bg text-capsule-navy font-sans antialiased flex flex-col" dir={t.dir}>
-
-<StudentNavbar activePage="profile" />
-
+      <StudentNavbar activePage="profile" />
 
       <main className="flex-grow">
         <div className="max-w-5xl mx-auto px-6 pt-6 flex">
