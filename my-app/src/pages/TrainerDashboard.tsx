@@ -1,9 +1,10 @@
+// src/pages/TrainerDashboard.tsx
 import React, { useState, useEffect } from 'react';
-// الخروج خطوة للوراء باستخدام المسارات النسبية الصحيحة للوصول للموك
+// استخدام المسارات النسبية الصحيحة للوصول للموك
 import { getTrainerAnalytics, submitB2BRequest, getCourses, getTrainerProfile } from '../mocks/mockApi';
 
 // Reusable Components
-import TrainerNavbar from "../components/TrainerNavbar.jsx";
+import TrainerNavbar from "../components/TrainerNavbar";
 import Footer from '../components/Footer';
 import Button from '../components/Button';
 import LoadingIndicator from '../components/LoadingIndicator';
@@ -12,19 +13,62 @@ import ErrorMessage from '../components/ErrorMessage';
 // Global Context
 import { useLanguage } from '../context/LanguageContext';
 
+// 1️⃣ تعريف الأنواع محلياً داخل الملف لضمان الاستقرار التام وعدم تعارض الـ imports
+interface CourseItem {
+  id: number;
+  title: string;
+  category: string;
+  description: string;
+  subtitle: string;
+  instructor: string;
+  trainerId: string;
+  price: number;
+  originalPrice: number;
+  discount: string | null;
+  duration: string;
+  level: string;
+  language: string;
+  updated: string;
+  rating: number;
+  status: 'available' | 'coming_soon' | 'pending_deletion' | 'completed' | string;
+  students: number;
+  thumbnail: string;
+  isVisible?: boolean;
+}
+
+interface ReviewItem {
+  id: number;
+  name: string;
+  rating: number;
+  date: string;
+  comment: string;
+}
+
+interface FormDataState {
+  title: string;
+  price: string;
+  durationWeeks: string;
+  maxStudents: string;
+  videoDurationMinutes: string;
+  level: 'beginner' | 'intermediate' | 'advanced' | string;
+  category: 'Cybersecurity' | 'Software Engineering' | 'Artificial Intelligence' | 'Cloud Computing' | string;
+  description: string;
+  requirementsNotes: string;
+}
+
 function TrainerDashboard() {
   const { t, lang } = useLanguage();
   const l = t.trainerDashboard;
 
-  const [stats, setStats] = useState(null);
-  const [coursesList, setCoursesList] = useState([]); 
-  const [reviewsList, setReviewsList] = useState([]); 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
+  // 2️⃣ استخدام الـ useState التقليدي بدون هوكس خارجية مع تعريف الأنواع الصارمة
+  const [coursesList, setCoursesList] = useState<CourseItem[]>([]); 
+  const [reviewsList, setReviewsList] = useState<ReviewItem[]>([]); 
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string>('');
+  const [message, setMessage] = useState<string>('');
 
   // نموذج إنشاء الدورة المفصل بالكامل
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormDataState>({
     title: '',
     price: '',
     durationWeeks: '',
@@ -37,7 +81,7 @@ function TrainerDashboard() {
   });
 
   // حساب الأرباح ديناميكياً (صافي ربح المدرب 80% بعد خصم عمولة المنصة)
-  const calculateCourseEarnings = (students, price) => {
+  const calculateCourseEarnings = (students: number, price: number): number => {
     return Math.round((students || 0) * (price || 0) * 0.8);
   };
 
@@ -56,10 +100,8 @@ function TrainerDashboard() {
     Promise.all([getTrainerAnalytics(), getCourses(), getTrainerProfile()]).then(([analyticsResult, coursesResult, profileResult]) => {
       if (!isMounted) return;
       
-      if (analyticsResult.success) setStats(analyticsResult.data);
-      
-      if (coursesResult.success) {
-        const realisticCourses = coursesResult.data.courses.map(c => ({
+      if (coursesResult.success && coursesResult.data) {
+        const realisticCourses = coursesResult.data.courses.map((c: any) => ({
           ...c,
           price: c.price > 1000 ? Math.floor(Math.random() * (500 - 200 + 1) + 200) : c.price,
           isVisible: true
@@ -67,14 +109,21 @@ function TrainerDashboard() {
         setCoursesList(realisticCourses);
       }
 
-      if (profileResult.success) setReviewsList(profileResult.data.reviews || []);
+      if (profileResult.success && profileResult.data) {
+        setReviewsList((profileResult.data.reviews as ReviewItem[]) || []);
+      }
       setLoading(false);
+    }).catch(err => {
+      if (isMounted) {
+        setError(err.message || 'Error loading dashboard data');
+        setLoading(false);
+      }
     });
     
     return () => { isMounted = false; };
   }, []);
 
-  const requestDeletionFromAdmin = (courseId, courseTitle) => {
+  const requestDeletionFromAdmin = (courseId: number, courseTitle: string) => {
     const confirmRequest = window.confirm(
       lang === 'ar' ? `هل تريد إرسال طلب للمسؤول لحذف دورة "${courseTitle}"؟` : `Submit deletion request for "${courseTitle}"?`
     );
@@ -84,16 +133,16 @@ function TrainerDashboard() {
     }
   };
 
-  const toggleVisibility = (courseId) => {
+  const toggleVisibility = (courseId: number) => {
     setCoursesList(prev => prev.map(c => c.id === courseId ? { ...c, isVisible: !c.isVisible } : c));
     setMessage(lang === 'ar' ? '👁️ تم تحديث حالة ظهور الدورة في المتجر.' : '👁️ Course store visibility updated.');
   };
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setMessage('');
     setError('');
@@ -104,19 +153,30 @@ function TrainerDashboard() {
     }
 
     submitB2BRequest({ requirementsNotes: formData.requirementsNotes, ...formData }).then(result => {
-      if (result.success) {
+      if (result.success && result.data) {
         setMessage(`${lang === 'ar' ? '✅ تم رفع الدورة المفصلة بنجاح وهي قيد المراجعة: ' : '✅ Course submitted under review with ID: '}${result.data.ticketId}`);
         
-        const newCourseDraft = {
+        const newCourseDraft: CourseItem = {
           id: result.data.ticketId,
           title: formData.title,
+          category: formData.category,
+          description: formData.description,
+          subtitle: formData.description,
+          instructor: lang === 'ar' ? 'أحمد محمد' : 'Ahmed Mohammed',
+          trainerId: 'ahmed-mohammed',
           price: parseInt(formData.price) || 0,
+          originalPrice: (parseInt(formData.price) || 0) * 1.5,
+          discount: '30% OFF',
           duration: `${formData.durationWeeks} Weeks`,
+          level: formData.level,
+          language: 'Arabic / English',
+          updated: '07/2026',
+          rating: 0,
           status: "coming_soon", 
           students: 0,
-          isVisible: true,
-          category: formData.category,
-          level: formData.level
+          thumbnail: 'default.jpg',
+          prerequisites: [],
+          isVisible: true
         };
         
         setCoursesList(prev => [newCourseDraft, ...prev]);
@@ -141,10 +201,9 @@ function TrainerDashboard() {
     <div className="min-h-screen bg-capsule-bg text-capsule-navy font-sans antialiased flex flex-col" dir={t.dir}>
       <TrainerNavbar activePage="dashboard" />
       
-      {/* تقسيم الشاشة كلوحة تحكم كاملة ومتوازنة */}
       <main className="flex-grow max-w-7xl mx-auto px-6 py-10 w-full grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* 1️⃣ العمود الأول والثاني (يسار ووسط الشاشة): الإحصائيات، الـ Graph، وجدول خط المتابعة الرئيسي */}
+        {/* العمود الأول والثاني: الإحصائيات، الـ Graph، وجدول خط المتابعة الرئيسي */}
         <div className="lg:col-span-2 space-y-6">
           
           {/* كروت المؤشرات الحية */}
@@ -154,7 +213,7 @@ function TrainerDashboard() {
               <h3 className="text-2xl font-black text-capsule-teal font-mono">{totalPayoutCollected} SAR</h3>
             </div>
             <div className={`bg-white p-6 rounded-2xl border border-gray-100 shadow-sm ${borderSide} border-capsule-gold hover:shadow-md transition`}>
-              <p className="text-xs font-bold text-capsule-dark-gold mb-1 nudge-ar">{lang === 'ar' ? 'الطلاب بالدورات النشطة' : 'Active Course Students'}</p>
+              <p className="text-xs font-bold text-capsule-dark-gold mb-1">{lang === 'ar' ? 'الطلاب بالدورات النشطة' : 'Active Course Students'}</p>
               <h3 className="text-2xl font-black text-capsule-navy font-mono">{totalStudentsEnrolled}</h3>
             </div>
             <div className={`bg-white p-6 rounded-2xl border border-gray-100 shadow-sm ${borderSide} border-capsule-navy hover:shadow-md transition`}>
@@ -163,7 +222,7 @@ function TrainerDashboard() {
             </div>
           </div>
 
-          {/* 📊 الـ Graph ذو المغزى المقارن */}
+          {/* الـ Graph */}
           <div className="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm">
             <h3 className="text-sm font-bold text-capsule-navy mb-4">
               {lang === 'ar' ? '📊 مؤشرات الكثافة الاستيعابية وصافي الربح لكل دورة' : '📊 Course Density & Net Revenue Breakdown'}
@@ -178,7 +237,7 @@ function TrainerDashboard() {
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-2 text-xs font-bold">
                       <span className="text-capsule-navy font-semibold max-w-[45%] truncate">{course.title}</span>
                       <div className="flex items-center gap-3 text-gray-400">
-                        <span className="text-gray-500 font-mono text-[11px]">{course.students} طالب</span>
+                        <span className="text-gray-500 font-mono text-[11px]">{course.students} {lang === 'ar' ? 'طالب' : 'Students'}</span>
                         <span className="text-capsule-teal font-extrabold font-mono text-[11px]">💰 {netEarnings} SAR</span>
                       </div>
                     </div>
@@ -191,7 +250,7 @@ function TrainerDashboard() {
             </div>
           </div>
 
-          {/* ⚙️ جدول خط التحكم والمتابعة الشامل للدورات */}
+          {/* جدول التحكم والمتابعة للدورات */}
           <div className="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm">
             <h2 className="text-sm font-bold text-capsule-navy mb-4">
               {lang === 'ar' ? '⚙️ خط التحكم الشامل بالدورات التدريبية' : '⚙️ Interactive Course Pipeline Controls'}
@@ -238,10 +297,9 @@ function TrainerDashboard() {
           </div>
         </div>
 
-        {/* 2️⃣ العمود الثالث (يمين الشاشة): نموذج إضافة كورس مفصل + ويدجتس المراجعات والطلاب الحية */}
+        {/* العمود الثالث: نموذج إضافة كورس مخصص + ويدجتس المراجعات والطلاب */}
         <div className="space-y-6">
           
-          {/* نموذج رفع كورس تفصيلي */}
           <div className="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm h-fit">
             <h2 className="text-md font-bold text-capsule-navy border-b border-gray-100 pb-3 mb-4">{lang === 'ar' ? '➕ إنشاء وتفصيل دورة جديدة' : '➕ Create Detailed Course'}</h2>
             {message && <div className={`mb-4 p-3 bg-emerald-50 text-emerald-800 rounded-xl text-xs font-bold ${borderSide} border-emerald-500`}>{message}</div>}
@@ -302,14 +360,14 @@ function TrainerDashboard() {
 
               <div>
                 <label className="block text-xs font-bold text-gray-500 mb-1">{l.form.labels.requirements} *</label>
-                <textarea name="requirementsNotes" value={formData.requirementsNotes} onChange={handleInputChange} required rows="2" className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs resize-none" placeholder={l.form.placeholders.requirements}></textarea>
+                <textarea name="requirementsNotes" value={formData.requirementsNotes} onChange={handleInputChange} required rows={2} className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs resize-none" placeholder={l.form.placeholders.requirements}></textarea>
               </div>
 
               <Button type="submit" variant="primary">{l.form.submitBtn}</Button>
             </form>
           </div>
 
-          {/* ويدجت: تقييمات الطلاب الحية المستدعاة من الموك */}
+          {/* تقييمات الطلاب الحية */}
           <div className="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm space-y-3">
             <h4 className="text-xs font-bold text-capsule-navy uppercase tracking-wider">{lang === 'ar' ? '⭐ تقييمات الطلاب الحية' : '⭐ Live Student Reviews'}</h4>
             <div className="space-y-2 max-h-[160px] overflow-y-auto divide-y divide-gray-50">
@@ -325,7 +383,7 @@ function TrainerDashboard() {
             </div>
           </div>
 
-          {/* ويدجت: سجل تقدم ومتابعة الطلاب */}
+          {/* سجل تقدم ومتابعة الطلاب */}
           <div className="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm space-y-3">
             <h4 className="text-xs font-bold text-capsule-navy uppercase tracking-wider">{lang === 'ar' ? '👥 سجل تقدم الطلاب المشتركين' : '👥 Students Progress Log'}</h4>
             <div className="space-y-2 text-[11px] font-medium text-gray-600">
