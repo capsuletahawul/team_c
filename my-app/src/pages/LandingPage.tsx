@@ -4,7 +4,7 @@ import Navbar from '../components/Navbar.jsx';
 import Footer from '../components/Footer.jsx';
 import LoadingIndicator from '../components/LoadingIndicator.jsx';
 import ErrorMessage from '../components/ErrorMessage.jsx';
-import Button from '../components/Button.jsx';
+import Button from '../components/Button';
 import heroImage from '../assets/hero.png';
 
 // Import the global language context
