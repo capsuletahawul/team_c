@@ -10,7 +10,7 @@ import BusinessContractForm from './pages/BusinessContractForm.jsx';
 import TrainerDetails from './pages/TrainerDetails.jsx';
 import TrainerProfile from './pages/TrainerProfile.jsx';
 import AdminDashboard from './pages/AdminDashboard.jsx';
-import TrainerDashboard from './pages/TrainerDashboard.jsx';
+import TrainerDashboard from './pages/TrainerDashboard';
 import SignInSignUpApproval from './pages/CoursesApproval.jsx';
 import CourseDetails from './pages/CourseDetails.jsx';
 import CoursesOverview from "./pages/CoursesOverview.jsx";
