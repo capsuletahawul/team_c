@@ -5,6 +5,7 @@ import Footer from '../components/Footer.jsx';
 import LoadingIndicator from '../components/LoadingIndicator.jsx';
 import ErrorMessage from '../components/ErrorMessage.jsx';
 import Button from '../components/Button';
+// @ts-ignore 
 import heroImage from '../assets/hero.png';
 
 // Import the global language context
@@ -113,10 +114,12 @@ function LandingPage({
     setCatalogLoading(true);
 
     const filters = category === l.catalog.filterAll ? {} : { category };
-    const result = await getCourses(filters);
+   const result = (await getCourses(filters)) as ApiResponse<CoursesPayload>;
 
-    if (result.success) setCourses(result.data.courses);
-    setCatalogLoading(false);
+if (result.success) {
+  setCourses(result.data.courses);
+}
+setCatalogLoading(false);
   };
 
   if (loading) {
