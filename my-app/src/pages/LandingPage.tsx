@@ -113,10 +113,12 @@ function LandingPage({
     setCatalogLoading(true);
 
     const filters = category === l.catalog.filterAll ? {} : { category };
-    const result = await getCourses(filters);
+   const result = (await getCourses(filters)) as ApiResponse<CoursesPayload>;
 
-    if (result.success) setCourses(result.data.courses);
-    setCatalogLoading(false);
+if (result.success) {
+  setCourses(result.data.courses);
+}
+setCatalogLoading(false);
   };
 
   if (loading) {
