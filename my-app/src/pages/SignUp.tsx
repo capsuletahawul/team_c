@@ -1,5 +1,5 @@
 // src/pages/SignUp.jsx
-import React from "react";
+import React, { useState, ChangeEvent, FormEvent } from "react";
 
 import { useNavigate } from "react-router-dom";
 
@@ -14,18 +14,24 @@ import "../styles/auth.css";
  * - onToggleLang: دالة لتبديل اللغة
  * - onGoToSignIn: دالة للتنقل إلى صفحة تسجيل الدخول
  */
-export default function SignUp({ lang, onToggleLang, onGoToSignIn }) {
-  const [showPw, setShowPw] = React.useState(false);
-  const [pwValue, setPwValue] = React.useState("");
-  const [role, setRole] = React.useState(0);
+interface SignUpProps {
+  lang: string;
+  onToggleLang: () => void;
+  onGoToSignIn: () => void;
+}
+
+export default function SignUp({ lang, onToggleLang, onGoToSignIn }: SignUpProps) {
+  const [showPw, setShowPw] = useState<boolean>(false);
+  const [pwValue, setPwValue] = useState<string>("");
+  const [role, setRole] = useState<number>(0);
 
   const navigate = useNavigate();
 
-const [name, setName] = React.useState("");
-const [email, setEmail] = React.useState("");
+const [name, setName] = useState<string>("");
+const [email, setEmail] = useState<string>("");
 
 
-  const t = COPY[lang];
+  const t = COPY[lang as keyof typeof COPY];
   const form = t.signup;
 
   const pwStrength =
@@ -46,7 +52,7 @@ const passwordChecks = {
 };
 
 
-const handleSignUp = (e) => {
+const handleSignUp = (e: FormEvent<HTMLFormElement>) => {
   e.preventDefault();
 
   // نتأكد أن الحقول ليست فارغة
@@ -134,7 +140,7 @@ if (!isPasswordValid) {
   type="text"
   placeholder={form.namePh}
   value={name}
-  onChange={(e) => setName(e.target.value)}
+  onChange={(e: ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
 />
 
               </div>
@@ -146,7 +152,7 @@ if (!isPasswordValid) {
   type="email"
   placeholder={form.emailPh}
   value={email}
-  onChange={(e) => setEmail(e.target.value)}
+  onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
 />
 
               </div>
@@ -158,7 +164,7 @@ if (!isPasswordValid) {
                     type={showPw ? "text" : "password"}
                     placeholder={form.passwordPh}
                     value={pwValue}
-                    onChange={(e) => setPwValue(e.target.value)}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => setPwValue(e.target.value)}
                   />
                   <button
                     type="button"
@@ -172,7 +178,7 @@ if (!isPasswordValid) {
                 {pwValue.length > 0 && (
                   <div className="pw-strength">
                     <div className="pw-bars">
-                      {[0, 1, 2].map((i) => (
+                      {[0, 1, 2].map((i: number) => (
                         <span key={i} className={`pw-bar ${i <= pwStrength ? `level-${pwStrength}` : ""}`} />
                       ))}
                     </div>
@@ -219,7 +225,7 @@ if (!isPasswordValid) {
               <div className="field">
                 <label>{form.role}</label>
                 <div className="role-pills">
-                  {form.roleOptions.map((r, i) => (
+                  {form.roleOptions.map((r: string, i: number) => (
                     <button
                       type="button"
                       key={i}
@@ -243,7 +249,7 @@ if (!isPasswordValid) {
             <div className="divider"><span>{form.or}</span></div>
 
             <div className="social-row">
-              {t.social.map((s, i) => (
+              {t.social.map((s: string, i: number) => (
                 <button key={i} className="social-btn">
                   {s === "Google" ? "🔴" : "🔵"} {s}
                 </button>

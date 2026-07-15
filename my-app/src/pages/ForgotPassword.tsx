@@ -1,5 +1,5 @@
 // src/pages/ForgotPassword.jsx
-import React, { useState } from "react";
+import React, { useState, ChangeEvent, FormEvent } from "react";
 import { CapsuleMark } from "../components/Icons";
 import "../styles/auth.css";
 import { Link } from "react-router-dom";
@@ -46,16 +46,16 @@ const TEXT = {
 export default function ForgotPassword() {
   // جلب حالة اللغة ودالة التبديل مباشرة من الـ Context المشترك للمشروع
   const { lang, toggleLanguage } = useLanguage();
-  const t = TEXT[lang] || TEXT.ar;
+  const t = TEXT[lang as keyof typeof TEXT] ?? TEXT.ar;
 
-  const [email, setEmail] = useState("");
-  const [error, setError] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
+  const [email, setEmail] = useState<string>("");
+  const [error, setError] = useState<string>("");
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [submitted, setSubmitted] = useState<boolean>(false);
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
 
@@ -117,7 +117,7 @@ export default function ForgotPassword() {
                       type="email"
                       placeholder={t.emailPlaceholder}
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
                     />
                     {error && <span className="field-error">{error}</span>}
                   </div>

@@ -1,5 +1,5 @@
 // src/pages/SignIn.jsx
-import React from "react";
+import React, { ChangeEvent, FormEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 
@@ -14,18 +14,24 @@ import "../styles/auth.css";
  * - onToggleLang: دالة لتبديل اللغة
  * - onGoToSignUp: دالة للتنقل إلى صفحة إنشاء الحساب
  */
-export default function SignIn({ lang, onToggleLang, onGoToSignUp }) {
-  const [showPw, setShowPw] = React.useState(false);
+interface SignInProps {
+  lang: string;
+  onToggleLang: () => void;
+  onGoToSignUp: () => void;
+}
+
+export default function SignIn({ lang, onToggleLang, onGoToSignUp }: SignInProps) {
+  const [showPw, setShowPw] = useState<boolean>(false);
 
 const navigate = useNavigate();
 
-const [email, setEmail] = React.useState("");
-const [password, setPassword] = React.useState("");
+const [email, setEmail] = useState<string>("");
+const [password, setPassword] = useState<string>("");
 
-  const t = COPY[lang];
+  const t = COPY[lang as keyof typeof COPY];
   const form = t.login;
 
-const handleLogin = (e) => {
+const handleLogin = (e: FormEvent<HTMLFormElement>) => {
   e.preventDefault();
 
   // Student
@@ -98,7 +104,7 @@ const handleLogin = (e) => {
   type="email"
   placeholder={form.emailPh}
   value={email}
-  onChange={(e) => setEmail(e.target.value)}
+  onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
 />
               </div>
 
@@ -109,7 +115,7 @@ const handleLogin = (e) => {
   type={showPw ? "text" : "password"}
   placeholder={form.passwordPh}
   value={password}
-  onChange={(e) => setPassword(e.target.value)}
+  onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
 />                  <button
                     type="button"
                     className="eye-btn"
@@ -137,7 +143,7 @@ const handleLogin = (e) => {
             <div className="divider"><span>{form.or}</span></div>
 
             <div className="social-row">
-              {t.social.map((s, i) => (
+              {t.social.map((s: string, i: number) => (
                 <button key={i} className="social-btn">
                   {s === "Google" ? "🔴" : "🔵"} {s}
                 </button>
