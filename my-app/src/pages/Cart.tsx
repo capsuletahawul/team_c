@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-// تم التعديل: استيراد useNavigate للتنقل بين الصفحات
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import StudentNavbar from '../components/StudentNavbar.jsx'; 
@@ -13,12 +12,46 @@ import {
   ShoppingBagIcon as EmptyBagIcon
 } from '@heroicons/react/24/outline';
 
+// CHANGE: Added strict type definitions for individual items in the shopping cart
+interface CartItem {
+  id: number;
+  title: string;
+  category: string;
+  duration: string;
+  price: number;
+}
+
+// CHANGE: Added strict type interface for the localization/translation text structure
+interface ShoppingCartTranslations {
+  title: string;
+  subtitle: string;
+  summaryTitle: string;
+  emptyCart: string;
+  subtotal: string;
+  discount: string;
+  vat: string;
+  total: string;
+  couponPlaceholder: string;
+  btnApply: string;
+  btnCheckout: string;
+  secureBadge: string;
+  couponSuccess: string;
+  couponInvalid: string;
+  checkoutSuccess: string;
+}
+
+// CHANGE: Added strict type for the feedback message banner system state
+interface FeedbackState {
+  text: string;
+  isError: boolean;
+}
+
 export default function Cart() {
-  const { t, lang } = useLanguage();
-  // تم التعديل: تفعيل useNavigate لاستخدامه في توجيه المستخدم لصفحة الدفع
+  // CHANGE: Extracted type constraints from the custom Language Context hook
+  const { t, lang } = useLanguage() as { t: { shoppingCart?: ShoppingCartTranslations; dir: "ltr" | "rtl" }; lang: string };
   const navigate = useNavigate();
 
-  const l = t.shoppingCart || {
+  const l: ShoppingCartTranslations = t.shoppingCart || {
     title: lang === 'ar' ? 'سلة التسوق' : 'Shopping Cart',
     subtitle: lang === 'ar' ? 'مراجعة المناهج والمسارات المختارة وإتمام عملية الدفع الآمن.' : 'Review your selected tracks and complete your secure purchase.',
     summaryTitle: lang === 'ar' ? 'ملخص الطلب المالي' : 'Order Financial Summary',
@@ -36,8 +69,8 @@ export default function Cart() {
     checkoutSuccess: lang === 'ar' ? 'تم تسجيل طلبك! جاري تحويلك لبوابة الدفع...' : 'Order registered! Redirecting to secure gateway...'
   };
 
-  // تم التعديل: قراءة السلة من localStorage ديناميكياً مع الإبقاء على مصفوفة تجريبية في حال كانت فارغة لأول مرة
-  const [cartItems, setCartItems] = useState(() => {
+  // CHANGE: Type-hinted useState to explicitly track an array of CartItem objects
+  const [cartItems, setCartItems] = useState<CartItem[]>(() => {
     const savedCart = localStorage.getItem('cartItems');
     return savedCart ? JSON.parse(savedCart) : [
       { id: 101, title: 'Advanced React Architecture 2026', category: 'Web Development', duration: '6 Weeks', price: 1200 },
@@ -46,19 +79,27 @@ export default function Cart() {
     ];
   });
 
-  const [couponCode, setCouponCode] = useState('');
-  const [appliedDiscountRate, setAppliedDiscountRate] = useState(0);
-  const [feedbackMessage, setFeedbackMessage] = useState({ text: '', isError: false });
-  const [checkoutStatus, setCheckoutStatus] = useState(false);
+  // CHANGE: Explicitly typed standard string state for the raw input element string value
+  const [couponCode, setCouponCode] = useState<string>('');
+  
+  // CHANGE: Explicitly typed numeric state for computational calculations
+  const [appliedDiscountRate, setAppliedDiscountRate] = useState<number>(0);
+  
+  // CHANGE: Attached FeedbackState type signature to form validation feedback object state
+  const [feedbackMessage, setFeedbackMessage] = useState<FeedbackState>({ text: '', isError: false });
+  
+  // CHANGE: Explicitly typed standard boolean state flag toggled during execution processes
+  const [checkoutStatus, setCheckoutStatus] = useState<boolean>(false);
 
-  // تم التعديل: تحديث localStorage عند حذف أي عنصر من السلة
-  const handleRemoveItem = (id) => {
-    const updatedCart = cartItems.filter(item => item.id !== id);
+  // CHANGE: Explicitly declared primitive 'number' type parameter on ID deletion handler
+  const handleRemoveItem = (id: number): void => {
+    const updatedCart = cartItems.filter((item: CartItem) => item.id !== id);
     setCartItems(updatedCart);
     localStorage.setItem('cartItems', JSON.stringify(updatedCart));
   };
 
-  const handleApplyCoupon = (e) => {
+  // CHANGE: Added specific React synthetic form submission event handling type signature
+  const handleApplyCoupon = (e: React.FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
     if (couponCode.trim().toUpperCase() === 'CAPSULA10') {
       setAppliedDiscountRate(10);
@@ -68,20 +109,21 @@ export default function Cart() {
     }
   };
 
-  const subtotalAmount = cartItems.reduce((acc, item) => acc + item.price, 0);
-  const discountAmount = subtotalAmount * (appliedDiscountRate / 100);
-  const taxableBasis = subtotalAmount - discountAmount;
-  const vatAmount = taxableBasis * 0.15;
-  const finalTotalAmount = taxableBasis + vatAmount;
+  // CHANGE: Provided explicit type mapping parameter parameters inside reduction loop
+  const subtotalAmount: number = cartItems.reduce((acc: number, item: CartItem) => acc + item.price, 0);
+  const discountAmount: number = subtotalAmount * (appliedDiscountRate / 100);
+  const taxableBasis: number = subtotalAmount - discountAmount;
+  const vatAmount: number = taxableBasis * 0.15;
+  const finalTotalAmount: number = taxableBasis + vatAmount;
 
-  // التعديل المطلوب: صياغة الـ state بالشكل المتوافق تماماً مع صفحة الدفع لتجنب الـ Crash وتأمين النقل
-  const handleCheckoutInit = () => {
+  // CHANGE: Type annotated void return type for checkout gateway state transfer
+  const handleCheckoutInit = (): void => {
     setCheckoutStatus(true);
     alert(l.checkoutSuccess);
     
     navigate('/payment', { 
       state: { 
-        courseName: cartItems.map(item => item.title).join(' + '), // دمج أسماء الكورسات لتظهر معاً بوضوح
+        courseName: cartItems.map((item: CartItem) => item.title).join(' + '),
         trainer: lang === 'ar' ? 'نخبة من المدربين' : 'Expert Instructors',
         price: subtotalAmount,
         discount: discountAmount,
@@ -112,11 +154,11 @@ export default function Cart() {
             <EmptyBagIcon className="w-12 h-12 text-slate-300 mx-auto" />
             <p className="text-sm font-bold text-slate-400">{l.emptyCart}</p>
           </div>
-        ) : (
+         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             
             <div className="lg:col-span-2 space-y-4">
-              {cartItems.map((item) => (
+              {cartItems.map((item: CartItem) => (
                 <div key={item.id} className="bg-white border border-slate-100 rounded-2xl p-5 shadow-xs flex flex-col sm:flex-row justify-between sm:items-center gap-4 hover:border-slate-200 transition-all">
                   <div className="flex items-start gap-3.5">
                     <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-xl flex-shrink-0">📘</div>
@@ -152,7 +194,8 @@ export default function Cart() {
                   <div className="flex gap-2">
                     <div className="relative flex-1">
                       <TagIcon className="w-3.5 h-3.5 absolute top-1/2 -translate-y-1/2 text-slate-400 mx-3" />
-                      <input type="text" placeholder={l.couponPlaceholder} value={couponCode} onChange={(e) => setCouponCode(e.target.value)} className={`w-full bg-slate-50 border border-slate-200 rounded-xl py-2 text-xs font-semibold focus:outline-none focus:border-[#00A499] focus:bg-white transition-all ${lang === 'ar' ? 'pr-9 pl-3' : 'pl-9 pr-3'}`} />
+                      {/* CHANGE: Handled safe explicit element binding through internal event properties */}
+                      <input type="text" placeholder={l.couponPlaceholder} value={couponCode} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCouponCode(e.target.value)} className={`w-full bg-slate-50 border border-slate-200 rounded-xl py-2 text-xs font-semibold focus:outline-none focus:border-[#00A499] focus:bg-white transition-all ${lang === 'ar' ? 'pr-9 pl-3' : 'pl-9 pr-3'}`} />
                     </div>
                     <button type="submit" className="bg-[#0D4C54] hover:bg-[#003947] text-white font-black text-xs px-4 rounded-xl transition-all cursor-pointer">{l.btnApply}</button>
                   </div>
