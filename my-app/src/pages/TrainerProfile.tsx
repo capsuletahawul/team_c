@@ -8,6 +8,10 @@ import LoadingIndicator from "../components/LoadingIndicator";
 // Global Context
 import { useLanguage } from "../context/LanguageContext";
 
+// Mock API layer
+import { getTrainerProfile } from "../mocks/mockApi";
+import type { TrainerProfile as ApiTrainerProfile } from "../mocks/mockApi";
+
 // Trainer basic contact and metrics interface
 interface TrainerState {
   email: string;
@@ -33,6 +37,27 @@ interface CourseItem {
   status: "published" | "underReview";
 }
 
+// Maps the raw mockApi trainer profile fields into the local editable-form shape
+function apiToProfile(apiProfile: ApiTrainerProfile): EditedDataState {
+  return {
+    fullName: apiProfile.name,
+    specialization: apiProfile.specialty,
+    bio: apiProfile.bio,
+    email: apiProfile.email,
+    experienceVal: `${apiProfile.experience}`,
+  };
+}
+
+// Maps the raw mockApi course records (published/review) into the local table shape (published/underReview)
+function apiToCourses(apiCourses: ApiTrainerProfile["courses"]): CourseItem[] {
+  return apiCourses.map((c) => ({
+    id: c.id,
+    title: c.name,
+    students: c.students,
+    status: c.status === "published" ? "published" : "underReview",
+  }));
+}
+
 const TrainerProfile: React.FC = () => {
   const { t, lang } = useLanguage();
   const l = t.trainerProfile;
@@ -40,28 +65,52 @@ const TrainerProfile: React.FC = () => {
 
   const [loading, setLoading] = useState<boolean>(true);
   const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [loadError, setLoadError] = useState<boolean>(false);
 
-  // 1. Basic non-translated trainer states
+  // 1. Basic non-translated trainer states, populated from mockApi
   const [trainer, setTrainer] = useState<TrainerState>({
-    email: "ahmed@capsule.sa",
-    phone: "0551234567",
-    students: 205,
-    rating: 4.9,
+    email: "",
+    phone: "",
+    students: 0,
+    rating: 0,
   });
 
-  const [courses] = useState<CourseItem[]>([
-    { id: 1, title: "React Bootcamp", students: 120, status: "published" },
-    { id: 2, title: "JavaScript Advanced", students: 85, status: "published" },
-    { id: 3, title: "Next.js Fundamentals", students: 0, status: "underReview" },
-  ]);
+  const [courses, setCourses] = useState<CourseItem[]>([]);
 
-  // 2. Temporarily storage and draft state for local form updates
+  // 2. Baseline profile fetched from mockApi, used as the display source before any local edit
+  const [fetchedProfile, setFetchedProfile] = useState<EditedDataState | null>(null);
+
+  // 3. Temporarily storage and draft state for local form updates
   const [editedData, setEditedData] = useState<EditedDataState | null>(null);
   const [draft, setDraft] = useState<Partial<EditedDataState>>({});
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 700);
-    return () => clearTimeout(timer);
+    let isMounted = true;
+
+    const loadTrainerProfile = async () => {
+      const response = await getTrainerProfile();
+      if (!isMounted) return;
+
+      if (response.success && response.data) {
+        setFetchedProfile(apiToProfile(response.data));
+        setCourses(apiToCourses(response.data.courses));
+        setTrainer({
+          email: response.data.email,
+          phone: response.data.phone,
+          students: response.data.stats.studentsCount,
+          rating: response.data.stats.rating,
+        });
+      } else {
+        setLoadError(true);
+      }
+
+      setLoading(false);
+    };
+
+    loadTrainerProfile();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // Closes edit mode on language toggle while retaining any edited user modifications
@@ -69,13 +118,13 @@ const TrainerProfile: React.FC = () => {
     setIsEditing(false);
   }, [lang]);
 
-  // Dynamically resolves metadata with priority to manual user edits over context data
+  // Dynamically resolves metadata with priority to manual user edits over fetched mockApi data
   const currentTrainer: EditedDataState = {
-    fullName: editedData?.fullName || l.data?.fullName || "",
-    specialization: editedData?.specialization || l.data?.specialization || "",
-    bio: editedData?.bio || l.data?.bio || "",
+    fullName: editedData?.fullName || fetchedProfile?.fullName || "",
+    specialization: editedData?.specialization || fetchedProfile?.specialization || "",
+    bio: editedData?.bio || fetchedProfile?.bio || "",
     email: editedData?.email || trainer.email,
-    experienceVal: editedData?.experienceVal || l.data?.experienceVal || "",
+    experienceVal: editedData?.experienceVal || fetchedProfile?.experienceVal || "",
   };
 
   const handleStartEdit = (): void => {
@@ -85,7 +134,7 @@ const TrainerProfile: React.FC = () => {
 
   const handleSave = (e: React.FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
-    
+
     // Save draft data (asserting full properties since form inputs are required)
     const finalizedData = draft as EditedDataState;
     setEditedData(finalizedData);
@@ -99,6 +148,16 @@ const TrainerProfile: React.FC = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-capsule-bg">
         <LoadingIndicator message={l.loading} />
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-capsule-bg">
+        <p className="text-sm font-semibold text-capsule-navy">
+          {isRTL ? "تعذر تحميل بيانات المدرب." : "Unable to load trainer profile."}
+        </p>
       </div>
     );
   }
