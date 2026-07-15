@@ -1,19 +1,31 @@
 import React, { useState } from "react";
 
 // Reusable Components
-import Navbar from "../components/Navbar.jsx";
-import Footer from "../components/Footer.jsx";
-import Button from "../components/Button.jsx";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
+import Button from "../components/Button";
 
 // Global Context
-import { useLanguage } from "../context/LanguageContext.jsx";
+import { useLanguage } from "../context/LanguageContext";
 
-export default function CoursesApproval() {
+// Union type restricting system course approval states
+type CourseStatus = "pending" | "approved" | "rejected";
+
+// Interface enforcing types for course metrics and keys
+interface CourseItem {
+  id: number;
+  titleKey: string;
+  trainerKey: string;
+  categoryKey: string;
+  durationVal: number;
+  status: CourseStatus;
+}
+
+const CoursesApproval: React.FC = () => {
   const { t } = useLanguage();
   const l = t.coursesApproval;
 
-  // Swapped hardcoded Arabic statuses for language-agnostic keys
-  const [courses, setCourses] = useState([
+  const [courses, setCourses] = useState<CourseItem[]>([
     {
       id: 1,
       titleKey: "course1Title",
@@ -32,43 +44,57 @@ export default function CoursesApproval() {
     },
   ]);
 
-  const approveCourse = (id) => {
-    setCourses(
-      courses.map((course) =>
+  // Approves course status by ID
+  const approveCourse = (id: number): void => {
+    setCourses((prevCourses) =>
+      prevCourses.map((course) =>
         course.id === id ? { ...course, status: "approved" } : course
       )
     );
   };
 
-  const rejectCourse = (id) => {
-    setCourses(
-      courses.map((course) =>
+  // Rejects course status by ID
+  const rejectCourse = (id: number): void => {
+    setCourses((prevCourses) =>
+      prevCourses.map((course) =>
         course.id === id ? { ...course, status: "rejected" } : course
       )
     );
   };
 
-  const getStatusLabel = (status) => {
+  // Resolves the dynamic localization label for the status column
+  const getStatusLabel = (status: CourseStatus): string => {
     if (status === "approved") return l.data.approvedText;
     if (status === "rejected") return l.data.rejectedText;
     return l.data.pendingText;
   };
+
+  const isRtl = t.dir === "rtl";
+  const heroDecorationAlign = isRtl ? "left-[-40px]" : "right-[-40px]";
+  const heroBallAlign = isRtl ? "rotate-[-25deg] left-10" : "rotate-[25deg] right-10";
+  const heroArcAlign = isRtl ? "rotate-[-25deg]" : "rotate-[25deg]";
+  const tableAlign = isRtl ? "text-right" : "text-left";
 
   return (
     <div 
       dir={t.dir} 
       className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans text-slate-800 antialiased transition-all duration-300"
     >
-      <Navbar activePage="courses" showAuthButtons={false} />
+      <Navbar 
+  activePage="courses" 
+  showAuthButtons={false} 
+  onSignIn={() => {}} 
+  onSignUp={() => {}} 
+/>
 
       <main className="flex-grow">
         
-        {/* Hero Section */}
+        {/* Hero Banner Section */}
         <div className="relative bg-gradient-to-r from-[#0D4C54] to-[#00A499] text-white py-14 px-8 overflow-hidden shadow-inner">
-          <div className={`absolute top-1/2 -translate-y-1/2 hidden lg:block opacity-80 ${t.dir === 'rtl' ? 'left-[-40px]' : 'right-[-40px]'}`}>
+          <div className={`absolute top-1/2 -translate-y-1/2 hidden lg:block opacity-80 ${heroDecorationAlign}`}>
             <div className="relative w-80 h-40">
-              <div className={`absolute w-72 h-24 bg-white/10 border border-white/20 rounded-full ${t.dir === 'rtl' ? 'rotate-[-25deg]' : 'rotate-[25deg]'}`}></div>
-              <div className={`absolute w-64 h-20 bg-[#EAB308] rounded-full top-12 shadow-lg ${t.dir === 'rtl' ? 'rotate-[-25deg] left-10' : 'rotate-[25deg] right-10'}`}></div>
+              <div className={`absolute w-72 h-24 bg-white/10 border border-white/20 rounded-full ${heroArcAlign}`}></div>
+              <div className={`absolute w-64 h-20 bg-[#EAB308] rounded-full top-12 shadow-lg ${heroBallAlign}`}></div>
             </div>
           </div>
           <div className="max-w-7xl mx-auto relative z-10">
@@ -80,7 +106,7 @@ export default function CoursesApproval() {
         {/* Central Component Content Grid */}
         <div className="max-w-7xl mx-auto px-6 py-12">
           
-          {/* Quick Metrics Line */}
+          {/* Quick Metrics Cards Row */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
             <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs">
               <p className="text-xs font-bold text-gray-400 mb-1">{l.stats.total}</p>
@@ -106,7 +132,7 @@ export default function CoursesApproval() {
               <h2 className="text-base font-bold text-[#0D4C54]">{l.table.cardTitle}</h2>
             </div>
             <div className="overflow-x-auto">
-              <table className={`w-full border-collapse ${t.dir === 'rtl' ? 'text-right' : 'text-left'}`}>
+              <table className={`w-full border-collapse ${tableAlign}`}>
                 <thead>
                   <tr className="bg-gray-100/50 text-xs font-bold text-gray-500 border-b border-gray-100">
                     <th className="p-4">{l.table.colTitle}</th>
@@ -174,4 +200,6 @@ export default function CoursesApproval() {
       <Footer />
     </div>
   );
-}
+};
+
+export default CoursesApproval;
