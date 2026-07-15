@@ -1,18 +1,31 @@
 import React, { useState } from "react";
 
-// Reusable Components
-import Navbar from "../components/Navbar.jsx";
-import Footer from "../components/Footer.jsx";
-import Button from "../components/Button.jsx";
+// Reusable UI components
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
+import Button from "../components/Button";
 
-// Global Context
-import { useLanguage } from "../context/LanguageContext.jsx";
+// Global language context for localization (i18n)
+import { useLanguage } from "../context/LanguageContext";
 
-function BusinessContractForm() {
-  const { t } = useLanguage();
+// TypeScript interface for strict form data typing
+interface FormDataState {
+  companyName: string;
+  contactPerson: string;
+  email: string;
+  phone: string;
+  trainingType: string;
+  trainees: string;
+  startDate: string;
+  notes: string;
+}
+
+const BusinessContractForm: React.FC = () => {
+  const { t, lang } = useLanguage();
   const l = t.businessForm;
 
-  const [formData, setFormData] = useState({
+  // Initial state values for clean form resetting
+  const initialFormState: FormDataState = {
     companyName: "",
     contactPerson: "",
     email: "",
@@ -21,49 +34,60 @@ function BusinessContractForm() {
     trainees: "",
     startDate: "",
     notes: "",
-  });
-
-  const [submitted, setSubmitted] = useState(false);
-
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
   };
 
-  const handleSubmit = (e) => {
+  const [formData, setFormData] = useState<FormDataState>(initialFormState);
+  const [submitted, setSubmitted] = useState<boolean>(false);
+
+  // Dynamic input handler updating state by input name attribute
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ): void => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  // Handles form submission, resets form, and toggles success notification
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
     setSubmitted(true);
 
-    setFormData({
-      companyName: "",
-      contactPerson: "",
-      email: "",
-      phone: "",
-      trainingType: "",
-      trainees: "",
-      startDate: "",
-      notes: "",
-    });
+    setFormData(initialFormState);
     
     setTimeout(() => setSubmitted(false), 5000);
   };
+
+  // Dynamic styling variables based on active layout direction
+  const isRtl = lang === "ar" || t.dir === "rtl";
+  const borderSide = isRtl ? "border-r-4" : "border-l-4";
+  const textAlign = isRtl ? "text-right" : "text-left";
+  const flexAlignment = isRtl ? "justify-end" : "justify-start";
+  const heroDecorationAlign = isRtl ? "left-[-40px]" : "right-[-40px]";
+  const heroBallAlign = isRtl ? "rotate-[-25deg] left-10" : "rotate-[25deg] right-10";
+  const heroArcAlign = isRtl ? "rotate-[-25deg]" : "rotate-[25deg]";
 
   return (
     <div 
       dir={t.dir} 
       className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans text-slate-800 antialiased transition-all duration-300"
     >
-      <Navbar activePage="companies" showAuthButtons={true} />
+     <Navbar 
+  activePage="companies" 
+  showAuthButtons={true} 
+  onSignIn={() => {}} 
+  onSignUp={() => {}} 
+/>
 
       <main className="flex-grow">
-        {/* Hero Section */}
+        {/* Hero Section with responsive bidirectional background graphics */}
         <div className="relative bg-gradient-to-r from-[#0D4C54] to-[#00A499] text-white py-14 px-8 overflow-hidden shadow-inner">
-          <div className={`absolute top-1/2 -translate-y-1/2 hidden lg:block opacity-80 ${t.dir === 'rtl' ? 'left-[-40px]' : 'right-[-40px]'}`}>
+          <div className={`absolute top-1/2 -translate-y-1/2 hidden lg:block opacity-80 ${heroDecorationAlign}`}>
             <div className="relative w-80 h-40">
-              <div className={`absolute w-72 h-24 bg-white/10 border border-white/20 rounded-full ${t.dir === 'rtl' ? 'rotate-[-25deg]' : 'rotate-[25deg]'}`}></div>
-              <div className={`absolute w-64 h-20 bg-[#EAB308] rounded-full top-12 shadow-lg ${t.dir === 'rtl' ? 'rotate-[-25deg] left-10' : 'rotate-[25deg] right-10'}`}></div>
+              <div className={`absolute w-72 h-24 bg-white/10 border border-white/20 rounded-full ${heroArcAlign}`}></div>
+              <div className={`absolute w-64 h-20 bg-[#EAB308] rounded-full top-12 shadow-lg ${heroBallAlign}`}></div>
             </div>
           </div>
           <div className="max-w-7xl mx-auto relative z-10">
@@ -72,19 +96,20 @@ function BusinessContractForm() {
           </div>
         </div>
 
-        {/* Form Container */}
+        {/* Main Form container */}
         <div className="max-w-3xl mx-auto py-12 px-6">
-          <div className={`bg-white rounded-2xl border border-gray-100 shadow-xs p-8 ${t.dir === 'rtl' ? 'text-right' : 'text-left'}`}>
+          <div className={`bg-white rounded-2xl border border-gray-100 shadow-xs p-8 ${textAlign}`}>
             <h2 className="text-base font-bold text-[#0D4C54] mb-6 pb-3 border-b border-gray-100">{l.form.title}</h2>
 
+            {/* Conditionally rendered success message */}
             {submitted && (
-              <div className={`p-4 bg-emerald-50 border-emerald-500 text-emerald-800 rounded-xl text-xs font-bold shadow-xs mb-6 flex items-center gap-2 ${t.dir === 'rtl' ? 'border-r-4' : 'border-l-4'}`}>
-                <span>✅</span>
+              <div className={`p-4 bg-emerald-50 border-emerald-500 text-emerald-800 rounded-xl text-xs font-bold shadow-xs mb-6 flex items-center gap-2 ${borderSide}`}>
                 <span>{l.form.successMsg}</span>
               </div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-5">
+              {/* Company & Contact names */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
                   <label className="font-bold text-xs text-gray-500 block mb-1.5">{l.inputs.companyName}</label>
@@ -110,6 +135,7 @@ function BusinessContractForm() {
                 </div>
               </div>
 
+              {/* Email & Phone numbers */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
                   <label className="font-bold text-xs text-gray-500 block mb-1.5">{l.inputs.email}</label>
@@ -137,6 +163,7 @@ function BusinessContractForm() {
                 </div>
               </div>
 
+              {/* Training type selection & Trainees count */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
                   <label className="font-bold text-xs text-gray-500 block mb-1.5">{l.inputs.trainingType}</label>
@@ -167,6 +194,7 @@ function BusinessContractForm() {
                 </div>
               </div>
 
+              {/* Training start date */}
               <div>
                 <label className="font-bold text-xs text-gray-500 block mb-1.5">{l.inputs.startDate}</label>
                 <input
@@ -175,14 +203,15 @@ function BusinessContractForm() {
                   value={formData.startDate}
                   onChange={handleChange}
                   required
-                  className={`w-full border border-gray-200 rounded-xl p-3 text-sm font-bold focus:outline-none focus:border-[#00A499] bg-gray-50/50 text-[#0D4C54] transition ${t.dir === 'rtl' ? 'text-right' : 'text-left'}`}
+                  className={`w-full border border-gray-200 rounded-xl p-3 text-sm font-bold focus:outline-none focus:border-[#00A499] bg-gray-50/50 text-[#0D4C54] transition ${textAlign}`}
                 />
               </div>
 
+              {/* Additional Notes */}
               <div>
                 <label className="font-bold text-xs text-gray-500 block mb-1.5">{l.inputs.notes}</label>
                 <textarea
-                  rows="4"
+                  rows={4}
                   name="notes"
                   value={formData.notes}
                   onChange={handleChange}
@@ -191,7 +220,8 @@ function BusinessContractForm() {
                 />
               </div>
 
-              <div className={`pt-3 border-t border-gray-50 flex ${t.dir === 'rtl' ? 'justify-end' : 'justify-start'}`}>
+              {/* Submit action container */}
+              <div className={`pt-3 border-t border-gray-50 flex ${flexAlignment}`}>
                 <Button type="submit" variant="primary">
                   {l.inputs.submitBtn}
                 </Button>
@@ -204,6 +234,6 @@ function BusinessContractForm() {
       <Footer />
     </div>
   );
-}
+};
 
 export default BusinessContractForm;
