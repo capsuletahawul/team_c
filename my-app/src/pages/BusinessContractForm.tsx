@@ -8,6 +8,10 @@ import Button from "../components/Button";
 // Global language context for localization (i18n)
 import { useLanguage } from "../context/LanguageContext";
 
+// Mock API layer
+import { submitB2BRequest } from "../mocks/mockApi";
+import type { B2BRequestPayload } from "../mocks/mockApi";
+
 // TypeScript interface for strict form data typing
 interface FormDataState {
   companyName: string;
@@ -18,6 +22,18 @@ interface FormDataState {
   trainees: string;
   startDate: string;
   notes: string;
+}
+
+// Builds the mockApi's requirementsNotes string from the fields the form collects
+// that aren't part of B2BRequestPayload directly (trainingType, trainees, startDate, notes)
+function buildRequirementsNotes(data: FormDataState): string {
+  const parts = [
+    `Training type: ${data.trainingType}`,
+    `Trainees: ${data.trainees}`,
+    `Start date: ${data.startDate}`,
+  ];
+  if (data.notes) parts.push(`Notes: ${data.notes}`);
+  return parts.join(" | ");
 }
 
 const BusinessContractForm: React.FC = () => {
@@ -38,6 +54,8 @@ const BusinessContractForm: React.FC = () => {
 
   const [formData, setFormData] = useState<FormDataState>(initialFormState);
   const [submitted, setSubmitted] = useState<boolean>(false);
+  const [submitting, setSubmitting] = useState<boolean>(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   // Dynamic input handler updating state by input name attribute
   const handleChange = (
@@ -50,14 +68,33 @@ const BusinessContractForm: React.FC = () => {
     }));
   };
 
-  // Handles form submission, resets form, and toggles success notification
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
+  // Handles form submission via mockApi's submitB2BRequest, surfaces validation errors,
+  // and resets the form + shows the success notification only once the ticket is confirmed
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
-    setSubmitted(true);
+    setSubmitError(null);
+    setSubmitting(true);
 
-    setFormData(initialFormState);
-    
-    setTimeout(() => setSubmitted(false), 5000);
+    const payload: B2BRequestPayload = {
+      companyName: formData.companyName,
+      contactName: formData.contactPerson,
+      requirementsNotes: buildRequirementsNotes(formData),
+    };
+
+    const response = await submitB2BRequest(payload);
+    setSubmitting(false);
+
+    if (response.success) {
+      setSubmitted(true);
+      setFormData(initialFormState);
+      setTimeout(() => setSubmitted(false), 5000);
+    } else {
+      setSubmitError(
+        response.details?.requirementsNotes ||
+          response.error ||
+          (isRtl ? "حدث خطأ أثناء إرسال الطلب." : "Something went wrong while submitting the request.")
+      );
+    }
   };
 
   // Dynamic styling variables based on active layout direction
@@ -105,6 +142,13 @@ const BusinessContractForm: React.FC = () => {
             {submitted && (
               <div className={`p-4 bg-emerald-50 border-emerald-500 text-emerald-800 rounded-xl text-xs font-bold shadow-xs mb-6 flex items-center gap-2 ${borderSide}`}>
                 <span>{l.form.successMsg}</span>
+              </div>
+            )}
+
+            {/* Conditionally rendered API/validation error message */}
+            {submitError && (
+              <div className={`p-4 bg-red-50 border-red-500 text-red-700 rounded-xl text-xs font-bold shadow-xs mb-6 flex items-center gap-2 ${borderSide}`}>
+                <span>{submitError}</span>
               </div>
             )}
 
@@ -222,8 +266,8 @@ const BusinessContractForm: React.FC = () => {
 
               {/* Submit action container */}
               <div className={`pt-3 border-t border-gray-50 flex ${flexAlignment}`}>
-                <Button type="submit" variant="primary">
-                  {l.inputs.submitBtn}
+                <Button type="submit" variant="primary" disabled={submitting}>
+                  {submitting ? (isRtl ? "جارٍ الإرسال..." : "Submitting...") : l.inputs.submitBtn}
                 </Button>
               </div>
             </form>
