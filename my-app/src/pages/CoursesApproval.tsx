@@ -1,12 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 // Reusable Components
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import Button from "../components/Button";
+import LoadingIndicator from "../components/LoadingIndicator";
 
 // Global Context
 import { useLanguage } from "../context/LanguageContext";
+
+// Mock API layer
+import { getCourses } from "../mocks/mockApi";
+import type { Course as ApiCourse } from "../mocks/mockApi";
 
 // Union type restricting system course approval states
 type CourseStatus = "pending" | "approved" | "rejected";
@@ -14,37 +19,60 @@ type CourseStatus = "pending" | "approved" | "rejected";
 // Interface enforcing types for course metrics and keys
 interface CourseItem {
   id: number;
-  titleKey: string;
-  trainerKey: string;
-  categoryKey: string;
+  title: string;
+  trainer: string;
+  category: string;
   durationVal: number;
   status: CourseStatus;
+}
+
+  //Adapter utility that maps raw API courses to "pending" status locally for UI approval workflow.
+function apiToCourseItem(course: ApiCourse): CourseItem {
+  const parsedDuration = parseInt(course.duration, 10);
+  return {
+    id: course.id,
+    title: course.title,
+    trainer: course.instructor,
+    category: course.category,
+    durationVal: Number.isNaN(parsedDuration) ? 0 : parsedDuration,
+    status: "pending",
+  };
 }
 
 const CoursesApproval: React.FC = () => {
   const { t } = useLanguage();
   const l = t.coursesApproval;
 
-  const [courses, setCourses] = useState<CourseItem[]>([
-    {
-      id: 1,
-      titleKey: "course1Title",
-      trainerKey: "trainer1",
-      categoryKey: "catCyber",
-      durationVal: 32,
-      status: "pending", 
-    },
-    {
-      id: 2,
-      titleKey: "course2Title",
-      trainerKey: "trainer2",
-      categoryKey: "catWeb",
-      durationVal: 28,
-      status: "pending",
-    },
-  ]);
+  // React states to manage asynchronous UI lifecycle and dynamic list updates
+  const [courses, setCourses] = useState<CourseItem[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [loadError, setLoadError] = useState<boolean>(false);
 
-  // Approves course status by ID
+  // Safely fetch and populate the course pipelines on mount with clean-up tracking
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadCourses = async () => {
+      const response = await getCourses();
+      if (!isMounted) return;
+
+      if (response.success && response.data) {
+        // Map data immediately upon successful retrieval to preserve structural integrity
+        setCourses(response.data.courses.map(apiToCourseItem));
+      } else {
+        setLoadError(true);
+      }
+
+      setLoading(false);
+    };
+
+    loadCourses();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Handler triggered by the administrator to approve a specific course pipeline
   const approveCourse = (id: number): void => {
     setCourses((prevCourses) =>
       prevCourses.map((course) =>
@@ -53,7 +81,7 @@ const CoursesApproval: React.FC = () => {
     );
   };
 
-  // Rejects course status by ID
+  // Handler triggered by the administrator to reject a specific course pipeline
   const rejectCourse = (id: number): void => {
     setCourses((prevCourses) =>
       prevCourses.map((course) =>
@@ -62,18 +90,39 @@ const CoursesApproval: React.FC = () => {
     );
   };
 
-  // Resolves the dynamic localization label for the status column
+  // Dynamic localization mapper to keep rendering logic clean and independent
   const getStatusLabel = (status: CourseStatus): string => {
     if (status === "approved") return l.data.approvedText;
     if (status === "rejected") return l.data.rejectedText;
     return l.data.pendingText;
   };
 
+  // Bidirectional layout utility flags
   const isRtl = t.dir === "rtl";
   const heroDecorationAlign = isRtl ? "left-[-40px]" : "right-[-40px]";
   const heroBallAlign = isRtl ? "rotate-[-25deg] left-10" : "rotate-[25deg] right-10";
   const heroArcAlign = isRtl ? "rotate-[-25deg]" : "rotate-[25deg]";
   const tableAlign = isRtl ? "text-right" : "text-left";
+
+  // Graceful handling of loading states
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">
+        <LoadingIndicator message={l.loading} />
+      </div>
+    );
+  }
+
+  // Graceful handling of fetch failures to prevent blank UI or crashes
+  if (loadError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">
+        <p className="text-sm font-semibold text-[#0D4C54]">
+          {isRtl ? "تعذر تحميل قائمة الكورسات." : "Unable to load courses."}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div 
@@ -81,15 +130,15 @@ const CoursesApproval: React.FC = () => {
       className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans text-slate-800 antialiased transition-all duration-300"
     >
       <Navbar 
-  activePage="courses" 
-  showAuthButtons={false} 
-  onSignIn={() => {}} 
-  onSignUp={() => {}} 
-/>
+        activePage="courses" 
+        showAuthButtons={false} 
+        onSignIn={() => {}} 
+        onSignUp={() => {}} 
+      />
 
       <main className="flex-grow">
         
-        {/* Hero Banner Section */}
+        {/* Hero Banner with responsive graphic calculations based on layout direction */}
         <div className="relative bg-gradient-to-r from-[#0D4C54] to-[#00A499] text-white py-14 px-8 overflow-hidden shadow-inner">
           <div className={`absolute top-1/2 -translate-y-1/2 hidden lg:block opacity-80 ${heroDecorationAlign}`}>
             <div className="relative w-80 h-40">
@@ -103,10 +152,10 @@ const CoursesApproval: React.FC = () => {
           </div>
         </div>
 
-        {/* Central Component Content Grid */}
+        {/* Primary Dashboard layout workspace */}
         <div className="max-w-7xl mx-auto px-6 py-12">
           
-          {/* Quick Metrics Cards Row */}
+          {/* Top KPI Metrics Row to display real-time counters dynamically computed from state */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
             <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs">
               <p className="text-xs font-bold text-gray-400 mb-1">{l.stats.total}</p>
@@ -126,7 +175,7 @@ const CoursesApproval: React.FC = () => {
             </div>
           </div>
 
-          {/* Core Technical Data Table */}
+          {/* Interactive Administrative Courses Approval Data Table */}
           <div className="bg-white border border-gray-100 rounded-2xl shadow-xs overflow-hidden">
             <div className="p-6 border-b border-gray-100 bg-gray-50">
               <h2 className="text-base font-bold text-[#0D4C54]">{l.table.cardTitle}</h2>
@@ -146,9 +195,9 @@ const CoursesApproval: React.FC = () => {
                 <tbody className="divide-y divide-gray-100 text-sm font-medium">
                   {courses.map((course) => (
                     <tr key={course.id} className="hover:bg-gray-50/50 transition">
-                      <td className="p-4 text-[#0D4C54] font-bold">{l.data[course.titleKey]}</td>
-                      <td className="p-4 text-gray-500">{l.data[course.trainerKey]}</td>
-                      <td className="p-4 text-gray-500">{l.data[course.categoryKey]}</td>
+                      <td className="p-4 text-[#0D4C54] font-bold">{course.title}</td>
+                      <td className="p-4 text-gray-500">{course.trainer}</td>
+                      <td className="p-4 text-gray-500">{course.category}</td>
                       <td className="p-4">
                         <span className="px-2 py-1 rounded-md text-xs font-bold bg-teal-50 text-[#00A499]">
                           {course.durationVal}{l.table.unitHours}
@@ -167,6 +216,7 @@ const CoursesApproval: React.FC = () => {
                           {getStatusLabel(course.status)}
                         </span>
                       </td>
+                      {/* Contextual Action cells that respond to the current course approval state */}
                       <td className="p-4 text-center">
                         {course.status === "pending" ? (
                           <div className="flex gap-2 justify-center">
