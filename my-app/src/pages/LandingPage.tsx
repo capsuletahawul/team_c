@@ -5,6 +5,7 @@ import Footer from '../components/Footer.jsx';
 import LoadingIndicator from '../components/LoadingIndicator.jsx';
 import ErrorMessage from '../components/ErrorMessage.jsx';
 import Button from '../components/Button';
+// @ts-ignore 
 import heroImage from '../assets/hero.png';
 
 // Import the global language context

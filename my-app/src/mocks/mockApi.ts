@@ -1,100 +1,298 @@
 /**
  * Capsule Tahawul Mock API Layer
- * Location: src/mocks/mockApi.js
- * * This file simulates a backend database and server processing environment.
- * Every response strictly adheres to the mandated bootcamp envelope format.
+ * 
+ * This file simulates a backend database and server processing environment.
  */
 
-// Helper utility to simulate server network latency
-const delay = (ms) => new Promise(res => setTimeout(res, ms));
+// ============================================================================
+// TYPES & INTERFACES DEFINITIONS
+// ============================================================================
+
+export interface ApiResponse<T = unknown> {
+  success: boolean;
+  message?: string;
+  data?: T;
+  error?: string;
+  details?: Record<string, string>;
+}
+
+export interface Topic {
+  type: 'video' | 'code' | 'doc' | string;
+  name: string;
+  duration: string;
+}
+
+export interface CurriculumModule {
+  id: number;
+  week: string;
+  title: string;
+  duration: string;
+  topics: Topic[];
+}
+
+export interface Requirement {
+  id: 'tech' | 'hardware' | 'mindset' | string;
+  title: string;
+  desc: string;
+  type: 'code' | 'cpu' | 'shield' | string;
+}
+
+export interface InstructorProfile {
+  role: string;
+  bio: string;
+  avatarLabel: string;
+  ratingText: string;
+  studentsText: string;
+  coursesText: string;
+  skills: string[];
+}
+
+export interface Enrollment {
+  features: string[];
+  timer: string;
+}
+
+// Interfaces designed explicitly to prevent block-scope compiler issues
+export interface CurriculumTranslation {
+  title: string;
+  subtitle: string;
+  expandAll: string;
+  collapseAll: string;
+  lessons: string;
+  modules: CurriculumModule[];
+}
+
+export interface RequirementsTranslation {
+  title: string;
+  subtitle: string;
+  items: Requirement[];
+}
+
+export interface EnrollmentTranslation {
+  price: string;
+  originalPrice: string;
+  discount: string | null;
+  title: string;
+  features: string[];
+  btnText: string;
+  timer: string;
+}
+
+export interface InstructorTranslation {
+  sectionTitle: string;
+  name: string;
+  role: string;
+  bio: string;
+  stats: {
+    rating: string;
+    students: string;
+    courses: string;
+  };
+  skills: string[];
+}
+
+export interface Course {
+  id: number;
+  title: string;
+  category: string;
+  description: string;
+  subtitle: string;
+  instructor: string;
+  trainerId: string;
+  price: number;
+  originalPrice: number;
+  discount: string | null;
+  duration: string;
+  level: 'Beginner' | 'Intermediate' | 'Advanced' | string;
+  language: string;
+  updated: string;
+  rating: number;
+  status: 'available' | 'coming_soon' | 'completed' | string;
+  students: number;
+  thumbnail: string;
+  prerequisites: string[];
+  outcomes: string[];
+  instructorProfile: InstructorProfile;
+  requirements: Requirement[];
+  curriculum: CurriculumModule[];
+  enrollment: Enrollment;
+  
+  // Localized Fields (Injected Dynamically)
+  translatedCurriculum?: CurriculumTranslation;
+  translatedRequirements?: RequirementsTranslation;
+  translatedEnrollment?: EnrollmentTranslation;
+  translatedInstructor?: InstructorTranslation;
+  currentLocale?: 'ar' | 'en';
+}
+
+export interface User {
+  id: number;
+  fullName: string;
+  email: string;
+  role: 'Student' | 'Trainer' | 'Company' | 'Admin' | string;
+  avatar: string;
+  joinedAt: string;
+  completedCourses: number;
+  activeCourses: number;
+  companyAffiliation?: string;
+}
+
+export interface CourseEnrollment {
+  courseId: number; // Unified parameter to prevent logical mismatch
+  progress: number;
+  status: 'In Progress' | 'Completed' | string;
+}
+
+export interface Notification {
+  notificationId: number;
+  title: string;
+  message: string;
+  type: 'Account' | 'System' | 'Course' | string;
+  isRead: boolean;
+  createdAt: string;
+}
+
+export interface CourseModuleDetail {
+  moduleId: number;
+  title: string;
+  status: 'Completed' | 'Unlocked' | 'Locked';
+  videoUrl?: string;
+  attachments?: Array<{ fileName: string; downloadUrl: string }>;
+}
+
+export interface TrainerProfile {
+  trainerId: string;
+  name: string;
+  specialty: string;
+  bio: string;
+  email: string;
+  phone: string;
+  experience: number;
+  avatarLetter: string;
+  stats: {
+    coursesCount: number;
+    studentsCount: number;
+    rating: number;
+  };
+  courses: Array<{
+    id: number;
+    name: string;
+    students: number;
+    status: 'published' | 'review' | string;
+  }>;
+  reviews: Array<{
+    id: number;
+    name: string;
+    rating: number;
+    date: string;
+    comment: string;
+  }>;
+}
+
+export interface AdminUserRecord {
+  id: string;
+  name: string;
+  email: string;
+  role: 'Student' | 'Trainer' | 'Company' | string;
+  status: 'active' | 'suspended';
+}
+
+// ============================================================================
+// HELPER UTILITIES
+// ============================================================================
+
+const delay = (ms: number): Promise<void> => new Promise(res => setTimeout(res, ms));
 
 // ============================================================================
 // SIMULATED IN-MEMORY DATABASE (State persists while browser tab is open)
 // ============================================================================
 
-let mockCourses = [
-{
-  id: 15,
-  title: "React Bootcamp Deep Dive",
-  category: "Web Development",
-  description: "Learn React from beginner to advanced with hands-on projects.",
-  subtitle: "Master building production-ready React applications with hooks, state management, and real-world project architecture.",
-  instructor: "Ahmed Mohammed",
-  trainerId: "ahmed-mohammed",
-
-  price: 250,
-  originalPrice: 450,
-  discount: "45% OFF",
-  duration: "32 Hours",
-  level: "Intermediate",
-  language: "Arabic / English",
-  updated: "06/2026",
-  rating: 4.8,
-  status: "available",
-  students: 1240,
-  thumbnail: "react-bootcamp.jpg",
-
-  prerequisites: ["HTML", "CSS", "JavaScript"],
-
-  outcomes: [
-    "Build modern React applications",
-    "Use React Hooks",
-    "Manage application state",
-    "Structure scalable component architecture",
-    "Integrate REST APIs into React apps",
-    "Deploy production-ready front-end projects"
-  ],
-
-  instructorProfile: {
-    role: "Senior Front-End Engineer",
-    bio: "Ahmed has spent over 8 years building production React applications for startups and enterprises across the region.",
-    avatarLabel: "AM",
-    ratingText: "4.8 Instructor Rating",
-    studentsText: "1,240+ Students",
-    coursesText: "3 Bootcamps",
-    skills: ["React", "Hooks", "State Management", "REST APIs"]
+let mockCourses: Course[] = [
+  {
+    id: 15,
+    title: "React Bootcamp Deep Dive",
+    category: "Web Development",
+    description: "Learn React from beginner to advanced with hands-on projects.",
+    subtitle: "Master building production-ready React applications with hooks, state management, and real-world project architecture.",
+    instructor: "Ahmed Mohammed",
+    trainerId: "ahmed-mohammed",
+    price: 250,
+    originalPrice: 450,
+    discount: "45% OFF",
+    duration: "32 Hours",
+    level: "Intermediate",
+    language: "Arabic / English",
+    updated: "06/2026",
+    rating: 4.8,
+    status: "available",
+    students: 1240,
+    thumbnail: "react-bootcamp.jpg",
+    prerequisites: ["HTML", "CSS", "JavaScript"],
+    outcomes: [
+      "Build modern React applications",
+      "Use React Hooks",
+      "Manage application state",
+      "Structure scalable component architecture",
+      "Integrate REST APIs into React apps",
+      "Deploy production-ready front-end projects"
+    ],
+    instructorProfile: {
+      role: "Senior Front-End Engineer",
+      bio: "Ahmed has spent over 8 years building production React applications for startups and enterprises across the region.",
+      avatarLabel: "AM",
+      ratingText: "4.8 Instructor Rating",
+      studentsText: "1,240+ Students",
+      coursesText: "3 Bootcamps",
+      skills: ["React", "Hooks", "State Management", "REST APIs"]
+    },
+    requirements: [
+      { id: "tech", title: "Technical Background", desc: "Basic knowledge of HTML, CSS, and JavaScript fundamentals.", type: "code" },
+      { id: "hardware", title: "Hardware Setup", desc: "A laptop with at least 8GB RAM and a stable internet connection.", type: "cpu" },
+      { id: "mindset", title: "Commitment & Mindset", desc: "Readiness to invest 8-10 hours per week on coding exercises and projects.", type: "shield" }
+    ],
+    curriculum: [
+      { id: 1, week: "Week 1 - 2", title: "React Fundamentals & JSX", duration: "10 Hours",
+        topics: [
+          { type: "video", name: "Introduction to Components & JSX", duration: "40 mins" },
+          { type: "code", name: "Hands-on: Building Your First Components", duration: "2 hours" },
+          { type: "doc", name: "Reading: Component Lifecycle Overview", duration: "15 mins" }
+        ] },
+      { id: 2, week: "Week 3 - 4", title: "State, Props & Hooks", duration: "12 Hours",
+        topics: [
+          { type: "video", name: "useState & useEffect in Depth", duration: "50 mins" },
+          { type: "code", name: "Lab: Building a Todo Application", duration: "3 hours" },
+          { type: "code", name: "Project: Custom Hooks for Data Fetching", duration: "3 hours" }
+        ] },
+      { id: 3, week: "Week 5 - 6", title: "Routing & Production Deployment", duration: "10 Hours",
+        topics: [
+          { type: "video", name: "React Router & Protected Routes", duration: "45 mins" },
+          { type: "code", name: "Capstone: Full Application Deployment", duration: "5 hours" }
+        ] }
+    ],
+    enrollment: {
+      features: ["4 Weeks Intensive", "Live Mentorship", "Job Guarantee Support", "Lifetime Access"],
+      timer: "Enrollment closes in: 04:12:45"
+    }
   },
-
-  requirements: [
-    { id: "tech", title: "Technical Background", desc: "Basic knowledge of HTML, CSS, and JavaScript fundamentals.", type: "code" },
-    { id: "hardware", title: "Hardware Setup", desc: "A laptop with at least 8GB RAM and a stable internet connection.", type: "cpu" },
-    { id: "mindset", title: "Commitment & Mindset", desc: "Readiness to invest 8-10 hours per week on coding exercises and projects.", type: "shield" }
-  ],
-
-  curriculum: [
-    { id: 1, week: "Week 1 - 2", title: "React Fundamentals & JSX", duration: "10 Hours",
-      topics: [
-        { type: "video", name: "Introduction to Components & JSX", duration: "40 mins" },
-        { type: "code", name: "Hands-on: Building Your First Components", duration: "2 hours" },
-        { type: "doc", name: "Reading: Component Lifecycle Overview", duration: "15 mins" }
-      ] },
-    { id: 2, week: "Week 3 - 4", title: "State, Props & Hooks", duration: "12 Hours",
-      topics: [
-        { type: "video", name: "useState & useEffect in Depth", duration: "50 mins" },
-        { type: "code", name: "Lab: Building a Todo Application", duration: "3 hours" },
-        { type: "code", name: "Project: Custom Hooks for Data Fetching", duration: "3 hours" }
-      ] },
-    { id: 3, week: "Week 5 - 6", title: "Routing & Production Deployment", duration: "10 Hours",
-      topics: [
-        { type: "video", name: "React Router & Protected Routes", duration: "45 mins" },
-        { type: "code", name: "Capstone: Full Application Deployment", duration: "5 hours" }
-      ] }
-  ],
-
-  enrollment: {
-    features: ["4 Weeks Intensive", "Live Mentorship", "Job Guarantee Support", "Lifetime Access"],
-    timer: "Enrollment closes in: 04:12:45"
-  }
-},
-
-  { id: 16, title: "AI & Machine Learning Fundamentals", category: "Artificial Intelligence",
+  {
+    id: 16,
+    title: "AI & Machine Learning Fundamentals",
+    category: "Artificial Intelligence",
     description: "A hands-on introduction to AI and Machine Learning concepts using real datasets and Python.",
     subtitle: "Learn the core building blocks of AI and Machine Learning through practical, project-based lessons.",
     instructor: "Sara Ali",
     trainerId: "sara-ali",
-    price: 0, originalPrice: 0, discount: "Free",
-    duration: "12 Hours", level: "Beginner", language: "Arabic / English", updated: "06/2026",
-    rating: 4.9, status: "available", students: 850, thumbnail: "ai-funds.jpg",
+    price: 0,
+    originalPrice: 0,
+    discount: "Free",
+    duration: "12 Hours",
+    level: "Beginner",
+    language: "Arabic / English",
+    updated: "06/2026",
+    rating: 4.9,
+    status: "available",
+    students: 850,
+    thumbnail: "ai-funds.jpg",
     prerequisites: ["Basic Python"],
     outcomes: [
       "Understand core Machine Learning concepts",
@@ -131,17 +329,30 @@ let mockCourses = [
           { type: "code", name: "Project: Training a Classification Model", duration: "3 hours" }
         ] }
     ],
-    enrollment: { features: ["Self-Paced", "Community Support", "Certificate of Completion"], timer: "Open enrollment" }
+    enrollment: {
+      features: ["Self-Paced", "Community Support", "Certificate of Completion"],
+      timer: "Open enrollment"
+    }
   },
-
-  { id: 17, title: "Cybersecurity Next-Gen Defense", category: "Cybersecurity",
+  {
+    id: 17,
+    title: "Cybersecurity Next-Gen Defense",
+    category: "Cybersecurity",
     description: "Learn modern cybersecurity defense strategies to protect networks and systems from evolving threats.",
     subtitle: "Build practical skills in network defense, threat detection, and incident response.",
     instructor: "Abdullah Nasser",
     trainerId: "abdullah-nasser",
-    price: 499, originalPrice: 699, discount: "28% OFF",
-    duration: "40 Hours", level: "Advanced", language: "Arabic / English", updated: "07/2026",
-    rating: 0, status: "coming_soon", students: 0, thumbnail: "cyber.jpg",
+    price: 499,
+    originalPrice: 699,
+    discount: "28% OFF",
+    duration: "40 Hours",
+    level: "Advanced",
+    language: "Arabic / English",
+    updated: "07/2026",
+    rating: 0,
+    status: "coming_soon",
+    students: 0,
+    thumbnail: "cyber.jpg",
     prerequisites: ["Basic Networking"],
     outcomes: [
       "Understand modern attack vectors and threat models",
@@ -178,17 +389,30 @@ let mockCourses = [
           { type: "code", name: "Capstone: Simulated Breach Response", duration: "6 hours" }
         ] }
     ],
-    enrollment: { features: ["8 Weeks Intensive", "Hands-on Labs", "Industry Certificate"], timer: "Coming soon — join the waitlist" }
+    enrollment: {
+      features: ["8 Weeks Intensive", "Hands-on Labs", "Industry Certificate"],
+      timer: "Coming soon — join the waitlist"
+    }
   },
-
-  { id: 18, title: "Cloud Native Infrastructure", category: "Cloud Computing",
+  {
+    id: 18,
+    title: "Cloud Native Infrastructure",
+    category: "Cloud Computing",
     description: "Master cloud-native architecture, containers, and infrastructure automation on modern cloud platforms.",
     subtitle: "Design, deploy, and scale cloud-native infrastructure using industry-standard tools.",
     instructor: "Noura Al-Faisal",
     trainerId: "noura-alfaisal",
-    price: 199, originalPrice: 199, discount: null,
-    duration: "24 Hours", level: "Intermediate", language: "Arabic / English", updated: "05/2026",
-    rating: 4.5, status: "completed", students: 430, thumbnail: "cloud.jpg",
+    price: 199,
+    originalPrice: 199,
+    discount: null,
+    duration: "24 Hours",
+    level: "Intermediate",
+    language: "Arabic / English",
+    updated: "05/2026",
+    rating: 4.5,
+    status: "completed",
+    students: 430,
+    thumbnail: "cloud.jpg",
     prerequisites: ["Linux Basics"],
     outcomes: [
       "Deploy applications using Docker containers",
@@ -225,11 +449,14 @@ let mockCourses = [
           { type: "code", name: "Capstone: Automated Cloud Deployment", duration: "4 hours" }
         ] }
     ],
-    enrollment: { features: ["4 Weeks Intensive", "Cloud Lab Credits", "Certificate of Completion"], timer: "This course has ended" }
+    enrollment: {
+      features: ["4 Weeks Intensive", "Cloud Lab Credits", "Certificate of Completion"],
+      timer: "This course has ended"
+    }
   }
 ];
 
-let mockUser = {
+let mockUser: User = {
   id: 18,
   fullName: "Alex Mercer",
   email: "alex.mercer@corporate.com",
@@ -241,18 +468,27 @@ let mockUser = {
   companyAffiliation: "ABC Technologies"
 };
 
-let mockEnrollments = [
+// Unified the property name to 'courseId' to prevent dynamic data fetch issues
+let mockEnrollments: CourseEnrollment[] = [
   { courseId: 15, progress: 45, status: "In Progress" },
-  { id: 16, progress: 100, status: "Completed" }
+  { courseId: 16, progress: 100, status: "Completed" }
 ];
 
-let mockNotifications = [
-  { notificationId: 55, title: "Workspace Verified", message: "Your corporate onboarding validation is active! Explore your dashboard.", type: "Account", isRead: false, createdAt: "2026-07-03T14:00:00Z" }
+let mockNotifications: Notification[] = [
+  {
+    notificationId: 55,
+    title: "Workspace Verified",
+    message: "Your corporate onboarding validation is active! Explore your dashboard.",
+    type: "Account",
+    isRead: false,
+    createdAt: "2026-07-03T14:00:00Z"
+  }
 ];
 
-let mockSupportTickets = [];
-let mockB2BRequests = [];
-let mockCourseDrafts = [];
+// Typed in-memory state storage lists
+let mockSupportTickets: Array<ContactFormPayload & { id: number; createdAt: string }> = [];
+let mockB2BRequests: Array<B2BRequestPayload & { ticketId: number; status: string }> = [];
+let mockCourseDrafts: unknown[] = [];
 
 // ============================================================================
 // NEW STATIC DATA FOR INTEGRATION (Course Details, Trainer Details, Contact)
@@ -325,7 +561,7 @@ export const curriculumData = {
         topics: [
           { type: 'video', name: 'قواعد البيانات المتجهة (Vector DBs) واستراتيجيات تقسيم النصوص', duration: '60 دقيقة' },
           { type: 'code', name: 'معمل عملي: بناء خطوط البحث الهجين (Hybrid Search Pipelines)', duration: '4 ساعات' },
-          { type: 'مشروع: تنفيذ أنظمة إعادة الترتيب (Re-ranking) وتوسيع الاستعلام', duration: '6 ساعات' }
+          { type: 'code', name: 'مشروع: تنفيذ أنظمة إعادة الترتيب (Re-ranking) وتوسيع الاستعلام', duration: '6 ساعات' }
         ]
       },
       {
@@ -333,7 +569,7 @@ export const curriculumData = {
         topics: [
           { type: 'video', name: 'إطارات الإدارة والربط: LangGraph، AutoGen، و CrewAI', duration: '90 دقيقة' },
           { type: 'code', name: 'معمل: إدارة الذاكرة والتحكم في الحالات (State Control) للوكلاء البرمجيين', duration: '5 ساعات' },
-          { type: 'مشروع التخرج: نشر وكلاء الذكاء الاصطناعي للشركات عبر Docker', duration: '12 ساعة' }
+          { type: 'code', name: 'مشروع التخرج: نشر وكلاء الذكاء الاصطناعي للشركات عبر Docker', duration: '12 ساعة' }
         ]
       }
     ]
@@ -430,7 +666,14 @@ export const contactPageData = {
 // MODULE 1: AUTHENTICATION APIs (Feature 3)
 // ============================================================================
 
-export async function registerStudent(payload) {
+export interface RegisterPayload {
+  fullName?: string;
+  email?: string;
+  password?: string;
+  confirmPassword?: string;
+}
+
+export async function registerStudent(payload: RegisterPayload): Promise<ApiResponse<unknown>> {
   await delay(800);
   
   if (!payload.fullName || !payload.email || !payload.password || !payload.confirmPassword) {
@@ -464,7 +707,12 @@ export async function registerStudent(payload) {
   };
 }
 
-export async function loginUser(payload) {
+export interface LoginPayload {
+  email?: string;
+  password?: string;
+}
+
+export async function loginUser(payload: LoginPayload): Promise<ApiResponse<{ token: string; userId: number; role: string; name: string }>> {
   await delay(600);
 
   if (!payload.email || !payload.password) {
@@ -486,7 +734,19 @@ export async function loginUser(payload) {
 // MODULE 2: PLATFORM OVERVIEW APIs (Feature 18)
 // ============================================================================
 
-export async function getPlatformOverview() {
+export interface PlatformTrack {
+  title: string;
+  description: string;
+}
+
+export interface PlatformOverview {
+  platformName: string;
+  studentTrack: PlatformTrack;
+  trainerTrack: PlatformTrack;
+  companyTrack: PlatformTrack;
+}
+
+export async function getPlatformOverview(): Promise<ApiResponse<PlatformOverview>> {
   await delay(400);
   return {
     success: true,
@@ -503,15 +763,28 @@ export async function getPlatformOverview() {
 // MODULE 3: COURSE CATALOG APIs (Feature 1, Feature 2)
 // ============================================================================
 
-export async function getCourses(filters = {}) {
+export interface CourseFilters {
+  category?: string;
+  search?: string;
+}
+
+export interface PaginatedCourses {
+  page: number;
+  totalPages: number;
+  courses: Course[];
+}
+
+export async function getCourses(filters: CourseFilters = {}): Promise<ApiResponse<PaginatedCourses>> {
   await delay(500);
   let filtered = [...mockCourses];
 
-  if (filters.category) {
-    filtered = filtered.filter(c => c.category.toLowerCase() === filters.category.toLowerCase());
+  const { category, search } = filters;
+
+  if (category) {
+    filtered = filtered.filter(c => c.category.toLowerCase() === category.toLowerCase());
   }
-  if (filters.search) {
-    filtered = filtered.filter(c => c.title.toLowerCase().includes(filters.search.toLowerCase()));
+  if (search) {
+    filtered = filtered.filter(c => c.title.toLowerCase().includes(search.toLowerCase()));
   }
 
   return {
@@ -520,9 +793,9 @@ export async function getCourses(filters = {}) {
   };
 }
 
-export async function getCourseDetails(courseId, locale = 'en') {
+export async function getCourseDetails(courseId: string | number, locale: 'ar' | 'en' = 'en'): Promise<ApiResponse<Course>> {
   await delay(400);
-  const course = mockCourses.find(c => c.id === parseInt(courseId));
+  const course = mockCourses.find(c => c.id === parseInt(courseId.toString()));
   
   if (!course) {
     return {
@@ -532,7 +805,6 @@ export async function getCourseDetails(courseId, locale = 'en') {
     };
   }
 
-  // If requesting the translation-supported Advanced GenAI bootcamp (ID 15 or similar mock matching), inject localizations
   const lang = locale === 'ar' ? 'ar' : 'en';
   const localizedHero = courseHeroData[lang];
   const localizedCurriculum = curriculumData[lang];
@@ -541,7 +813,6 @@ export async function getCourseDetails(courseId, locale = 'en') {
   const localizedEnrollment = enrollmentData[lang];
   const localizedInstructor = instructorData[lang];
 
-  // Return the base data merged with responsive structural translations
   return { 
     success: true, 
     data: {
@@ -550,7 +821,6 @@ export async function getCourseDetails(courseId, locale = 'en') {
       subtitle: localizedHero.subtitle || course.subtitle,
       category: localizedHero.category || course.category,
       outcomes: localizedOverview.outcomes || course.outcomes,
-      // Inject translated modular curriculum structure
       translatedCurriculum: localizedCurriculum,
       translatedRequirements: localizedRequirements,
       translatedEnrollment: localizedEnrollment,
@@ -564,12 +834,17 @@ export async function getCourseDetails(courseId, locale = 'en') {
 // MODULE 4: STUDENT DASHBOARD & PROFILE (Feature 4, Feature 6)
 // ============================================================================
 
-export async function getStudentProfile() {
+export async function getStudentProfile(): Promise<ApiResponse<User>> {
   await delay(300);
   return { success: true, data: mockUser };
 }
 
-export async function updateStudentProfile(payload) {
+export interface ProfileUpdatePayload {
+  fullName?: string;
+  avatar?: string;
+}
+
+export async function updateStudentProfile(payload: ProfileUpdatePayload): Promise<ApiResponse<User>> {
   await delay(700);
   if (!payload.fullName || payload.fullName.length < 3) {
     return {
@@ -589,18 +864,18 @@ export async function updateStudentProfile(payload) {
   };
 }
 
-export async function getPurchasedCourses() {
+export async function getPurchasedCourses(): Promise<ApiResponse<Array<Course & CourseEnrollment>>> {
   await delay(400);
   const trackingData = mockEnrollments.map(enrollment => {
-    const original = mockCourses.find(c => c.id === enrollment.courseId) || {};
-    return { ...original, ...enrollment };
+    const original = mockCourses.find(c => c.id === enrollment.courseId) || {} as Course;
+    return { ...original, ...enrollment } as Course & CourseEnrollment;
   });
   return { success: true, data: trackingData };
 }
 
-export async function enrollInCourse(courseId) {
+export async function enrollInCourse(courseId: string | number): Promise<ApiResponse<unknown>> {
   await delay(600);
-  const id = parseInt(courseId);
+  const id = parseInt(courseId.toString());
   
   if (mockEnrollments.some(e => e.courseId === id)) {
     return {
@@ -618,7 +893,7 @@ export async function enrollInCourse(courseId) {
 // MODULE 5: LEARNING CONTENT & RESOURCES (Feature 7, Feature 8, Feature 9)
 // ============================================================================
 
-export async function getCourseModules(courseId) {
+export async function getCourseModules(courseId: string | number): Promise<ApiResponse<CourseModuleDetail[]>> {
   await delay(400);
   return {
     success: true,
@@ -630,7 +905,17 @@ export async function getCourseModules(courseId) {
   };
 }
 
-export async function submitQuiz(quizId, payload) {
+export interface QuizPayload {
+  answers: unknown[];
+}
+
+export interface QuizTally {
+  scoreTally: number;
+  passed: boolean;
+  totalQuestions: number;
+}
+
+export async function submitQuiz(quizId: string | number, payload: QuizPayload): Promise<ApiResponse<QuizTally>> {
   await delay(500);
   if (!payload.answers || payload.answers.length === 0) {
     return {
@@ -650,13 +935,20 @@ export async function submitQuiz(quizId, payload) {
 // MODULE 6: COMMUNICATIONS & SUPPORT (Feature 10, Mandatory Contact Form Check)
 // ============================================================================
 
-export async function submitContactForm(data) {
+export interface ContactFormPayload {
+  fullName?: string;
+  email?: string;
+  phone?: string;
+  message?: string;
+}
+
+export async function submitContactForm(data: ContactFormPayload): Promise<ApiResponse<unknown>> {
   await delay(800);
   
   if (!data.fullName || data.fullName.length < 3) {
     return { success: false, error: "validation_error", details: { name: "Name must be at least 3 characters." } };
   }
-  if (!data.email.includes("@")) {
+  if (!data.email || !data.email.includes("@")) {
     return { success: false, error: "validation_error", details: { email: "Provide a clean valid email syntax structure." } };
   }
   if (!data.phone || !data.phone.startsWith("05") || data.phone.length !== 10) {
@@ -670,10 +962,11 @@ export async function submitContactForm(data) {
     return { success: false, error: "validation_error", details: { message: "Message block must range between 20 and 500 parameters." } };
   }
 
+  mockSupportTickets.push({ id: Math.floor(Math.random() * 1000), ...data, createdAt: new Date().toISOString() });
   return { success: true, message: "Your message was received." };
 }
 
-export async function sendChatbotMessage(msgInput) {
+export async function sendChatbotMessage(msgInput: string): Promise<ApiResponse<{ replyBubble: string }>> {
   await delay(400);
   if (!msgInput) return { success: false, error: "empty_query", details: { chat: "Inquiry text cannot be empty." } };
   
@@ -687,7 +980,13 @@ export async function sendChatbotMessage(msgInput) {
 // MODULE 7: WORKSPACE CREATORS & PARTNERS (Feature 11, 12, 13, 14, 15)
 // ============================================================================
 
-export async function submitTrainerApplication(payload) {
+export interface TrainerApplicationPayload {
+  linkedin?: string;
+  bio?: string;
+  skills?: string[];
+}
+
+export async function submitTrainerApplication(payload: TrainerApplicationPayload): Promise<ApiResponse<unknown>> {
   await delay(700);
   if (!payload.linkedin || !payload.linkedin.startsWith("http")) {
     return { success: false, error: "validation_failed", details: { linkedin: "A valid working external link path is required." } };
@@ -695,7 +994,13 @@ export async function submitTrainerApplication(payload) {
   return { success: true, message: "Application successfully submitted. Current state flagged as Pending Verification." };
 }
 
-export async function getTrainerAnalytics() {
+export interface TrainerAnalytics {
+  totalPayoutCollected: number;
+  activeEnrolledStudentsCount: number;
+  trajectoryGraphData: Array<{ month: string; enrollments: number; earnings: number }>;
+}
+
+export async function getTrainerAnalytics(): Promise<ApiResponse<TrainerAnalytics>> {
   await delay(500);
   return {
     success: true,
@@ -710,7 +1015,13 @@ export async function getTrainerAnalytics() {
   };
 }
 
-export async function submitB2BRequest(payload) {
+export interface B2BRequestPayload {
+  companyName?: string;
+  contactName?: string;
+  requirementsNotes?: string;
+}
+
+export async function submitB2BRequest(payload: B2BRequestPayload): Promise<ApiResponse<{ ticketId: number; status: string }>> {
   await delay(800);
   if (!payload.requirementsNotes || payload.requirementsNotes.length < 20) {
     return {
@@ -734,12 +1045,19 @@ export async function submitB2BRequest(payload) {
 // MODULE 8: SYSTEM NOTIFICATIONS & GLOBAL OPERATION CONTROL (Feature 16, 17)
 // ============================================================================
 
-export async function getNotifications() {
+export async function getNotifications(): Promise<ApiResponse<Notification[]>> {
   await delay(300);
   return { success: true, data: mockNotifications };
 }
 
-export async function getAdminDashboardMetrics() {
+export interface AdminDashboardMetrics {
+  activeUserLoginsToday: number;
+  pendingReportFlagsCount: number;
+  serverResourceDistribution: 'optimal' | 'degraded' | string;
+  publishedCoursesCount: number;
+}
+
+export async function getAdminDashboardMetrics(): Promise<ApiResponse<AdminDashboardMetrics>> {
   await delay(500);
   return {
     success: true,
@@ -756,39 +1074,37 @@ export async function getAdminDashboardMetrics() {
 // MODULE 9: TRAINER PROFILE
 // ============================================================================
 
-// Trainer profiles are NOT stored as separate static objects. They are derived
-// dynamically from mockCourses (the same source of truth used by the course
-// catalog), keyed by course.trainerId. This keeps the trainer's courses/stats
-// always in sync with the actual course data, and lets any course's instructor
-// name link to its own real trainer page instead of a fixed/hardcoded one.
+interface TrainerContact {
+  email: string;
+  phone: string;
+  experience: number;
+}
 
-// Small pieces of contact info that don't live on a course record.
-const trainerContactInfo = {
+const trainerContactInfo: Record<string, TrainerContact> = {
   "ahmed-mohammed": { email: "ahmed.mohammed@capsule.com", phone: "+966500000011", experience: 8 },
   "sara-ali": { email: "sara.ali@capsule.com", phone: "+966500000012", experience: 6 },
   "abdullah-nasser": { email: "abdullah.nasser@capsule.com", phone: "+966500000013", experience: 10 },
   "noura-alfaisal": { email: "noura.alfaisal@capsule.com", phone: "+966500000014", experience: 7 },
 };
 
-// Generic feedback pool (mock placeholder, reused across trainers).
 const genericTrainerReviews = [
   { id: 1, name: "Khalid", rating: 5, date: "2026-07-01", comment: "Excellent trainer, very clear explanations." },
   { id: 2, name: "Lama", rating: 4, date: "2026-07-03", comment: "Very informative and well-structured sessions." },
 ];
 
-function buildTrainerProfile(trainerId) {
+function buildTrainerProfile(trainerId: string): TrainerProfile | null {
   const trainerCourses = mockCourses.filter(c => c.trainerId === trainerId);
   if (trainerCourses.length === 0) return null;
 
-  const base = trainerCourses[0].instructorProfile || {};
-  const contact = trainerContactInfo[trainerId] || {};
+  const base = trainerCourses[0].instructorProfile || {} as InstructorProfile;
+  const contact = trainerContactInfo[trainerId] || {} as Partial<TrainerContact>;
   const totalStudents = trainerCourses.reduce((sum, c) => sum + (c.students || 0), 0);
   const ratedCourses = trainerCourses.filter(c => c.rating);
   const avgRating = ratedCourses.length
     ? +(ratedCourses.reduce((sum, c) => sum + c.rating, 0) / ratedCourses.length).toFixed(1)
     : 0;
 
-  const derivedProfile = {
+  return {
     trainerId,
     name: trainerCourses[0].instructor,
     specialty: base.role || "Trainer",
@@ -797,32 +1113,35 @@ function buildTrainerProfile(trainerId) {
     phone: contact.phone || "+966500000000",
     experience: contact.experience || 5,
     avatarLetter: base.avatarLabel || trainerCourses[0].instructor.charAt(0),
-
     stats: {
       coursesCount: trainerCourses.length,
       studentsCount: totalStudents,
       rating: avgRating,
     },
-
     courses: trainerCourses.map(c => ({
       id: c.id,
       name: c.title,
       students: c.students,
       status: (c.status === "available" || c.status === "completed") ? "published" : "review",
     })),
-
     reviews: genericTrainerReviews,
   };
-
-  return derivedProfile;
 }
 
-export async function getTrainerProfile(trainerId) {
+export async function getTrainerProfile(trainerId?: string): Promise<ApiResponse<TrainerProfile>> {
   await delay(300);
 
-  // Backwards-compatible fallback: default to the first known trainer when no id is passed.
-  const id = trainerId || mockCourses.find(c => c.trainerId)?.trainerId;
-  const profile = buildTrainerProfile(id);
+  const fallbackId = trainerId || mockCourses.find(c => c.trainerId)?.trainerId;
+  
+  if (!fallbackId) {
+    return {
+      success: false,
+      error: "trainer_not_found",
+      details: { trainerId: "No trainers registered inside the catalogue." }
+    };
+  }
+
+  const profile = buildTrainerProfile(fallbackId);
 
   if (!profile) {
     return {
@@ -834,35 +1153,36 @@ export async function getTrainerProfile(trainerId) {
 
   return { success: true, data: profile };
 }
+
 // ============================================================================
 // MODULE 10: ADMIN IAM & USER MANAGEMENT DATA
 // ============================================================================
 
-let mockUsersPermissions = [
+let mockUsersPermissions: AdminUserRecord[] = [
   { id: 'USR-882', name: 'أحمد Mohammed', email: 'ahmed@capsule.com', role: 'Trainer', status: 'active' },
   { id: 'USR-412', name: 'Alex Mercer', email: 'alex.mercer@corporate.com', role: 'Student', status: 'active' },
   { id: 'USR-109', name: 'شركة التقنية المحدودة', email: 'b2b@tech.com', role: 'Company', status: 'active' },
   { id: 'USR-554', name: 'سارة Ali', email: 'sara@capsule.com', role: 'Trainer', status: 'suspended' }
 ];
 
-export async function getAllUsersForAdmin() {
+export async function getAllUsersForAdmin(): Promise<ApiResponse<AdminUserRecord[]>> {
   await delay(300);
   return { success: true, data: mockUsersPermissions };
 }
 
-export async function updateUserRoleInMock(userId, newRole) {
+export async function updateUserRoleInMock(userId: string, newRole: string): Promise<ApiResponse<void>> {
   await delay(200);
   mockUsersPermissions = mockUsersPermissions.map(user => 
-    user.id === userId ? { ...user, role: newRole } : user
+    user.id === userId ? { ...user, role: newRole as AdminUserRecord['role'] } : user
   );
   return { success: true };
 }
 
-export async function toggleUserStatusInMock(userId) {
+export async function toggleUserStatusInMock(userId: string): Promise<ApiResponse<void>> {
   await delay(200);
   mockUsersPermissions = mockUsersPermissions.map(user => {
     if (user.id === userId) {
-      const nextStatus = user.status === 'active' ? 'suspended' : 'active';
+      const nextStatus: 'active' | 'suspended' = user.status === 'active' ? 'suspended' : 'active';
       return { ...user, status: nextStatus };
     }
     return user;
