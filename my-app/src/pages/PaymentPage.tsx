@@ -6,9 +6,12 @@ import Footer from '../components/Footer';
 import { BanknotesIcon, CreditCardIcon } from '@heroicons/react/24/outline';
 import { CheckCircleIcon, SparklesIcon } from '@heroicons/react/24/solid';
 
-// استيراد الشعارات الرسمية لوسائل الدفع بالطريقة القياسية لـ Vite
+// 🔄 استيراد شعارات وسائل الدفع من مجلد assets
+// @ts-ignore
 import applePayLogo from '../assets/ApplePay.png';
+// @ts-ignore
 import moyasarLogo from '../assets/Moyassar.png';
+
 // ==========================================
 // 1. تعريف واجهات البيانات (TypeScript Interfaces)
 // ==========================================
@@ -107,8 +110,8 @@ export default function Payment() {
   const t: TranslationContent = translations[lang as 'ar' | 'en'] || translations['ar'];
 
   // ==========================================
-// 3. دوال تنسيق ومعالجة حقول الإدخال (Formatters)
-// ==========================================
+  // 3. دوال تنسيق ومعالجة حقول الإدخال (Formatters)
+  // ==========================================
 
   // تنسيق رقم البطاقة تلقائياً بوضع فراغ بعد كل 4 أرقام لمنع تشتت المستخدم (مثال: 1234 5678 9012 3456)
   const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
@@ -133,8 +136,8 @@ export default function Payment() {
   };
 
   // ==========================================
-// 4. التحقق البرمجي ومعالجة العملية (Validation)
-// ==========================================
+  // 4. التحقق البرمجي ومعالجة العملية (Validation)
+  // ==========================================
 
   // دالة التحقق من شروط وصلاحية بيانات البطاقة قبل تفعيل الدفع
   const validateForm = (): boolean => {
