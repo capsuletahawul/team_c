@@ -1,12 +1,63 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Navbar from "../components/Navbar.jsx";
-import Footer from "../components/Footer.jsx";
-import Button from "../components/Button.jsx";
-import { getCourses } from "../mocks/mockApi.js";
-import { useLanguage } from "../context/LanguageContext.jsx";
-
-const CARD_VISUALS = [
+import StudentNavbar from "../components/StudentNavbar";
+import Footer from "../components/Footer";
+import Button from "../components/Button";
+import { getCourses } from "../mocks/mockApi";
+import { useLanguage } from "../context/LanguageContext";
+ 
+// ---------- Types ----------
+ 
+// نوع الشارة التي قد تظهر على بطاقة الدورة.
+type BadgeKey = "new" | "popular" | null;
+ 
+interface CardVisual {
+  icon: string;
+  badgeKey: BadgeKey;
+  gradient: string;
+}
+ 
+interface Course {
+  id: string | number;
+  title: string;
+  description: string;
+  instructor: string;
+  category: string;
+  rating: number;
+  duration: number | string;
+  students: number;
+  price: number;
+}
+ 
+type TagKey = "programming" | "cybersecurity" | "cloud";
+type PriceLabel = "free" | "paid";
+type DurationLabel = "under20" | "over20";
+ 
+interface DynamicCourse extends Course, CardVisual {
+  tagKey: TagKey;
+  priceLabel: PriceLabel;
+  durationLabel: DurationLabel;
+}
+ 
+interface FiltersState {
+  category: string[];
+  price: string[];
+  duration: string[];
+}
+ 
+interface FilterItem {
+  label: string;
+  value: string | null;
+}
+ 
+interface FilterGroup {
+  key: keyof FiltersState;
+  label: string;
+  items: FilterItem[];
+}
+ 
+// إعدادات الألوان والأيقونات المستخدمة في بطاقات الدورات.
+const CARD_VISUALS: CardVisual[] = [
   { icon: "⚛", badgeKey: "new", gradient: "from-capsule-navy to-[#343A60]" },
   { icon: "◐", badgeKey: "popular", gradient: "from-[#537E84] to-[#7FB1BC]" },
   { icon: "🐍", badgeKey: null, gradient: "from-capsule-navy to-[#343A60]" },
@@ -16,120 +67,112 @@ const CARD_VISUALS = [
   { icon: "◎", badgeKey: null, gradient: "from-capsule-dark-gold to-capsule-gold" },
   { icon: "▦", badgeKey: null, gradient: "from-[#3E5F44] to-[#537E84]" }
 ];
-
-const EMPTY_FILTERS = { category: [], price: [], duration: [] };
-const CATEGORY_LABELS = {
+ 
+// القيم الافتراضية لجميع الفلاتر.
+const EMPTY_FILTERS: FiltersState = { category: [], price: [], duration: [] };
+// أسماء التصنيفات باللغتين العربية والإنجليزية.
+const CATEGORY_LABELS: Record<string, { ar: string; en: string }> = {
   programming: { ar: "برمجة", en: "Programming" },
   cybersecurity: { ar: "سايبر", en: "Cybersecurity" },
-  cloud: { ar: "كلاود", en: "Cloud Computing" },
+  cloud: { ar: "كلاود", en: "Cloud Computing" }
 };
-
-// مكونات صغيرة مدمجة لتوفير المساحة
-const CapsuleMark = ({ size = 40 }) => (
+ 
+// مكونات صغيرة مدمجة في سطر واحد
+// أيقونة الكبسولة المستخدمة في واجهة الصفحة.
+const CapsuleMark = ({ size = 18 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 64 64" fill="none" aria-hidden="true">
-    <linearGradient id="capsuleGrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stopColor="#7FB1BC" /><stop offset="0.5" stopColor="#164961" /><stop offset="1" stopColor="#537E84" />
-    </linearGradient>
+    <linearGradient id="capsuleGrad"><stop offset={0} stopColor="#7FB1BC" /><stop offset={0.5} stopColor="#164961" /><stop offset={1} stopColor="#537E84" /></linearGradient>
     <rect x="6" y="24" width="30" height="14" rx="7" transform="rotate(-18 21 31)" fill="url(#capsuleGrad)" />
     <rect x="28" y="26" width="30" height="14" rx="7" transform="rotate(-18 43 33)" fill="#FFD369" opacity="0.9" />
     <path d="M11 15 L13 20 L18 21 L13 22 L11 27 L9 22 L4 21 L9 20 Z" fill="#FFD369" />
   </svg>
 );
-
-const Star = ({ filled }) => (
+ 
+// مكون لعرض نجمة التقييم.
+const Star = ({ filled }: { filled: boolean }) => (
   <svg width="13" height="13" viewBox="0 0 24 24" fill={filled ? "#FFD369" : "none"} stroke="#FFD369" strokeWidth="1.5">
     <polygon points="12,2 15,9 22,9.5 16.5,14.5 18,22 12,18 6,22 7.5,14.5 2,9.5 9,9" />
   </svg>
 );
-
+ 
+// المكون الرئيسي المسؤول عن عرض الدورات مع البحث والفلترة والترتيب.
 export default function CoursesOverview() {
   const { t, lang } = useLanguage();
   const navigate = useNavigate();
   const l = t.coursesOverview;
   const isRTL = t.dir === "rtl";
-
-  const [openFilter, setOpenFilter] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sortIndex, setSortIndex] = useState(0);
-  const [draftFilters, setDraftFilters] = useState(EMPTY_FILTERS);
-  const [appliedFilters, setAppliedFilters] = useState(EMPTY_FILTERS);
-  const [courses, setCourses] = useState([]);
-  const [loading, setLoading] = useState(true);
-
+ 
+  const [openFilter, setOpenFilter] = useState<keyof FiltersState | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [sortIndex, setSortIndex] = useState<number>(0);
+  const [draftFilters, setDraftFilters] = useState<FiltersState>(EMPTY_FILTERS);
+  const [appliedFilters, setAppliedFilters] = useState<FiltersState>(EMPTY_FILTERS);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+ 
+  // جلب بيانات الدورات عند فتح الصفحة لأول مرة.
   useEffect(() => {
     let isMounted = true;
-    getCourses().then(res => {
-      if (isMounted && res.success) setCourses(res.data.courses);
-      setLoading(false);
-    });
+    getCourses().then((res) => {
+  if (isMounted && res.success && res.data) {
+    setCourses(res.data.courses);
+  }
+  setLoading(false);
+});
     return () => { isMounted = false; };
   }, []);
-
-  const dynamicCourses = useMemo(() => {
-    return courses.map((c, i) => {
-      const normCat = String(c.category || "").toLowerCase();
-      let tagKey = "programming";
-      if (/cyber|سيبراني|سايبر/.test(normCat)) tagKey = "cybersecurity";
-      if (/cloud|كلاود/.test(normCat)) tagKey = "cloud";
-
-      return {
-        ...CARD_VISUALS[i % CARD_VISUALS.length],
-        ...c,
-        tagKey,
-        level: String(c.level || "beginner").toLowerCase(),
-        priceLabel: c.price === 0 ? "free" : "paid",
-        durationLabel: (parseInt(c.duration) || 0) < 20 ? "under20" : "over20"
-      };
-    });
-  }, [courses]);
-
-  const filterGroups = useMemo(() => [
-    { 
-      key: "category", label: isRTL ? "التصنيف" : "Category", 
-      items: [{ label: isRTL ? "الكل" : "All", value: null }, ...Object.keys(CATEGORY_LABELS).map(k => ({ label: CATEGORY_LABELS[k]?.[isRTL ? "ar" : "en"] || k, value: k }))] 
-    },
-    { 
-      key: "price", label: isRTL ? "السعر" : "Price", 
-      items: [{ label: isRTL ? "الكل" : "All", value: null }, { label: isRTL ? "مجاني" : "Free", value: "free" }, { label: isRTL ? "مدفوع" : "Paid", value: "paid" }] 
-    },
-    { 
-      key: "duration", label: isRTL ? "المدة" : "Duration", 
-      items: [{ label: isRTL ? "الكل" : "All", value: null }, { label: isRTL ? "أقل من 20 ساعة" : "Under 20 hours", value: "under20" }, { label: isRTL ? "أكثر من 20 ساعة" : "Over 20 hours", value: "over20" }] 
-    },
+ 
+  // تجهيز بيانات الدورات وإضافة خصائص تساعد في العرض والفلترة.
+  const dynamicCourses: DynamicCourse[] = useMemo(() => courses.map((c, i) => {
+    const norm = String(c.category || "").toLowerCase();
+    const tagKey: TagKey = /cyber|سيبراني|سايبر/.test(norm) ? "cybersecurity" : /cloud|كلاود/.test(norm) ? "cloud" : "programming";
+    return {
+      ...CARD_VISUALS[i % CARD_VISUALS.length], ...c, tagKey,
+      priceLabel: (c.price === 0 ? "free" : "paid") as PriceLabel,
+      durationLabel: ((parseInt(String(c.duration)) || 0) < 20 ? "under20" : "over20") as DurationLabel
+    };
+  }), [courses]);
+ 
+  // إنشاء مجموعات الفلاتر المعروضة للمستخدم.
+  const filterGroups: FilterGroup[] = useMemo(() => [
+    { key: "category", label: isRTL ? "التصنيف" : "Category", items: [{ label: isRTL ? "الكل" : "All", value: null }, ...Object.keys(CATEGORY_LABELS).map(k => ({ label: CATEGORY_LABELS[k]?.[isRTL ? "ar" : "en"] || k, value: k }))] },
+    { key: "price", label: isRTL ? "السعر" : "Price", items: [{ label: isRTL ? "الكل" : "All", value: null }, { label: isRTL ? "مجاني" : "Free", value: "free" }, { label: isRTL ? "مدفوع" : "Paid", value: "paid" }] },
+    { key: "duration", label: isRTL ? "المدة" : "Duration", items: [{ label: isRTL ? "الكل" : "All", value: null }, { label: isRTL ? "أقل من 20 ساعة" : "Under 20 hours", value: "under20" }, { label: isRTL ? "أكثر من 20 ساعة" : "Over 20 hours", value: "over20" }] }
   ], [isRTL]);
-
-  const toggleFilterValue = (groupKey, value, idx) => {
+ 
+  // إضافة أو إزالة خيار من الفلاتر مع التعامل مع خيار (الكل).
+  const toggleFilterValue = (groupKey: keyof FiltersState, value: string | null, idx: number) => {
     setDraftFilters(prev => {
-      if (idx === 0) return { ...prev, [groupKey]: [] };
+      if (idx === 0 || value === null) return { ...prev, [groupKey]: [] };
       const current = prev[groupKey];
       const next = current.includes(value) ? current.filter(v => v !== value) : [...current, value];
-      return next.length === filterGroups.find(g => g.key === groupKey).items.length - 1 ? { ...prev, [groupKey]: [] } : { ...prev, [groupKey]: next };
+      const group = filterGroups.find(g => g.key === groupKey)!;
+      return next.length === group.items.length - 1 ? { ...prev, [groupKey]: [] } : { ...prev, [groupKey]: next };
     });
   };
-
+ 
+  // تطبيق البحث والفلاتر والترتيب للحصول على النتائج النهائية.
   const processedCourses = useMemo(() => {
     const q = searchQuery.toLowerCase();
     return dynamicCourses
       .filter(c => {
         const matchesSearch = !q || c.title?.toLowerCase().includes(q) || c.instructor?.toLowerCase().includes(q);
-        const matchesKey = (k, prop) => !appliedFilters[k]?.length || appliedFilters[k].includes(c[prop]);
+        const matchesKey = (k: keyof FiltersState, prop: keyof DynamicCourse) => !appliedFilters[k]?.length || appliedFilters[k].includes(String(c[prop]));
         return matchesSearch && matchesKey("category", "tagKey") && matchesKey("price", "priceLabel") && matchesKey("duration", "durationLabel");
       })
       .sort((a, b) => sortIndex === 0 ? b.rating - a.rating : a.price - b.price);
   }, [searchQuery, sortIndex, dynamicCourses, appliedFilters]);
-
+ 
   return (
     <div className="min-h-screen bg-capsule-bg text-capsule-navy font-sans antialiased flex flex-col" dir={t.dir} lang={lang}>
-      {/* التعديل هنا فقط: تم إرجاع المكون الاصلي مع الخاصية لضبط تسجيل الخروج */}
-      <Navbar activePage="courses" showAuthButtons={true} />
-      
+      <StudentNavbar activePage="courses" />
       <main className="flex-grow">
-        
-        {/* Hero Section */}
+ 
+        {/* قسم الترحيب الرئيسي */}
         <section className="relative bg-gradient-to-tr from-[#7FB1BC] via-capsule-navy to-[#537E84] overflow-hidden py-14 lg:py-20 min-h-[320px]">
           <div className="max-w-7xl mx-auto flex items-center px-6 text-white relative z-10">
             <div className="flex-1">
-              <span className="inline-flex items-center gap-2 bg-white/10 border border-white/30 px-3.5 py-1.5 rounded-full text-[13px] font-bold mb-4.5"><CapsuleMark size={18} /> {l.hero.eyebrow}</span>
+              <span className="inline-flex items-center gap-2 bg-white/10 border border-white/30 px-3.5 py-1.5 rounded-full text-[13px] font-bold mb-4.5"><CapsuleMark /> {l.hero.eyebrow}</span>
               <h1 className="text-4xl font-extrabold mb-3.5">{l.hero.title}</h1>
               <p className="text-[15.5px] opacity-90 max-w-lg mb-6.5">{l.hero.desc}</p>
               <div className="flex gap-3.5">
@@ -143,8 +186,8 @@ export default function CoursesOverview() {
             </div>
           </div>
         </section>
-
-        {/* Filters Bar */}
+ 
+        {/* شريط البحث والفلاتر */}
         <section className="bg-white border-b border-gray-200 relative z-30">
           <div className="max-w-7xl mx-auto px-6 py-4 flex flex-wrap gap-3 items-center">
             <div className="flex items-center gap-2 bg-capsule-bg border border-gray-200 rounded-full px-4 py-2 flex-1 min-w-[220px]">
@@ -162,7 +205,7 @@ export default function CoursesOverview() {
                       <div className={`absolute z-40 mt-2 w-56 bg-white border border-gray-200 rounded-xl shadow-lg p-3 flex flex-col gap-2 ${isRTL ? "right-0 text-right" : "left-0 text-left"}`}>
                         {g.items.map((it, idx) => (
                           <label key={idx} className="flex items-center gap-2.5 text-[13.5px] cursor-pointer text-gray-700 hover:text-black py-0.5 w-full justify-start select-none">
-                            <input type="checkbox" checked={idx === 0 ? draftFilters[g.key].length === 0 : draftFilters[g.key].includes(it.value)} onChange={() => toggleFilterValue(g.key, it.value, idx)} className="accent-capsule-teal w-4 h-4 shrink-0" />
+                            <input type="checkbox" checked={idx === 0 || it.value === null ? draftFilters[g.key].length === 0 : draftFilters[g.key].includes(it.value)} onChange={() => toggleFilterValue(g.key, it.value, idx)} className="accent-capsule-teal w-4 h-4 shrink-0" />
                             <span className="leading-none">{it.label}</span>
                           </label>
                         ))}
@@ -176,8 +219,8 @@ export default function CoursesOverview() {
             <button className="bg-white border border-gray-200 rounded-full px-4 py-2 text-[13px] font-semibold text-capsule-navy hover:bg-gray-50 transition-colors" onClick={() => { setDraftFilters(EMPTY_FILTERS); setAppliedFilters(EMPTY_FILTERS); setOpenFilter(null); }}>{isRTL ? "إزالة الفلاتر" : "Clear Filters"}</button>
           </div>
         </section>
-
-        {/* Content Section */}
+ 
+        {/* قسم عرض الدورات والتنقل بين الصفحات */}
         <section className="max-w-7xl mx-auto px-6 pt-7 pb-15 w-full">
           <div className="flex justify-between items-center mb-4.5 flex-wrap gap-2.5">
             <span className="font-bold text-capsule-navy">{isRTL ? `دورات (${processedCourses.length})` : `Courses (${processedCourses.length})`}</span>
@@ -189,7 +232,7 @@ export default function CoursesOverview() {
               </select>
             </div>
           </div>
-
+ 
           {loading ? (
             <div className="text-center py-12 text-gray-500">{isRTL ? "جاري التحميل..." : "Loading..."}</div>
           ) : processedCourses.length > 0 ? (
@@ -221,8 +264,8 @@ export default function CoursesOverview() {
           ) : (
             <div className="bg-white border border-gray-200 rounded-2xl p-10 text-center text-gray-500">{isRTL ? "لا توجد نتائج مطابقة." : "No matching results."}</div>
           )}
-
-          {/* Pagination */}
+ 
+          {/* أزرار التنقل بين الصفحات */}
           <div className="flex justify-center items-center gap-2 mt-9 flex-wrap">
             <button className="border border-gray-200 bg-white rounded-lg px-3 py-2 text-[13px] text-capsule-navy font-medium hover:bg-gray-50">{isRTL ? "›" : "‹"} {l.results.prev}</button>
             {[1, 2, 3, 4].map(n => <button key={n} className={`border rounded-lg px-3 py-2 text-[13px] font-medium transition-colors ${n === 1 ? "bg-capsule-teal text-white border-capsule-teal" : "border-gray-200 bg-white text-capsule-navy hover:bg-gray-50"}`}>{n}</button>)}
@@ -234,3 +277,4 @@ export default function CoursesOverview() {
     </div>
   );
 }
+ 

@@ -1,4 +1,4 @@
-// src/pages/SignUp.jsx
+// صفحة إنشاء حساب جديد.
 import React, { useState, ChangeEvent, FormEvent } from "react";
 
 import { useNavigate } from "react-router-dom";
@@ -14,35 +14,42 @@ import "../styles/auth.css";
  * - onToggleLang: دالة لتبديل اللغة
  * - onGoToSignIn: دالة للتنقل إلى صفحة تسجيل الدخول
  */
+// الخصائص التي يستقبلها المكون من الصفحة الرئيسية.
 interface SignUpProps {
   lang: string;
   onToggleLang: () => void;
   onGoToSignIn: () => void;
 }
 
+// المكون الرئيسي المسؤول عن إنشاء حساب جديد.
 export default function SignUp({ lang, onToggleLang, onGoToSignIn }: SignUpProps) {
+  // تحديد ما إذا كانت كلمة المرور ظاهرة أو مخفية.
   const [showPw, setShowPw] = useState<boolean>(false);
+  // تخزين كلمة المرور التي يدخلها المستخدم.
   const [pwValue, setPwValue] = useState<string>("");
+  // تخزين نوع الحساب الذي يختاره المستخدم.
   const [role, setRole] = useState<number>(0);
 
   const navigate = useNavigate();
 
+// تخزين اسم المستخدم.
 const [name, setName] = useState<string>("");
+// تخزين البريد الإلكتروني.
 const [email, setEmail] = useState<string>("");
 
 
   const t = COPY[lang as keyof typeof COPY];
   const form = t.signup;
 
+  // حساب مستوى قوة كلمة المرور.
   const pwStrength =
-  pwValue.length === 0
-    ? -1
-    : pwValue.length < 6
+  pwValue.length < 6
     ? 0
     : pwValue.length < 10
     ? 1
     : 2;
 
+// التحقق من استيفاء كلمة المرور لجميع الشروط المطلوبة.
 const passwordChecks = {
   length: pwValue.length >= 8,
   uppercase: /[A-Z]/.test(pwValue),
@@ -52,6 +59,7 @@ const passwordChecks = {
 };
 
 
+// التحقق من صحة البيانات ثم إنشاء الحساب وتوجيه المستخدم حسب نوعه.
 const handleSignUp = (e: FormEvent<HTMLFormElement>) => {
   e.preventDefault();
 
@@ -98,7 +106,7 @@ if (!isPasswordValid) {
   return (
     <div className="auth-root" dir={t.dir} lang={lang}>
       <div className="auth-shell">
-        {/* ---------- الجزء البصري ---------- */}
+        {/* القسم الخاص بالشكل والتصميم */}
         <div className="auth-visual">
           <button className="lang-toggle" onClick={onToggleLang}>
             {lang === "ar" ? "EN" : "AR"}
@@ -118,7 +126,7 @@ if (!isPasswordValid) {
           </div>
         </div>
 
-        {/* ---------- الفورم ---------- */}
+        {/* نموذج إنشاء الحساب */}
         <div className="auth-form-side">
           <div className="auth-form-wrap">
             <div className="auth-tabs">
@@ -131,6 +139,7 @@ if (!isPasswordValid) {
             <p className="auth-subtitle">{form.subtitle}</p>
 
 
+{/* نموذج إدخال بيانات إنشاء الحساب */}
 <form className="auth-form" onSubmit={handleSignUp}>
 
 
@@ -192,6 +201,7 @@ if (!isPasswordValid) {
 
 
 
+ {/* عرض شروط كلمة المرور للمستخدم */}
  <div className="password-rules">
 
   <div className="rule">
@@ -248,6 +258,7 @@ if (!isPasswordValid) {
 
             <div className="divider"><span>{form.or}</span></div>
 
+            {/* أزرار التسجيل باستخدام وسائل التواصل */}
             <div className="social-row">
               {t.social.map((s: string, i: number) => (
                 <button key={i} className="social-btn">
