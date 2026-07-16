@@ -94,6 +94,22 @@ const handleLogin = (e: FormEvent<HTMLFormElement>) => {
         {/* نموذج تسجيل الدخول */}
         <div className="auth-form-side">
           <div className="auth-form-wrap">
+
+<div
+  style={{
+    textAlign: lang === "ar" ? "left" : "right",
+    marginBottom: "16px",
+  }}
+>
+  <button
+    type="button"
+    onClick={() => navigate("/")}
+    className="text-[#0f4c81] font-semibold"
+  >
+    {lang === "ar" ? "← رجوع" : "Back →"}
+  </button>
+</div>
+
             <div className="auth-tabs">
               <button className="is-active">{t.tabs.login}</button>
               <button onClick={onGoToSignUp}>{t.tabs.signup}</button>
