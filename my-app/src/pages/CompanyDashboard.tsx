@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import Navbar from '../components/Navbar.jsx';
 import Footer from '../components/Footer.jsx';
@@ -12,24 +12,88 @@ import {
   ClockIcon, 
   ChartBarIcon, 
   CheckCircleIcon,
-  XCircleIcon,
   ArrowPathIcon
 } from '@heroicons/react/24/outline';
+
+// --- DATA STRUCTURES (INTERFACES) ---
+
+interface TicketItem {
+  id: string;
+  program: string;
+  count: number;
+  date: string;
+  status: 'review' | 'issued' | 'approved';
+  domain: string;
+  base: number;
+  discount: number;
+}
+
+interface EmployeeItem {
+  id: number;
+  name: string;
+  progress: number;
+}
+
+interface FormState {
+  program: string;
+  count: string;
+  budget: string;
+  domain: string;
+}
+
+interface DictionarySchema {
+  title: string;
+  subtitle: string;
+  tabRequest: string;
+  tabTickets: string;
+  tabAnalytics: string;
+  formTitle: string;
+  progName: string;
+  empCount: string;
+  budget: string;
+  domain: string;
+  rfpLabel: string;
+  rfpHint: string;
+  btnSubmit: string;
+  toastSuccess: string;
+  tableTitle: string;
+  searchPlaceholder: string;
+  thId: string;
+  thProgram: string;
+  thDate: string;
+  thStatus: string;
+  thAction: string;
+  statusReview: string;
+  statusIssued: string;
+  statusApproved: string;
+  viewQuoteBtn: string;
+  quoteHeader: string;
+  basePrice: string;
+  groupDiscount: string;
+  totalPrice: string;
+  btnAcceptQuote: string;
+  btnAmendQuote: string;
+  cardActiveEmp: string;
+  cardHours: string;
+  cardProgress: string;
+  exportBtn: string;
+  empListTitle: string;
+  thEmpName: string;
+  thEmpProgress: string;
+}
+
+// --- COMPONENT START ---
 
 export default function CompanyDashboard() {
   const { t, lang } = useLanguage();
   
-  // 1. Dual-Language Translation Dictionary Mapping
-  const l = t.companyDashboard || {
+  // 1. Dual-Language Translation Fallback Safeguard Matrix
+  const l: DictionarySchema = (t as any).companyDashboard || {
     title: lang === 'ar' ? 'لوحة تحكم الشركات' : 'Company Dashboard',
     subtitle: lang === 'ar' ? 'إدارة المعسكرات المخصصة، تتبع عروض الأسعار، ومراقبة أداء الموظفين.' : 'Manage custom bootcamps, track quotations, and monitor employee metrics.',
-    
-    // Tab Headers
     tabRequest: lang === 'ar' ? 'طلب معسكر مخصص' : 'Request Bootcamp',
     tabTickets: lang === 'ar' ? 'متابعة عروض الأسعار' : 'Quotations & Tickets',
     tabAnalytics: lang === 'ar' ? 'إحصائيات الموظفين' : 'Employees Analytics',
-
-    // Form
     formTitle: lang === 'ar' ? 'طلب برنامج تدريبي مخصص للشركات' : 'Request Custom B2B Training',
     progName: lang === 'ar' ? 'اسم البرنامج التدريبي' : 'Program Name',
     empCount: lang === 'ar' ? 'عدد الموظفين المستهدفين' : 'Target Employees Count',
@@ -39,8 +103,6 @@ export default function CompanyDashboard() {
     rfpHint: lang === 'ar' ? 'اسحب وأفلت الملف هنا أو انقر للاختيار (PDF, DOCX)' : 'Drag & drop your file here or click to browse (PDF, DOCX)',
     btnSubmit: lang === 'ar' ? 'إرسال طلب المعسكر الإستراتيجي' : 'Submit Strategic Request',
     toastSuccess: lang === 'ar' ? '✨ تم إرسال طلبك بنجاح! تم إنشاء تذكرة جديدة وقيد المراجعة الإدارية.' : '✨ Request submitted successfully! A tracking ticket has been opened.',
-
-    // Tickets Table
     tableTitle: lang === 'ar' ? 'سجل تذاكر وعروض أسعار الـ B2B' : 'B2B Tickets & Quotation Log',
     searchPlaceholder: lang === 'ar' ? 'بحث برقم التذكرة أو البرنامج...' : 'Search by ticket ID or program...',
     thId: lang === 'ar' ? 'رقم التذكرة' : 'Ticket ID',
@@ -52,16 +114,12 @@ export default function CompanyDashboard() {
     statusIssued: lang === 'ar' ? 'تم إصدار عرض السعر' : 'Quotation Issued',
     statusApproved: lang === 'ar' ? 'معتمد ومقبول' : 'Approved',
     viewQuoteBtn: lang === 'ar' ? 'عرض السعر المخصص' : 'View Custom Quote',
-    
-    // Quotation Modal
     quoteHeader: lang === 'ar' ? 'تفاصيل عرض السعر المالي المخصص' : 'Custom Financial Quotation Details',
     basePrice: lang === 'ar' ? 'الرسوم الأساسية لكل موظف' : 'Base Fee Per Employee',
     groupDiscount: lang === 'ar' ? 'خصم المجموعات والشركات' : 'Corporate Group Discount',
     totalPrice: lang === 'ar' ? 'إجمالي الصافي المستحق' : 'Net Total Amount',
     btnAcceptQuote: lang === 'ar' ? 'قبول واعتماد العرض المالي' : 'Accept & Approve Quote',
     btnAmendQuote: lang === 'ar' ? 'طلب تعديل العرض' : 'Request Amendment',
-
-    // Analytics Cards
     cardActiveEmp: lang === 'ar' ? 'الموظفين النشطين حالياً' : 'Currently Active Employees',
     cardHours: lang === 'ar' ? 'الساعات التدريبية المنجزة' : 'Training Hours Completed',
     cardProgress: lang === 'ar' ? 'نسبة التقدم الإجمالية' : 'Overall Progress Rate',
@@ -71,34 +129,34 @@ export default function CompanyDashboard() {
     thEmpProgress: lang === 'ar' ? 'نسبة الإنجاز' : 'Completion Rate'
   };
 
-  // Mock initial tickets state to support fully functional interaction
-  const [tickets, setTickets] = useState([
+  // State Management Engine
+  const [tickets, setTickets] = useState<TicketItem[]>([
     { id: 'TKT-9021', program: 'Cybersecurity Blue Team Bootcamp', count: 25, date: '2026-07-01', status: 'issued', domain: 'Cybersecurity', base: 4500, discount: 15 },
     { id: 'TKT-8411', program: 'Generative AI & LLMs Enterprise Track', count: 12, date: '2026-07-09', status: 'review', domain: 'Artificial Intelligence', base: 6000, discount: 10 },
     { id: 'TKT-7102', program: 'Cloud Native DevOps Architectures', count: 40, date: '2026-06-15', status: 'approved', domain: 'Cloud Computing', base: 3800, discount: 20 },
   ]);
 
-  const [employees] = useState([
+  const [employees] = useState<EmployeeItem[]>([
     { id: 1, name: lang === 'ar' ? 'أحمد بن عبد الله' : 'Ahmed Bin Abdullah', progress: 84 },
     { id: 2, name: lang === 'ar' ? 'سارة القحطاني' : 'Sara Al-Qahtani', progress: 92 },
     { id: 3, name: lang === 'ar' ? 'خالد الشمري' : 'Khaled Al-Shammari', progress: 41 },
     { id: 4, name: lang === 'ar' ? 'ريم الدوسري' : 'Reem Al-Dossary', progress: 100 },
   ]);
 
-  // UI States
-  const [activeTab, setActiveTab] = useState('request'); // request | tickets | analytics
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [showToast, setShowToast] = useState(false);
-  const [selectedQuote, setSelectedQuote] = useState(null); // stores active ticket item for popup modal
+  // UI Navigation & View Screen Switches
+  const [activeTab, setActiveTab] = useState<'request' | 'tickets' | 'analytics'>('request');
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [showToast, setShowToast] = useState<boolean>(false);
+  const [selectedQuote, setSelectedQuote] = useState<TicketItem | null>(null);
 
-  // Form States
-  const [form, setForm] = useState({ program: '', count: '', budget: '', domain: 'Cybersecurity' });
-  const [uploadedFileName, setUploadedFileName] = useState('');
+  // Form Input Tracking Structure
+  const [form, setForm] = useState<FormState>({ program: '', count: '', budget: '', domain: 'Cybersecurity' });
+  const [uploadedFileName, setUploadedFileName] = useState<string>('');
 
-  const handleFormSubmit = (e) => {
+  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const newTicket = {
+    const newTicket: TicketItem = {
       id: `TKT-${Math.floor(1000 + Math.random() * 9000)}`,
       program: form.program,
       count: parseInt(form.count) || 10,
@@ -116,13 +174,13 @@ export default function CompanyDashboard() {
     setTimeout(() => setShowToast(false), 5000);
   };
 
-  const handleFileUpload = (e) => {
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setUploadedFileName(e.target.files[0].name);
     }
   };
 
-  const handleUpdateQuoteStatus = (ticketId, nextStatus) => {
+  const handleUpdateQuoteStatus = (ticketId: string, nextStatus: 'review' | 'issued' | 'approved') => {
     setTickets(tickets.map(tkt => tkt.id === ticketId ? { ...tkt, status: nextStatus } : tkt));
     setSelectedQuote(null);
   };
@@ -131,7 +189,6 @@ export default function CompanyDashboard() {
     alert(lang === 'ar' ? 'جاري إنشاء وتصدير ملف التقرير المالي الشامل...' : 'Generating and exporting complete data report stream...');
   };
 
-  // Filter conditions for B2B Tickets matching requirement #4
   const filteredTickets = tickets.filter(tkt => {
     const matchesSearch = tkt.program.toLowerCase().includes(searchTerm.toLowerCase()) || tkt.id.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || tkt.status === statusFilter;
@@ -142,7 +199,6 @@ export default function CompanyDashboard() {
     <div className="min-h-screen bg-slate-50/50 font-sans text-slate-800 selection:bg-[#00A499]/10" dir={t.dir}>
       <Navbar activePage="dashboard" />
 
-      {/* Success Animated Floating Toast System */}
       {showToast && (
         <div className="fixed bottom-6 right-6 left-6 md:left-auto md:w-[450px] bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-5 py-4 rounded-2xl shadow-xl z-50 flex items-center gap-3 animate-bounce border border-emerald-400/20">
           <CheckCircleIcon className="w-6 h-6 flex-shrink-0 text-emerald-200" />
@@ -150,7 +206,6 @@ export default function CompanyDashboard() {
         </div>
       )}
 
-      {/* Hero Header Context */}
       <div className="relative overflow-hidden bg-gradient-to-br from-[#0D4C54] via-[#0A3A40] to-[#021E22] text-white pt-24 pb-16">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,164,153,0.12),transparent_50%)]"></div>
         <div className="max-w-7xl mx-auto px-6 relative z-10">
@@ -163,26 +218,22 @@ export default function CompanyDashboard() {
         </div>
       </div>
 
-      {/* Primary Dashboard Layout Workspace Container */}
       <div className="max-w-7xl mx-auto px-6 py-10">
-        
-        {/* Navigation Section / Custom Segmented Tabs Selection layout */}
         <div className="flex border-b border-slate-200/80 mb-8 gap-1 md:gap-2 overflow-x-auto">
-          <button onClick={() => setActiveTab('request')} className={`whitespace-nowrap px-4 py-3 font-black text-xs md:text-sm transition-all border-b-2 cursor-pointer ${activeTab === 'request' ? 'border-[#00A499] text-[#00A499]' : 'border-transparent text-slate-400 hover:text-slate-600'}`}>
+          <button onClick={() => setActiveTab('request')} className={`whitespace-nowrap px-4 py-3 font-black text-xs md:text-sm transition-all border-b-2 cursor-pointer ${activeTab === 'request' ? 'border-b-[#00A499] text-[#00A499]' : 'border-b-transparent text-slate-400 hover:text-slate-600'}`}>
             <PlusCircleIcon className="w-4 h-4 inline-block mx-1" />
             {l.tabRequest}
           </button>
-          <button onClick={() => setActiveTab('tickets')} className={`whitespace-nowrap px-4 py-3 font-black text-xs md:text-sm transition-all border-b-2 cursor-pointer ${activeTab === 'tickets' ? 'border-[#00A499] text-[#00A499]' : 'border-transparent text-slate-400 hover:text-slate-600'}`}>
+          <button onClick={() => setActiveTab('tickets')} className={`whitespace-nowrap px-4 py-3 font-black text-xs md:text-sm transition-all border-b-2 cursor-pointer ${activeTab === 'tickets' ? 'border-b-[#00A499] text-[#00A499]' : 'border-b-transparent text-slate-400 hover:text-slate-600'}`}>
             <TicketIcon className="w-4 h-4 inline-block mx-1" />
             {l.tabTickets}
           </button>
-          <button onClick={() => setActiveTab('analytics')} className={`whitespace-nowrap px-4 py-3 font-black text-xs md:text-sm transition-all border-b-2 cursor-pointer ${activeTab === 'analytics' ? 'border-[#00A499] text-[#00A499]' : 'border-transparent text-slate-400 hover:text-slate-600'}`}>
+          <button onClick={() => setActiveTab('analytics')} className={`whitespace-nowrap px-4 py-3 font-black text-xs md:text-sm transition-all border-b-2 cursor-pointer ${activeTab === 'analytics' ? 'border-b-[#00A499] text-[#00A499]' : 'border-b-transparent text-slate-400 hover:text-slate-600'}`}>
             <ChartBarIcon className="w-4 h-4 inline-block mx-1" />
             {l.tabAnalytics}
           </button>
         </div>
 
-        {/* 1️⃣ TAB CONTENT: BOOTCAMP REGISTRATION/REQUEST FORM */}
         {activeTab === 'request' && (
           <div className="max-w-3xl bg-white border border-slate-100 rounded-3xl p-6 md:p-8 shadow-sm relative overflow-hidden">
             <div className="absolute top-0 inset-x-0 h-2 bg-gradient-to-r from-[#00A499] to-[#0D4C54]"></div>
@@ -218,7 +269,6 @@ export default function CompanyDashboard() {
                 </select>
               </div>
 
-              {/* RFP Requirements Upload UI Component Box */}
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-500">{l.rfpLabel}</label>
                 <div className="relative border-2 border-dashed border-slate-200 hover:border-[#00A499] bg-slate-50/50 rounded-2xl p-6 transition-all text-center cursor-pointer group">
@@ -237,7 +287,6 @@ export default function CompanyDashboard() {
           </div>
         )}
 
-        {/* 2️⃣ TAB CONTENT: TICKETS TRACKING AND PROPOSAL AUDITING */}
         {activeTab === 'tickets' && (
           <div className="bg-white border border-slate-100 rounded-3xl shadow-sm overflow-hidden">
             <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -246,7 +295,6 @@ export default function CompanyDashboard() {
                 {l.tableTitle}
               </h2>
               
-              {/* Dynamic Filtering Panel Matching UX Section #4 */}
               <div className="flex flex-wrap items-center gap-3">
                 <input type="text" placeholder={l.searchPlaceholder} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:border-[#00A499] max-w-[200px]" />
                 <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:border-[#00A499] cursor-pointer">
@@ -309,10 +357,8 @@ export default function CompanyDashboard() {
           </div>
         )}
 
-        {/* 3️⃣ TAB CONTENT: ANALYTICS & INTERACTIVE PROGRESS OVERVIEW */}
         {activeTab === 'analytics' && (
           <div className="space-y-8 animate-fade-in">
-            {/* KPI Cards Framework Metric Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm flex items-center gap-4">
                 <div className="w-12 h-12 rounded-xl bg-[#00A499]/10 flex items-center justify-center text-[#00A499]"><UserGroupIcon className="w-6 h-6" /></div>
@@ -328,7 +374,6 @@ export default function CompanyDashboard() {
               </div>
             </div>
 
-            {/* Employees Progress Tracking List Board */}
             <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
@@ -364,7 +409,6 @@ export default function CompanyDashboard() {
 
       </div>
 
-      {/* 2️⃣ MODAL: INTERACTIVE QUOTATION OVERLAY VIEW SCREEN */}
       {selectedQuote && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-fade-in">
           <div className="bg-white rounded-3xl max-w-xl w-full p-6 md:p-8 shadow-2xl border border-slate-100 relative max-h-[90vh] overflow-y-auto">
