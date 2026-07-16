@@ -37,6 +37,8 @@ const [name, setName] = useState<string>("");
 // تخزين البريد الإلكتروني.
 const [email, setEmail] = useState<string>("");
 
+//
+const [acceptedTerms, setAcceptedTerms] = useState<boolean>(false);
 
   const t = COPY[lang as keyof typeof COPY];
   const form = t.signup;
@@ -68,6 +70,16 @@ const handleSignUp = (e: FormEvent<HTMLFormElement>) => {
     alert("يرجى تعبئة جميع الحقول");
     return;
   }
+
+  // التحقق من قبول الشروط
+if (!acceptedTerms) {
+  alert(
+    lang === "ar"
+      ? "يجب الموافقة على الشروط والأحكام أولاً."
+      : "You must accept the Terms and Conditions first."
+  );
+  return;
+}
 
   const isPasswordValid =
   passwordChecks.length &&
@@ -129,6 +141,22 @@ if (!isPasswordValid) {
         {/* نموذج إنشاء الحساب */}
         <div className="auth-form-side">
           <div className="auth-form-wrap">
+
+<div
+  style={{
+    textAlign: lang === "ar" ? "left" : "right",
+    marginBottom: "16px",
+  }}
+>
+  <button
+    type="button"
+    onClick={() => navigate("/")}
+    className="text-[#0f4c81] font-semibold"
+  >
+    {lang === "ar" ? "← رجوع" : "Back →"}
+  </button>
+</div>
+
             <div className="auth-tabs">
               <button onClick={onGoToSignIn}>{t.tabs.login}</button>
               <button className="is-active">{t.tabs.signup}</button>
@@ -202,35 +230,44 @@ if (!isPasswordValid) {
 
 
  {/* عرض شروط كلمة المرور للمستخدم */}
- <div className="password-rules">
+<div className="password-rules">
 
   <div className="rule">
     <span className={`rule-dot ${passwordChecks.length ? "valid" : ""}`}></span>
-    <span>8 أحرف على الأقل</span>
+    <span>
+      {lang === "ar" ? "8 أحرف على الأقل" : "At least 8 characters"}
+    </span>
   </div>
 
   <div className="rule">
     <span className={`rule-dot ${passwordChecks.uppercase ? "valid" : ""}`}></span>
-    <span>حرف كبير (A-Z)</span>
+    <span>
+      {lang === "ar" ? "حرف كبير (A-Z)" : "Uppercase letter (A-Z)"}
+    </span>
   </div>
 
   <div className="rule">
     <span className={`rule-dot ${passwordChecks.lowercase ? "valid" : ""}`}></span>
-    <span>حرف صغير (a-z)</span>
+    <span>
+      {lang === "ar" ? "حرف صغير (a-z)" : "Lowercase letter (a-z)"}
+    </span>
   </div>
 
   <div className="rule">
     <span className={`rule-dot ${passwordChecks.number ? "valid" : ""}`}></span>
-    <span>رقم (0-9)</span>
+    <span>
+      {lang === "ar" ? "رقم (0-9)" : "Number (0-9)"}
+    </span>
   </div>
 
   <div className="rule">
     <span className={`rule-dot ${passwordChecks.special ? "valid" : ""}`}></span>
-    <span>رمز خاص (!@#$)</span>
+    <span>
+      {lang === "ar" ? "رمز خاص (!@#$)" : "Special character (!@#$)"}
+    </span>
   </div>
-   </div>
 
-
+</div>
 
               <div className="field">
                 <label>{form.role}</label>
@@ -249,9 +286,13 @@ if (!isPasswordValid) {
               </div>
 
               <label className="checkbox terms-check">
-                <input type="checkbox" />
-                <span>{form.terms}</span>
-              </label>
+  <input
+    type="checkbox"
+    checked={acceptedTerms}
+    onChange={(e) => setAcceptedTerms(e.target.checked)}
+  />
+  <span>{form.terms}</span>
+</label>
 
               <button type="submit" className="submit-btn">{form.submit}</button>
             </form>
