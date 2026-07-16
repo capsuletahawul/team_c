@@ -241,6 +241,16 @@ export default function CoursesOverview() {
                 <article className="bg-white border border-gray-200 rounded-2xl overflow-hidden flex flex-col transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:shadow-capsule-navy/10" key={c.id || i}>
                   <div className={`h-[120px] relative flex items-center justify-center bg-gradient-to-br ${c.gradient}`}>
                     <span className="text-[34px] text-white drop-shadow-md">{c.icon}</span>
+                    
+                    <button
+  type="button"
+  onClick={() => alert("تمت إضافة الدورة إلى السلة")}
+  className="absolute top-2.5 left-2.5 bg-white/85 border-none rounded-full w-7 h-7 cursor-pointer flex items-center justify-center shadow-sm hover:bg-white transition"
+  aria-label="cart"
+>
+  <span className="text-base">🛒</span>
+</button>
+                    
                     {c.badgeKey && <span className={`absolute top-2.5 bg-capsule-gold text-capsule-navy text-[11px] font-extrabold px-2.5 py-1 rounded-full ${isRTL ? 'right-2.5' : 'left-2.5'}`}>{l.results.badges[c.badgeKey]}</span>}
                   </div>
                   <div className="p-4 flex flex-col gap-2 flex-1">
