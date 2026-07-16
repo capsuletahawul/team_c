@@ -1,5 +1,5 @@
-// src/pages/SignIn.jsx
-import React from "react";
+// صفحة تسجيل الدخول.
+import React, { ChangeEvent, FormEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 
@@ -14,18 +14,30 @@ import "../styles/auth.css";
  * - onToggleLang: دالة لتبديل اللغة
  * - onGoToSignUp: دالة للتنقل إلى صفحة إنشاء الحساب
  */
-export default function SignIn({ lang, onToggleLang, onGoToSignUp }) {
-  const [showPw, setShowPw] = React.useState(false);
+// الخصائص التي يستقبلها المكون من الصفحة الرئيسية.
+interface SignInProps {
+  lang: string;
+  onToggleLang: () => void;
+  onGoToSignUp: () => void;
+}
+
+// المكون الرئيسي المسؤول عن تسجيل دخول المستخدم.
+export default function SignIn({ lang, onToggleLang, onGoToSignUp }: SignInProps) {
+  // تحديد ما إذا كانت كلمة المرور ظاهرة أو مخفية.
+  const [showPw, setShowPw] = useState<boolean>(false);
 
 const navigate = useNavigate();
 
-const [email, setEmail] = React.useState("");
-const [password, setPassword] = React.useState("");
+// تخزين البريد الإلكتروني الذي يدخله المستخدم.
+const [email, setEmail] = useState<string>("");
+// تخزين كلمة المرور المدخلة.
+const [password, setPassword] = useState<string>("");
 
-  const t = COPY[lang];
+  const t = COPY[lang as keyof typeof COPY];
   const form = t.login;
 
-const handleLogin = (e) => {
+// التحقق من بيانات تسجيل الدخول وتوجيه المستخدم إلى لوحة التحكم المناسبة.
+const handleLogin = (e: FormEvent<HTMLFormElement>) => {
   e.preventDefault();
 
   // Student
@@ -59,7 +71,7 @@ const handleLogin = (e) => {
   return (
     <div className="auth-root" dir={t.dir} lang={lang}>
       <div className="auth-shell">
-        {/* ---------- الجزء البصري ---------- */}
+        {/* القسم الخاص بالشكل والتصميم */}
         <div className="auth-visual">
           <button className="lang-toggle" onClick={onToggleLang}>
             {lang === "ar" ? "EN" : "AR"}
@@ -79,7 +91,7 @@ const handleLogin = (e) => {
           </div>
         </div>
 
-        {/* ---------- الفورم ---------- */}
+        {/* نموذج تسجيل الدخول */}
         <div className="auth-form-side">
           <div className="auth-form-wrap">
             <div className="auth-tabs">
@@ -91,14 +103,17 @@ const handleLogin = (e) => {
             <h2>{form.title}</h2>
             <p className="auth-subtitle">{form.subtitle}</p>
 
+{/* نموذج إدخال بيانات تسجيل الدخول */}
 <form className="auth-form" onSubmit={handleLogin}>
-                <div className="field">
+                {/* حقل البريد الإلكتروني */}
+                {/* حقل كلمة المرور */}
+              <div className="field">
                 <label>{form.email}</label>
                 <input
   type="email"
   placeholder={form.emailPh}
   value={email}
-  onChange={(e) => setEmail(e.target.value)}
+  onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
 />
               </div>
 
@@ -109,7 +124,7 @@ const handleLogin = (e) => {
   type={showPw ? "text" : "password"}
   placeholder={form.passwordPh}
   value={password}
-  onChange={(e) => setPassword(e.target.value)}
+  onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
 />                  <button
                     type="button"
                     className="eye-btn"
@@ -121,6 +136,7 @@ const handleLogin = (e) => {
                 </div>
               </div>
 
+              {/* خيارات تذكرني ورابط نسيت كلمة المرور */}
               <div className="row-between">
                 <label className="checkbox">
                   <input type="checkbox" />
@@ -136,8 +152,9 @@ const handleLogin = (e) => {
 
             <div className="divider"><span>{form.or}</span></div>
 
+            {/* أزرار تسجيل الدخول عبر وسائل التواصل */}
             <div className="social-row">
-              {t.social.map((s, i) => (
+              {t.social.map((s: string, i: number) => (
                 <button key={i} className="social-btn">
                   {s === "Google" ? "🔴" : "🔵"} {s}
                 </button>

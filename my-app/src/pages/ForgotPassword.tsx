@@ -1,11 +1,12 @@
 // src/pages/ForgotPassword.jsx
-import React, { useState } from "react";
+import React, { useState, ChangeEvent, FormEvent } from "react";
 import { CapsuleMark } from "../components/Icons";
 import "../styles/auth.css";
 import { Link } from "react-router-dom";
 // ربط الصفحة بالسياق العالمي للغات لكي تعمل الترجمة فوراً
 import { useLanguage } from "../context/LanguageContext";
 
+// النصوص المستخدمة في الصفحة باللغتين العربية والإنجليزية.
 const TEXT = {
   ar: {
     dir: "rtl",
@@ -43,19 +44,26 @@ const TEXT = {
   },
 };
 
+// المكون الرئيسي المسؤول عن صفحة نسيت كلمة المرور.
 export default function ForgotPassword() {
   // جلب حالة اللغة ودالة التبديل مباشرة من الـ Context المشترك للمشروع
   const { lang, toggleLanguage } = useLanguage();
-  const t = TEXT[lang] || TEXT.ar;
+  const t = TEXT[lang as keyof typeof TEXT] ?? TEXT.ar;
 
-  const [email, setEmail] = useState("");
-  const [error, setError] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
+  // تخزين البريد الإلكتروني الذي يدخله المستخدم.
+  const [email, setEmail] = useState<string>("");
+    // تخزين رسالة الخطأ في حال كان البريد غير صحيح.
+  const [error, setError] = useState<string>("");
+    // تحديد ما إذا كانت عملية الإرسال جارية.
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+    // تحديد ما إذا تم إرسال الطلب بنجاح.
+  const [submitted, setSubmitted] = useState<boolean>(false);
 
+    // التحقق من صحة صيغة البريد الإلكتروني.
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  const handleSubmit = (e) => {
+    // تنفيذ عملية إرسال النموذج بعد التحقق من صحة البيانات.
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
 
@@ -110,6 +118,7 @@ export default function ForgotPassword() {
               <>
                 <p className="auth-subtitle">{t.subtitle}</p>
 
+                {/* نموذج إدخال البريد الإلكتروني */}
                 <form className="auth-form" onSubmit={handleSubmit}>
                   <div className="field">
                     <label>{t.email}</label>
@@ -117,7 +126,7 @@ export default function ForgotPassword() {
                       type="email"
                       placeholder={t.emailPlaceholder}
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
                     />
                     {error && <span className="field-error">{error}</span>}
                   </div>
@@ -132,6 +141,7 @@ export default function ForgotPassword() {
                 </form>
               </>
             ) : (
+
               <div className="success-box">
                 <div className="success-icon">✓</div>
                 <h3>{t.successTitle}</h3>

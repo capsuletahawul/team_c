@@ -1,5 +1,5 @@
-// src/pages/SignUp.jsx
-import React from "react";
+// صفحة إنشاء حساب جديد.
+import React, { useState, ChangeEvent, FormEvent } from "react";
 
 import { useNavigate } from "react-router-dom";
 
@@ -14,29 +14,42 @@ import "../styles/auth.css";
  * - onToggleLang: دالة لتبديل اللغة
  * - onGoToSignIn: دالة للتنقل إلى صفحة تسجيل الدخول
  */
-export default function SignUp({ lang, onToggleLang, onGoToSignIn }) {
-  const [showPw, setShowPw] = React.useState(false);
-  const [pwValue, setPwValue] = React.useState("");
-  const [role, setRole] = React.useState(0);
+// الخصائص التي يستقبلها المكون من الصفحة الرئيسية.
+interface SignUpProps {
+  lang: string;
+  onToggleLang: () => void;
+  onGoToSignIn: () => void;
+}
+
+// المكون الرئيسي المسؤول عن إنشاء حساب جديد.
+export default function SignUp({ lang, onToggleLang, onGoToSignIn }: SignUpProps) {
+  // تحديد ما إذا كانت كلمة المرور ظاهرة أو مخفية.
+  const [showPw, setShowPw] = useState<boolean>(false);
+  // تخزين كلمة المرور التي يدخلها المستخدم.
+  const [pwValue, setPwValue] = useState<string>("");
+  // تخزين نوع الحساب الذي يختاره المستخدم.
+  const [role, setRole] = useState<number>(0);
 
   const navigate = useNavigate();
 
-const [name, setName] = React.useState("");
-const [email, setEmail] = React.useState("");
+// تخزين اسم المستخدم.
+const [name, setName] = useState<string>("");
+// تخزين البريد الإلكتروني.
+const [email, setEmail] = useState<string>("");
 
 
-  const t = COPY[lang];
+  const t = COPY[lang as keyof typeof COPY];
   const form = t.signup;
 
+  // حساب مستوى قوة كلمة المرور.
   const pwStrength =
-  pwValue.length === 0
-    ? -1
-    : pwValue.length < 6
+  pwValue.length < 6
     ? 0
     : pwValue.length < 10
     ? 1
     : 2;
 
+// التحقق من استيفاء كلمة المرور لجميع الشروط المطلوبة.
 const passwordChecks = {
   length: pwValue.length >= 8,
   uppercase: /[A-Z]/.test(pwValue),
@@ -46,7 +59,8 @@ const passwordChecks = {
 };
 
 
-const handleSignUp = (e) => {
+// التحقق من صحة البيانات ثم إنشاء الحساب وتوجيه المستخدم حسب نوعه.
+const handleSignUp = (e: FormEvent<HTMLFormElement>) => {
   e.preventDefault();
 
   // نتأكد أن الحقول ليست فارغة
@@ -92,7 +106,7 @@ if (!isPasswordValid) {
   return (
     <div className="auth-root" dir={t.dir} lang={lang}>
       <div className="auth-shell">
-        {/* ---------- الجزء البصري ---------- */}
+        {/* القسم الخاص بالشكل والتصميم */}
         <div className="auth-visual">
           <button className="lang-toggle" onClick={onToggleLang}>
             {lang === "ar" ? "EN" : "AR"}
@@ -112,7 +126,7 @@ if (!isPasswordValid) {
           </div>
         </div>
 
-        {/* ---------- الفورم ---------- */}
+        {/* نموذج إنشاء الحساب */}
         <div className="auth-form-side">
           <div className="auth-form-wrap">
             <div className="auth-tabs">
@@ -125,6 +139,7 @@ if (!isPasswordValid) {
             <p className="auth-subtitle">{form.subtitle}</p>
 
 
+{/* نموذج إدخال بيانات إنشاء الحساب */}
 <form className="auth-form" onSubmit={handleSignUp}>
 
 
@@ -134,7 +149,7 @@ if (!isPasswordValid) {
   type="text"
   placeholder={form.namePh}
   value={name}
-  onChange={(e) => setName(e.target.value)}
+  onChange={(e: ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
 />
 
               </div>
@@ -146,7 +161,7 @@ if (!isPasswordValid) {
   type="email"
   placeholder={form.emailPh}
   value={email}
-  onChange={(e) => setEmail(e.target.value)}
+  onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
 />
 
               </div>
@@ -158,7 +173,7 @@ if (!isPasswordValid) {
                     type={showPw ? "text" : "password"}
                     placeholder={form.passwordPh}
                     value={pwValue}
-                    onChange={(e) => setPwValue(e.target.value)}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => setPwValue(e.target.value)}
                   />
                   <button
                     type="button"
@@ -172,7 +187,7 @@ if (!isPasswordValid) {
                 {pwValue.length > 0 && (
                   <div className="pw-strength">
                     <div className="pw-bars">
-                      {[0, 1, 2].map((i) => (
+                      {[0, 1, 2].map((i: number) => (
                         <span key={i} className={`pw-bar ${i <= pwStrength ? `level-${pwStrength}` : ""}`} />
                       ))}
                     </div>
@@ -186,6 +201,7 @@ if (!isPasswordValid) {
 
 
 
+ {/* عرض شروط كلمة المرور للمستخدم */}
  <div className="password-rules">
 
   <div className="rule">
@@ -219,7 +235,7 @@ if (!isPasswordValid) {
               <div className="field">
                 <label>{form.role}</label>
                 <div className="role-pills">
-                  {form.roleOptions.map((r, i) => (
+                  {form.roleOptions.map((r: string, i: number) => (
                     <button
                       type="button"
                       key={i}
@@ -242,8 +258,9 @@ if (!isPasswordValid) {
 
             <div className="divider"><span>{form.or}</span></div>
 
+            {/* أزرار التسجيل باستخدام وسائل التواصل */}
             <div className="social-row">
-              {t.social.map((s, i) => (
+              {t.social.map((s: string, i: number) => (
                 <button key={i} className="social-btn">
                   {s === "Google" ? "🔴" : "🔵"} {s}
                 </button>
