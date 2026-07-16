@@ -26,7 +26,7 @@ A bilingual online training platform that connects students, trainers, and compa
 - Mock API
 
   ## Folder Structure
-src
+```src
 │
 ├── components
 ├── pages
@@ -35,7 +35,7 @@ src
 ├── mocks
 ├── types
 ├── assets
-└── App.tsx
+└── App.tsx```
 
 ## Installation
 
