@@ -35,7 +35,8 @@ A bilingual online training platform that connects students, trainers, and compa
 ├── mocks
 ├── types
 ├── assets
-└── App.tsx```
+└── App.tsx
+```
 
 ## Installation
 
