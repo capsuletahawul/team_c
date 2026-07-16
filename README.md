@@ -16,7 +16,7 @@ A bilingual online training platform that connects students, trainers, and compa
 - Mock API Integrati
 
 ## Technologies
-
+[![Technologies](https://skillicons.dev/icons?i=react,ts,html,css)](https://skillicons.dev)
 - React
 - TypeScript
 - Vite
