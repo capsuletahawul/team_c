@@ -39,14 +39,12 @@ A bilingual online training platform that connects students, trainers, and compa
 ```
 
 ## Installation
-
+```
 git clone <repository>
-
 cd my-app
-
 npm install
-
 npm run dev
+```
 ## Team
 
 - Reem AbuAziz
