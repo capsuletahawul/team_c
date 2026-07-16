@@ -1,6 +1,6 @@
 <img width="942" height="443" alt="image" src="https://github.com/user-attachments/assets/da69ad30-09e0-469d-823b-5571395b72e7" />
 
-# Capsulet Tahawul
+# Capsule Tahawul
 
 A bilingual online training platform that connects students, trainers, and companies. The platform allows users to browse courses, enroll in training programs, manage profiles, and simulate secure online payments.
 
