@@ -5,7 +5,6 @@ import { Link } from "react-router-dom";
 
 import { COPY } from "../i18n/copy";
 import { CapsuleMark, EyeIcon } from "../components/Icons";
-import { useAuth } from "../context/AuthContext";
 import "../styles/auth.css";
 
 /**
@@ -28,7 +27,6 @@ export default function SignIn({ lang, onToggleLang, onGoToSignUp }: SignInProps
   const [showPw, setShowPw] = useState<boolean>(false);
 
 const navigate = useNavigate();
-const { login } = useAuth();
 
 // تخزين البريد الإلكتروني الذي يدخله المستخدم.
 const [email, setEmail] = useState<string>("");
@@ -44,28 +42,24 @@ const handleLogin = (e: FormEvent<HTMLFormElement>) => {
 
   // Student
   if (email === "student@test.com" && password === "123456") {
-    login("student");
     navigate("/student-dashboard");
     return;
   }
 
   // Trainer
   if (email === "trainer@test.com" && password === "123456") {
-    login("trainer");
     navigate("/trainer-dashboard");
     return;
   }
 
   // Admin
   if (email === "admin@test.com" && password === "123456") {
-    login("admin");
     navigate("/admin-dashboard");
     return;
   }
 
   // Company — Successfully updated to hit the dashboard directly
   if (email === "company@test.com" && password === "123456") {
-    login("company");
     navigate("/company-dashboard"); 
     return;
   }
@@ -100,6 +94,22 @@ const handleLogin = (e: FormEvent<HTMLFormElement>) => {
         {/* نموذج تسجيل الدخول */}
         <div className="auth-form-side">
           <div className="auth-form-wrap">
+
+<div
+  style={{
+    textAlign: lang === "ar" ? "left" : "right",
+    marginBottom: "16px",
+  }}
+>
+  <button
+    type="button"
+    onClick={() => navigate("/")}
+    className="text-[#0f4c81] font-semibold"
+  >
+    {lang === "ar" ? "← رجوع" : "Back →"}
+  </button>
+</div>
+
             <div className="auth-tabs">
               <button className="is-active">{t.tabs.login}</button>
               <button onClick={onGoToSignUp}>{t.tabs.signup}</button>
