@@ -1,24 +1,47 @@
+// src/pages/AdminDashboard.tsx
 import React, { useState, useEffect } from 'react';
 import { 
   getAdminDashboardMetrics, 
   getAllUsersForAdmin, 
   updateUserRoleInMock, 
   toggleUserStatusInMock,
-  getCourses,
-  UserPermission,
-  CourseItem,
-  AdminDashboardMetrics
+  getCourses
 } from '../mocks/mockApi';
 
 // Reusable Components
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import LoadingIndicator from '../components/LoadingIndicator';
-import Button from '../components/Button';
 
 import { useLanguage } from '../context/LanguageContext';
 
 type ActiveTabType = 'overview' | 'users' | 'courses' | 'complaints';
+
+// 1️⃣ استخدام نفس الـ interfaces والأسماء اللي يتوقعها كود الموك الحالي لإنهاء خطأ التصدير والـ Types
+export interface UserPermission {
+  id: string;
+  name: string;
+  email: string;
+  role: 'Student' | 'Trainer' | 'Company' | 'Admin' | string;
+  status: 'active' | 'suspended' | string;
+  joinedAt?: string;
+}
+
+export interface CourseItem {
+  id: number;
+  title: string;
+  instructor: string;
+  duration: string;
+  students: number;
+  status: 'available' | 'coming_soon' | 'pending_deletion' | 'completed' | string;
+}
+
+export interface AdminDashboardMetrics {
+  activeUserLoginsToday: number;
+  publishedCoursesCount: number;
+  pendingReportFlagsCount: number;
+  serverResourceDistribution: string;
+}
 
 interface ComplaintItem {
   id: string;
@@ -59,10 +82,20 @@ const AdminDashboard: React.FC = () => {
     let isMounted = true;
     Promise.all([getAdminDashboardMetrics(), getAllUsersForAdmin(), getCourses()]).then(([statsRes, usersRes, coursesRes]) => {
       if (!isMounted) return;
-      if (statsRes.success) setAdminStats(statsRes.data);
-      if (usersRes.success) setUsersList(usersRes.data);
-      if (coursesRes.success) setCoursesList(coursesRes.data.courses);
+      
+      // 2️⃣ تأمين البيانات عبر الـ Optional Chaining وفحص الحماية لمنع خطأ 'possibly undefined'
+      if (statsRes && statsRes.success && statsRes.data) {
+        setAdminStats(statsRes.data);
+      }
+      if (usersRes && usersRes.success && usersRes.data) {
+        setUsersList(usersRes.data as UserPermission[]);
+      }
+      if (coursesRes && coursesRes.success && coursesRes.data && coursesRes.data.courses) {
+        setCoursesList(coursesRes.data.courses as CourseItem[]);
+      }
       setLoading(false);
+    }).catch(() => {
+      if (isMounted) setLoading(false);
     });
     return () => { isMounted = false; };
   }, [lang]);
@@ -138,7 +171,7 @@ const AdminDashboard: React.FC = () => {
               <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                 <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs">
                   <p className="text-xs font-bold text-gray-400 mb-1">{l.stats.activeUsers}</p>
-                  <p className="text-xl font-black text-capsule-navy font-mono">{adminStats?.activeUserLoginsToday}</p>
+                  <p className="text-xl font-black text-capsule-navy font-mono">{adminStats?.activeUserLoginsToday || 0}</p>
                 </div>
                 <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs">
                   <p className="text-xs font-bold text-gray-400 mb-1">{lang === 'ar' ? 'الكورسات الحالية' : 'Total Platform Courses'}</p>
@@ -201,7 +234,7 @@ const AdminDashboard: React.FC = () => {
                         <td className="p-3">
                           <select 
                             value={user.role} 
-                            onChange={(e) => handleRoleChange(user.id, e.target.value as UserPermission['role'])} 
+                            onChange={(e) => handleRoleChange(user.id, e.target.value)} 
                             className="p-1.5 bg-gray-50 border rounded-lg text-[11px] font-bold text-capsule-navy"
                           >
                             <option value="Student">Student</option>
