@@ -737,8 +737,6 @@ export async function loginUser(payload: LoginPayload): Promise<ApiResponse<{ to
 export interface PlatformTrack {
   title: string;
   description: string;
-  title_en?: string;
-  description_en?: string;
 }
 
 export interface PlatformOverview {
@@ -754,24 +752,9 @@ export async function getPlatformOverview(): Promise<ApiResponse<PlatformOvervie
     success: true,
     data: {
       platformName: "Capsule Tahawul",
-      studentTrack: { 
-        title: "التسجيل كطالب", 
-        title_en: "Learn & Accelerate", 
-        description: "الوصول إلى مسارات هندسية مجانية ومدفوعة مع خرائط طريق مرنة ومجزأة.",
-        description_en: "Access free and premium engineering tracks with modular roadmaps." 
-      },
-      trainerTrack: { 
-        title: "تقديم كمدرب", 
-        title_en: "Monetize Expertise", 
-        description: "قم بإعداد المناهج التدريبية، وتتبع تحليلات تسجيل الطلاب، واحصل على عوائد ممتازة.",
-        description_en: "Author curriculum pipelines, check enrollment trajectory analytics, and earn structural payouts." 
-      },
-      companyTrack: { 
-        title: "حلول الشركات والمؤسسات", 
-        title_en: "Upskill Your Workforce", 
-        description: "تنظيم مسارات تدريبية مستمرة لشركتك عبر معسكرات قابلة للتتبع وهاكاثونات مخصصة.",
-        description_en: "Orchestrate continuous corporate ecosystems via trackable bootcamps and custom hackathons." 
-      }
+      studentTrack: { title: "Learn & Accelerate", description: "Access free and premium engineering tracks with modular roadmaps." },
+      trainerTrack: { title: "Monetize Expertise", description: "Author curriculum pipelines, check enrollment trajectory analytics, and earn structural payouts." },
+      companyTrack: { title: "Upskill Your Workforce", description: "Orchestrate continuous corporate ecosystems via trackable bootcamps and custom hackathons." }
     }
   };
 }
