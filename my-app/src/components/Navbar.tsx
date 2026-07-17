@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
-import { useAuth } from '../context/AuthContext';
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import logo from "../assets/logo.png";
 
 // ============================================================================
@@ -39,24 +38,15 @@ interface NavbarProps {
  */
 function Navbar({ 
   activePage = 'dashboard', 
-  // showAuthButtons / onSignIn / onSignUp are deprecated: kept only so older
-  // pages that still pass them don't break. Real login state now comes from
-  // AuthContext, not from a prop each page has to remember to set correctly.
+  showAuthButtons = false, 
+  onSignIn, 
+  onSignUp 
 }: NavbarProps): React.JSX.Element {
   // Mobile drawer visible toggle state
   const [isOpen, setIsOpen] = useState<boolean>(false);
   
   // Pull language metrics and context translation dictionaries
   const { t, lang, toggleLanguage } = useLanguage();
-
-  // Real, shared login state — same value on every page.
-  const { isAuthenticated, logout } = useAuth();
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-  };
 
   /**
    * Statically mapped links matching your translatable global framework.
@@ -129,30 +119,30 @@ function Navbar({
             🌙
           </button>
 
-          {/* Conditional authentication buttons framework — now based on real auth state */}
-          {!isAuthenticated ? (
+          {/* Conditional authentication buttons framework */}
+          {showAuthButtons ? (
             <div className="flex items-center gap-3">
-              <Link
-                to="/sign-in"
+              <button
+                onClick={onSignIn}
                 className="px-4 h-8 rounded-full border border-capsule-navy text-capsule-navy font-semibold hover:bg-capsule-navy hover:text-white transition-all duration-300 flex items-center justify-center cursor-pointer"
               >
                 {t.tabs.login}
-              </Link>
+              </button>
 
-              <Link
-                to="/sign-up"
+              <button
+                onClick={onSignUp}
                 className="px-4 h-8 rounded-full bg-gradient-to-r from-capsule-teal to-capsule-navy text-white font-semibold shadow-md hover:scale-105 transition-all duration-300 flex items-center justify-center cursor-pointer"
               >
                 {t.tabs.signup}
-              </Link>
+              </button>
             </div>
           ) : (
-            <button
-              onClick={handleLogout}
-              className="px-4 h-9 rounded-full bg-capsule-navy hover:bg-capsule-teal text-white font-semibold flex items-center justify-center transition-all duration-300 cursor-pointer"
+            <Link
+              to="/sign-in"
+              className="px-4 h-9 rounded-full bg-capsule-navy hover:bg-capsule-teal text-white font-semibold flex items-center justify-center transition-all duration-300"
             >
               {lang === "ar" ? "تسجيل الخروج" : "Log Out"}
-            </button>
+            </Link>
           )}
         </div>
 
@@ -193,32 +183,21 @@ function Navbar({
             </Link>
           ))}
 
-          {!isAuthenticated ? (
+          {showAuthButtons && (
             <div className="flex flex-col gap-2 pt-3 mt-1 border-t border-gray-200">
-              <Link
-                to="/sign-in"
-                onClick={() => setIsOpen(false)}
+              <button
+                onClick={onSignIn}
                 className={`p-2 rounded-lg font-bold text-capsule-navy hover:bg-gray-100 transition cursor-pointer ${
                   t.dir === 'rtl' ? 'text-right' : 'text-left'
                 }`}
               >
                 {t.tabs.login}
-              </Link>
-              <Link
-                to="/sign-up"
-                onClick={() => setIsOpen(false)}
+              </button>
+              <button
+                onClick={onSignUp}
                 className="p-2.5 rounded-lg text-center font-bold text-white bg-capsule-navy hover:bg-capsule-teal transition cursor-pointer"
               >
                 {t.tabs.signup}
-              </Link>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-2 pt-3 mt-1 border-t border-gray-200">
-              <button
-                onClick={() => { setIsOpen(false); handleLogout(); }}
-                className={`p-2.5 rounded-lg text-center font-bold text-white bg-capsule-navy hover:bg-capsule-teal transition cursor-pointer`}
-              >
-                {lang === 'ar' ? 'تسجيل الخروج' : 'Log Out'}
               </button>
             </div>
           )}
