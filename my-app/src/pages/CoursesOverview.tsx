@@ -187,13 +187,7 @@ export default function CoursesOverview() {
 
   return (
     <div className="min-h-screen bg-capsule-bg text-capsule-navy font-sans antialiased flex flex-col" dir={t.dir} lang={lang}>
-      {/* التعديل هنا فقط: تم إرجاع المكون الاصلي مع الخاصية لضبط تسجيل الخروج */}
-      <Navbar
-  activePage="courses"
-  showAuthButtons={true}
-  onSignIn={() => navigate("/sign-in")}
-  onSignUp={() => navigate("/sign-up")}
-/>
+      <Navbar activePage="courses" />
       
       <main className="flex-grow">
         
