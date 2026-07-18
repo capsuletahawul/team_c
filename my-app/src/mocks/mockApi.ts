@@ -39,7 +39,9 @@ export interface Requirement {
 
 export interface InstructorProfile {
   role: string;
+  roleAr?: string;
   bio: string;
+  bioAr?: string;
   avatarLabel: string;
   ratingText: string;
   studentsText: string;
@@ -94,6 +96,7 @@ export interface InstructorTranslation {
 export interface Course {
   id: number;
   title: string;
+  titleAr?: string;
   category: string;
   description: string;
   subtitle: string;
@@ -164,7 +167,9 @@ export interface TrainerProfile {
   trainerId: string;
   name: string;
   specialty: string;
+  specialtyAr?: string;
   bio: string;
+  bioAr?: string;
   email: string;
   phone: string;
   experience: number;
@@ -177,6 +182,7 @@ export interface TrainerProfile {
   courses: Array<{
     id: number;
     name: string;
+    nameAr?: string;
     students: number;
     status: 'published' | 'review' | string;
   }>;
@@ -211,6 +217,7 @@ let mockCourses: Course[] = [
   {
     id: 15,
     title: "React Bootcamp Deep Dive",
+    titleAr: "معسكر React المتقدم",
     category: "Web Development",
     description: "Learn React from beginner to advanced with hands-on projects.",
     subtitle: "Master building production-ready React applications with hooks, state management, and real-world project architecture.",
@@ -238,7 +245,9 @@ let mockCourses: Course[] = [
     ],
     instructorProfile: {
       role: "Senior Front-End Engineer",
+      roleAr: "مهندس أول واجهات أمامية",
       bio: "Ahmed has spent over 8 years building production React applications for startups and enterprises across the region.",
+      bioAr: "يمتلك أحمد خبرة تتجاوز 8 سنوات في بناء تطبيقات React الإنتاجية للشركات الناشئة والمؤسسات الكبرى في المنطقة.",
       avatarLabel: "AM",
       ratingText: "4.8 Instructor Rating",
       studentsText: "1,240+ Students",
@@ -277,6 +286,7 @@ let mockCourses: Course[] = [
   {
     id: 16,
     title: "AI & Machine Learning Fundamentals",
+    titleAr: "أساسيات الذكاء الاصطناعي والتعلم الآلي",
     category: "Artificial Intelligence",
     description: "A hands-on introduction to AI and Machine Learning concepts using real datasets and Python.",
     subtitle: "Learn the core building blocks of AI and Machine Learning through practical, project-based lessons.",
@@ -302,7 +312,9 @@ let mockCourses: Course[] = [
     ],
     instructorProfile: {
       role: "AI & Data Science Instructor",
+      roleAr: "مدربة الذكاء الاصطناعي وعلوم البيانات",
       bio: "Sara has taught Machine Learning fundamentals to thousands of students, focusing on practical, project-first learning.",
+      bioAr: "درّست سارة أساسيات التعلم الآلي لآلاف الطلاب، مع التركيز على التعلم العملي القائم على المشاريع.",
       avatarLabel: "SA",
       ratingText: "4.9 Instructor Rating",
       studentsText: "850+ Students",
@@ -337,6 +349,7 @@ let mockCourses: Course[] = [
   {
     id: 17,
     title: "Cybersecurity Next-Gen Defense",
+    titleAr: "الدفاع السيبراني للجيل القادم",
     category: "Cybersecurity",
     description: "Learn modern cybersecurity defense strategies to protect networks and systems from evolving threats.",
     subtitle: "Build practical skills in network defense, threat detection, and incident response.",
@@ -362,7 +375,9 @@ let mockCourses: Course[] = [
     ],
     instructorProfile: {
       role: "Senior Cybersecurity Engineer",
+      roleAr: "مهندس أول أمن سيبراني",
       bio: "Abdullah has over 10 years of experience securing enterprise infrastructure and leading incident response teams.",
+      bioAr: "يمتلك عبدالله خبرة تفوق 10 سنوات في تأمين البنية التحتية للمؤسسات وقيادة فرق الاستجابة للحوادث الأمنية.",
       avatarLabel: "AN",
       ratingText: "New Instructor",
       studentsText: "0 Students (Coming Soon)",
@@ -397,6 +412,7 @@ let mockCourses: Course[] = [
   {
     id: 18,
     title: "Cloud Native Infrastructure",
+    titleAr: "البنية التحتية السحابية الحديثة",
     category: "Cloud Computing",
     description: "Master cloud-native architecture, containers, and infrastructure automation on modern cloud platforms.",
     subtitle: "Design, deploy, and scale cloud-native infrastructure using industry-standard tools.",
@@ -422,7 +438,9 @@ let mockCourses: Course[] = [
     ],
     instructorProfile: {
       role: "Cloud Solutions Architect",
+      roleAr: "مهندسة معمارية للحلول السحابية",
       bio: "Noura has led cloud migration and infrastructure automation projects for enterprise clients across the Gulf region.",
+      bioAr: "قادت نورة مشاريع ترحيل الأنظمة إلى السحابة وأتمتة البنية التحتية لعملاء المؤسسات في منطقة الخليج.",
       avatarLabel: "NF",
       ratingText: "4.5 Instructor Rating",
       studentsText: "430+ Students",
@@ -1160,7 +1178,9 @@ function buildTrainerProfile(trainerId: string): TrainerProfile | null {
     trainerId,
     name: trainerCourses[0].instructor,
     specialty: base.role || "Trainer",
+    specialtyAr: base.roleAr,
     bio: base.bio || "",
+    bioAr: base.bioAr,
     email: contact.email || `${trainerId}@capsule.com`,
     phone: contact.phone || "+966500000000",
     experience: contact.experience || 5,
@@ -1173,6 +1193,7 @@ function buildTrainerProfile(trainerId: string): TrainerProfile | null {
     courses: trainerCourses.map(c => ({
       id: c.id,
       name: c.title,
+      nameAr: c.titleAr,
       students: c.students,
       status: (c.status === "available" || c.status === "completed") ? "published" : "review",
     })),
