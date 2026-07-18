@@ -1,6 +1,4 @@
-// src/pages/TrainerDashboard.tsx
 import React, { useState, useEffect } from 'react';
-// استخدام المسارات النسبية الصحيحة للوصول للموك
 import { getTrainerAnalytics, submitB2BRequest, getCourses, getTrainerProfile } from '../mocks/mockApi';
 
 // Reusable Components
@@ -9,7 +7,6 @@ import Footer from '../components/Footer';
 import Button from '../components/Button';
 import LoadingIndicator from '../components/LoadingIndicator';
 import ErrorMessage from '../components/ErrorMessage';
-
 // Global Context
 import { useLanguage } from '../context/LanguageContext';
 
@@ -60,14 +57,12 @@ function TrainerDashboard() {
   const { t, lang } = useLanguage();
   const l = t.trainerDashboard;
 
-  // 2️⃣ استخدام الـ useState التقليدي بدون هوكس خارجية مع تعريف الأنواع الصارمة
   const [coursesList, setCoursesList] = useState<CourseItem[]>([]); 
   const [reviewsList, setReviewsList] = useState<ReviewItem[]>([]); 
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
   const [message, setMessage] = useState<string>('');
 
-  // نموذج إنشاء الدورة المفصل بالكامل
   const [formData, setFormData] = useState<FormDataState>({
     title: '',
     price: '',
@@ -80,19 +75,17 @@ function TrainerDashboard() {
     requirementsNotes: ''
   });
 
-  // حساب الأرباح ديناميكياً (صافي ربح المدرب 80% بعد خصم عمولة المنصة)
   const calculateCourseEarnings = (students: number, price: number): number => {
     return Math.round((students || 0) * (price || 0) * 0.8);
   };
 
-  // حساب الإجمالي ديناميكياً بدون هاردكود
   const totalPayoutCollected = coursesList
-    .filter(c => c.status === 'available')
-    .reduce((acc, course) => acc + calculateCourseEarnings(course.students, course.price), 0);
+    .filter((c: CourseItem) => c.status === 'available')
+    .reduce((acc: number, course: CourseItem) => acc + calculateCourseEarnings(course.students, course.price), 0);
 
   const totalStudentsEnrolled = coursesList
-    .filter(c => c.status === 'available')
-    .reduce((acc, course) => acc + (course.students || 0), 0);
+    .filter((c: CourseItem) => c.status === 'available')
+    .reduce((acc: number, course: CourseItem) => acc + (course.students || 0), 0);
 
   useEffect(() => {
     let isMounted = true;
@@ -100,8 +93,8 @@ function TrainerDashboard() {
     Promise.all([getTrainerAnalytics(), getCourses(), getTrainerProfile()]).then(([analyticsResult, coursesResult, profileResult]) => {
       if (!isMounted) return;
       
-      if (coursesResult.success && coursesResult.data) {
-        const realisticCourses = coursesResult.data.courses.map((c: any) => ({
+      if (coursesResult.success && coursesResult.data && coursesResult.data.courses) {
+        const realisticCourses = (coursesResult.data.courses as CourseItem[]).map((c: CourseItem) => ({
           ...c,
           price: c.price > 1000 ? Math.floor(Math.random() * (500 - 200 + 1) + 200) : c.price,
           isVisible: true
@@ -109,8 +102,8 @@ function TrainerDashboard() {
         setCoursesList(realisticCourses);
       }
 
-      if (profileResult.success && profileResult.data) {
-        setReviewsList((profileResult.data.reviews as ReviewItem[]) || []);
+      if (profileResult.success && profileResult.data && profileResult.data.reviews) {
+        setReviewsList((profileResult.data.reviews as ReviewItem[]));
       }
       setLoading(false);
     }).catch(err => {
@@ -128,13 +121,13 @@ function TrainerDashboard() {
       lang === 'ar' ? `هل تريد إرسال طلب للمسؤول لحذف دورة "${courseTitle}"؟` : `Submit deletion request for "${courseTitle}"?`
     );
     if (confirmRequest) {
-      setCoursesList(prev => prev.map(c => c.id === courseId ? { ...c, status: 'pending_deletion' } : c));
+      setCoursesList((prev: CourseItem[]) => prev.map((c: CourseItem) => c.id === courseId ? { ...c, status: 'pending_deletion' } : c));
       setMessage(lang === 'ar' ? '🚀 تم إرسال طلب الحذف للمسؤول بنجاح.' : '🚀 Deletion request submitted successfully.');
     }
   };
 
   const toggleVisibility = (courseId: number) => {
-    setCoursesList(prev => prev.map(c => c.id === courseId ? { ...c, isVisible: !c.isVisible } : c));
+    setCoursesList((prev: CourseItem[]) => prev.map((c: CourseItem) => c.id === courseId ? { ...c, isVisible: !c.isVisible } : c));
     setMessage(lang === 'ar' ? '👁️ تم تحديث حالة ظهور الدورة في المتجر.' : '👁️ Course store visibility updated.');
   };
 
@@ -152,7 +145,7 @@ function TrainerDashboard() {
       return;
     }
 
-    submitB2BRequest({ requirementsNotes: formData.requirementsNotes, ...formData }).then(result => {
+    submitB2BRequest(formData).then(result => {
       if (result.success && result.data) {
         setMessage(`${lang === 'ar' ? '✅ تم رفع الدورة المفصلة بنجاح وهي قيد المراجعة: ' : '✅ Course submitted under review with ID: '}${result.data.ticketId}`);
         
@@ -175,11 +168,10 @@ function TrainerDashboard() {
           status: "coming_soon", 
           students: 0,
           thumbnail: 'default.jpg',
-          prerequisites: [],
           isVisible: true
         };
         
-        setCoursesList(prev => [newCourseDraft, ...prev]);
+        setCoursesList((prev: CourseItem[]) => [newCourseDraft, ...prev]);
         setFormData({ title: '', price: '', durationWeeks: '', maxStudents: '', videoDurationMinutes: '', level: 'beginner', category: 'Cybersecurity', description: '', requirementsNotes: '' });
       } else {
         setError(l.messages.genericError);
@@ -203,10 +195,7 @@ function TrainerDashboard() {
       
       <main className="flex-grow max-w-7xl mx-auto px-6 py-10 w-full grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* العمود الأول والثاني: الإحصائيات، الـ Graph، وجدول خط المتابعة الرئيسي */}
         <div className="lg:col-span-2 space-y-6">
-          
-          {/* كروت المؤشرات الحية */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition">
               <p className="text-xs font-bold text-gray-400 mb-1">{lang === 'ar' ? 'صافي الأرباح المحققة الحالي' : 'Total Dynamic Net Payout'}</p>
@@ -222,13 +211,12 @@ function TrainerDashboard() {
             </div>
           </div>
 
-          {/* الـ Graph */}
           <div className="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm">
             <h3 className="text-sm font-bold text-capsule-navy mb-4">
               {lang === 'ar' ? '📊 مؤشرات الكثافة الاستيعابية وصافي الربح لكل دورة' : '📊 Course Density & Net Revenue Breakdown'}
             </h3>
             <div className="space-y-4 pt-1">
-              {coursesList.map((course) => {
+              {coursesList.map((course: CourseItem) => {
                 const maxCapacity = 1300; 
                 const ratio = Math.min((course.students / maxCapacity) * 100, 100);
                 const netEarnings = calculateCourseEarnings(course.students, course.price);
@@ -250,7 +238,6 @@ function TrainerDashboard() {
             </div>
           </div>
 
-          {/* جدول التحكم والمتابعة للدورات */}
           <div className="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm">
             <h2 className="text-sm font-bold text-capsule-navy mb-4">
               {lang === 'ar' ? '⚙️ خط التحكم الشامل بالدورات التدريبية' : '⚙️ Interactive Course Pipeline Controls'}
@@ -268,7 +255,7 @@ function TrainerDashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50 font-medium">
-                  {coursesList.map((course) => (
+                  {coursesList.map((course: CourseItem) => (
                     <tr key={course.id} className="hover:bg-slate-50/60 transition-colors">
                       <td className="py-3 px-2 text-start font-bold text-capsule-navy truncate max-w-[140px]">{course.title}</td>
                       <td className="py-3 px-2 font-mono">{course.price} SAR</td>
@@ -297,9 +284,7 @@ function TrainerDashboard() {
           </div>
         </div>
 
-        {/* العمود الثالث: نموذج إضافة كورس مخصص + ويدجتس المراجعات والطلاب */}
         <div className="space-y-6">
-          
           <div className="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm h-fit">
             <h2 className="text-md font-bold text-capsule-navy border-b border-gray-100 pb-3 mb-4">{lang === 'ar' ? '➕ إنشاء وتفصيل دورة جديدة' : '➕ Create Detailed Course'}</h2>
             {message && <div className={`mb-4 p-3 bg-emerald-50 text-emerald-800 rounded-xl text-xs font-bold ${borderSide} border-emerald-500`}>{message}</div>}
@@ -367,11 +352,10 @@ function TrainerDashboard() {
             </form>
           </div>
 
-          {/* تقييمات الطلاب الحية */}
           <div className="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm space-y-3">
             <h4 className="text-xs font-bold text-capsule-navy uppercase tracking-wider">{lang === 'ar' ? '⭐ تقييمات الطلاب الحية' : '⭐ Live Student Reviews'}</h4>
             <div className="space-y-2 max-h-[160px] overflow-y-auto divide-y divide-gray-50">
-              {reviewsList.map((rev) => (
+              {reviewsList.map((rev: ReviewItem) => (
                 <div key={rev.id} className="pt-2 text-[11px] font-medium">
                   <div className="flex justify-between items-center font-bold mb-0.5 text-capsule-navy">
                     <span>{rev.name}</span>
@@ -383,7 +367,6 @@ function TrainerDashboard() {
             </div>
           </div>
 
-          {/* سجل تقدم ومتابعة الطلاب */}
           <div className="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm space-y-3">
             <h4 className="text-xs font-bold text-capsule-navy uppercase tracking-wider">{lang === 'ar' ? '👥 سجل تقدم الطلاب المشتركين' : '👥 Students Progress Log'}</h4>
             <div className="space-y-2 text-[11px] font-medium text-gray-600">
