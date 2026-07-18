@@ -6,22 +6,23 @@ export function useApi<T>(apiFunc: () => Promise<ApiResult<T>>) {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  // لتفادي الـ Infinite Loop الناتجة عن رندرة الـ Arrow Functions بالصفحات
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const result = await apiFunc();
-      if (result.success) {
+      if (result && result.success) {
         setData(result.data);
       } else {
-        setError(result.error);
+        setError(result && 'error' in result ? (result.error as string) : 'API Error');
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
     }
-  }, [apiFunc]);
+  }, []); // 🌟 مصفوفة فارغة تمنع إعادة إنتاج الدالة عشوائياً
 
   useEffect(() => {
     fetchData();
