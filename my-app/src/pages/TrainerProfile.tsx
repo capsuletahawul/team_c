@@ -37,22 +37,22 @@ interface CourseItem {
   status: "published" | "underReview";
 }
 
-// Maps the raw mockApi trainer profile fields into the local editable-form shape
-function apiToProfile(apiProfile: ApiTrainerProfile): EditedDataState {
+// Maps the raw mockApi trainer profile fields into the local editable-form shape, localized by lang
+function apiToProfile(apiProfile: ApiTrainerProfile, lang: "ar" | "en"): EditedDataState {
   return {
     fullName: apiProfile.name,
-    specialization: apiProfile.specialty,
-    bio: apiProfile.bio,
+    specialization: lang === "ar" ? (apiProfile.specialtyAr || apiProfile.specialty) : apiProfile.specialty,
+    bio: lang === "ar" ? (apiProfile.bioAr || apiProfile.bio) : apiProfile.bio,
     email: apiProfile.email,
     experienceVal: `${apiProfile.experience}`,
   };
 }
 
-// Maps the raw mockApi course records (published/review) into the local table shape (published/underReview)
-function apiToCourses(apiCourses: ApiTrainerProfile["courses"]): CourseItem[] {
+// Maps the raw mockApi course records (published/review) into the local table shape (published/underReview), localized by lang
+function apiToCourses(apiCourses: ApiTrainerProfile["courses"], lang: "ar" | "en"): CourseItem[] {
   return apiCourses.map((c) => ({
     id: c.id,
-    title: c.name,
+    title: lang === "ar" ? (c.nameAr || c.name) : c.name,
     students: c.students,
     status: c.status === "published" ? "published" : "underReview",
   }));
@@ -77,6 +77,9 @@ const TrainerProfile: React.FC = () => {
 
   const [courses, setCourses] = useState<CourseItem[]>([]);
 
+  // Raw bilingual profile as returned by mockApi, kept so we can re-localize on language toggle without refetching
+  const [rawProfile, setRawProfile] = useState<ApiTrainerProfile | null>(null);
+
   // 2. Baseline profile fetched from mockApi, used as the display source before any local edit
   const [fetchedProfile, setFetchedProfile] = useState<EditedDataState | null>(null);
 
@@ -92,8 +95,9 @@ const TrainerProfile: React.FC = () => {
       if (!isMounted) return;
 
       if (response.success && response.data) {
-        setFetchedProfile(apiToProfile(response.data));
-        setCourses(apiToCourses(response.data.courses));
+        setRawProfile(response.data);
+        setFetchedProfile(apiToProfile(response.data, lang));
+        setCourses(apiToCourses(response.data.courses, lang));
         setTrainer({
           email: response.data.email,
           phone: response.data.phone,
@@ -117,6 +121,13 @@ const TrainerProfile: React.FC = () => {
   useEffect(() => {
     setIsEditing(false);
   }, [lang]);
+
+  // Re-localizes the fetched (non-edited) profile fields whenever the language toggles
+  useEffect(() => {
+    if (!rawProfile) return;
+    setFetchedProfile(apiToProfile(rawProfile, lang));
+    setCourses(apiToCourses(rawProfile.courses, lang));
+  }, [lang, rawProfile]);
 
   // Dynamically resolves metadata with priority to manual user edits over fetched mockApi data
   const currentTrainer: EditedDataState = {
