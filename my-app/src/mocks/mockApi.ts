@@ -1086,6 +1086,41 @@ export async function getAdminDashboardMetrics(): Promise<ApiResponse<AdminDashb
     }
   };
 }
+export interface ComplaintItem {
+  id: string;
+  name: string;
+  email: string;
+  message: string;
+  date: string;
+}
+export interface GrowthMetric {
+  monthAr: string;
+  monthEn: string;
+  count: number;
+}
+
+// دالة جلب إحصائيات النمو الشهري من السيرفر الفيك
+export const getAdminGrowthStats = async (): Promise<{ success: boolean; data: GrowthMetric[] }> => {
+  return {
+    success: true,
+    data: [
+      { monthAr: 'مايو', monthEn: 'May', count: 420 },
+      { monthAr: 'يونيو', monthEn: 'June', count: 890 },
+      { monthAr: 'يوليو (الحالي)', monthEn: 'July (Current)', count: 1420 }
+    ]
+  };
+};
+
+// الدالة الرسمية لجلب الشكاوى متوافقة مع نظام الـ ApiResponse حق الموك
+export const getAdminComplaints = async (): Promise<{ success: boolean; data: ComplaintItem[] }> => {
+  return {
+    success: true,
+    data: [
+      { id: 'TKT-991', name: 'خالد عبدالله', email: 'khaled@mail.com', message: 'تواجهني مشكلة أثناء تحميل ملفات موديول خطافات ريأكت المتقدمة.', date: '2026-07-10' },
+      { id: 'TKT-302', name: 'سارة الأحمد', email: 'sara.a@corporate.com', message: 'طلب تفعيل واجهة الشركة B2B لم يتم الرد عليه بعرض السعر حتى الآن.', date: '2026-07-12' }
+    ]
+  };
+};
 
 // ============================================================================
 // MODULE 9: TRAINER PROFILE
