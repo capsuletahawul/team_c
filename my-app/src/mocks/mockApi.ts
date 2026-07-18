@@ -1241,3 +1241,43 @@ export async function toggleUserStatusInMock(userId: string): Promise<ApiRespons
   });
   return { success: true };
 }
+
+
+export interface ReviewItem {
+  id: number;
+  name: string;
+  rating: number;
+  date: string;
+  commentAr: string;
+  commentEn: string;
+}
+
+// دالة جلب تقييمات المدرب ديناميكياً من الموك
+export const getTrainerReviewsMock = async (): Promise<{ success: boolean; data: ReviewItem[] }> => {
+  return {
+    success: true,
+    data: [
+      { id: 1, name: 'أحمد علي', rating: 5, date: '2026-07-01', commentAr: 'شرح ممتاز للمفاهيم المتقدمة!', commentEn: 'Excellent explanation of advanced concepts!' },
+      { id: 2, name: 'سارة محمد', rating: 4, date: '2026-06-28', commentAr: 'الدورة عملية جداً ومفيدة.', commentEn: 'The course is very practical and useful.' }
+    ]
+  };
+};
+
+export interface StudentProgressItem {
+  id: number;
+  name: string;
+  courseAr: string;
+  courseEn: string;
+  progress: number;
+}
+
+// دالة جلب سجل تقدم الطلاب ديناميكياً بدون هارد كودد بالواجهة
+export const getTrainerStudentProgressMock = async (): Promise<{ success: boolean; data: StudentProgressItem[] }> => {
+  return {
+    success: true,
+    data: [
+      { id: 984, name: 'سلمان العتيبي', courseAr: 'معسكر مراجعة ريأكت العميقة', courseEn: 'React Bootcamp Deep Dive', progress: 45 },
+      { id: 221, name: 'نورة العلي', courseAr: 'أساسيات الذكاء الاصطناعي والـ ML', courseEn: 'AI & ML Fundamentals', progress: 100 }
+    ]
+  };
+};
