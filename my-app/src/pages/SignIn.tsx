@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 
 import { COPY } from "../i18n/copy";
 import { CapsuleMark, EyeIcon } from "../components/Icons";
+import { useAuth } from "../context/AuthContext";
 import "../styles/auth.css";
 
 /**
@@ -27,6 +28,7 @@ export default function SignIn({ lang, onToggleLang, onGoToSignUp }: SignInProps
   const [showPw, setShowPw] = useState<boolean>(false);
 
 const navigate = useNavigate();
+const { login } = useAuth();
 
 // تخزين البريد الإلكتروني الذي يدخله المستخدم.
 const [email, setEmail] = useState<string>("");
@@ -42,24 +44,28 @@ const handleLogin = (e: FormEvent<HTMLFormElement>) => {
 
   // Student
   if (email === "student@test.com" && password === "123456") {
+    login("student");
     navigate("/student-dashboard");
     return;
   }
 
   // Trainer
   if (email === "trainer@test.com" && password === "123456") {
+    login("trainer");
     navigate("/trainer-dashboard");
     return;
   }
 
   // Admin
   if (email === "admin@test.com" && password === "123456") {
+    login("admin");
     navigate("/admin-dashboard");
     return;
   }
 
   // Company — Successfully updated to hit the dashboard directly
   if (email === "company@test.com" && password === "123456") {
+    login("company");
     navigate("/company-dashboard"); 
     return;
   }

@@ -6,8 +6,7 @@ import LoadingIndicator from '../components/LoadingIndicator.jsx';
 import ErrorMessage from '../components/ErrorMessage.jsx';
 import Button from '../components/Button';
 // @ts-ignore 
-import heroImage from '../assets/hero.png';
-
+import heroImage from '../assets/light_trans_logo.png';
 // Import the global language context
 import { useLanguage } from '../context/LanguageContext.jsx';
 
@@ -69,24 +68,42 @@ function LandingPage({
   onNavigateToLogin, 
   onNavigateToTrainerOnboarding, 
   onNavigateToCompanyOnboarding 
-}: LandingPageProps) {  // Initialize context and extract required translation objects
+}: LandingPageProps) {
+  // Initialize context and extract required translation objects
   const { t, lang } = useLanguage();
   const l = t.platformOverview; 
 
   const [overview, setOverview] = useState<PlatformOverview | null>(null);
   const [courses, setCourses] = useState<Course[]>([]);
-  const [activeCategory, setActiveCategory] = useState<string>(l.catalog.filterAll);
+  
+  // Track the active category by its backend-safe key string[cite: 2]
+  const [activeCategoryKey, setActiveCategoryKey] = useState<string>(l.catalog.filterAll);
+  
   const [loading, setLoading] = useState<boolean>(true);
   const [catalogLoading, setCatalogLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
 
-  // Rebuild categories array so 'All' translates dynamically based on active language
-  const CATEGORIES: string[] = [l.catalog.filterAll, 'Web Development', 'Artificial Intelligence', 'Cybersecurity', 'Cloud Computing'];
+  // Dual-binding configuration maps localized UI display labels to raw backend API database keys[cite: 2]
+  const CATEGORIES = [
+    { key: l.catalog.filterAll, label: l.catalog.filterAll },
+    { key: 'Web Development', label: lang === 'ar' ? 'تطوير الويب' : 'Web Development' },
+    { key: 'Artificial Intelligence', label: lang === 'ar' ? 'الذكاء الاصطناعي' : 'Artificial Intelligence' },
+    { key: 'Cybersecurity', label: lang === 'ar' ? 'الأمن السيبراني' : 'Cybersecurity' },
+    { key: 'Cloud Computing', label: lang === 'ar' ? 'الحوسبة السحابية' : 'Cloud Computing' }
+  ];
+
+  // Clean helper utility to extract correct field based on lang context[cite: 2]
+  const getLocalizedValue = (arValue: string | undefined, enValue: string | undefined): string => {
+    if (lang === 'ar') {
+      return arValue || enValue || '';
+    }
+    return enValue || arValue || '';
+  };
 
   useEffect(() => {
     let isMounted = true;
 
-  Promise.all([
+    Promise.all([
       getPlatformOverview() as Promise<ApiResponse<PlatformOverview>>,
       getCourses() as Promise<ApiResponse<CoursesPayload>>
     ])
@@ -107,19 +124,19 @@ function LandingPage({
       });
 
     return () => { isMounted = false; };
-  }, [lang, l.errorPlatform, l.errorNetwork]); // Dependencies updated for language switches
+  }, [lang, l.errorPlatform, l.errorNetwork]); // Dependencies updated for language switches[cite: 2]
 
-  const handleCategoryClick = async (category: string) => {
-    setActiveCategory(category);
+  const handleCategoryClick = async (categoryKey: string) => {
+    setActiveCategoryKey(categoryKey);
     setCatalogLoading(true);
 
-    const filters = category === l.catalog.filterAll ? {} : { category };
-   const result = (await getCourses(filters)) as ApiResponse<CoursesPayload>;
+    const filters = categoryKey === l.catalog.filterAll ? {} : { category: categoryKey };
+    const result = (await getCourses(filters)) as ApiResponse<CoursesPayload>;
 
-if (result.success) {
-  setCourses(result.data.courses);
-}
-setCatalogLoading(false);
+    if (result.success) {
+      setCourses(result.data.courses);
+    }
+    setCatalogLoading(false);
   };
 
   if (loading) {
@@ -185,10 +202,10 @@ setCatalogLoading(false);
           <div className="bg-white rounded-2xl border border-gray-100 shadow-md p-7">
             <div className="w-11 h-11 bg-capsule-teal/10 rounded-xl flex items-center justify-center text-xl mb-4">🎓</div>
             <h3 className="font-black text-capsule-navy mb-2">
-              {lang === 'ar' ? overview?.studentTrack?.title : overview?.studentTrack?.title_en || overview?.studentTrack?.title}
+              {getLocalizedValue(overview?.studentTrack?.title, overview?.studentTrack?.title_en)}
             </h3>
             <p className="text-sm text-gray-500 leading-relaxed mb-5">
-              {lang === 'ar' ? overview?.studentTrack?.description : overview?.studentTrack?.description_en || overview?.studentTrack?.description}
+              {getLocalizedValue(overview?.studentTrack?.description, overview?.studentTrack?.description_en)}
             </p>
             <button onClick={onNavigateToRegister} className="text-xs font-bold text-capsule-teal hover:text-capsule-navy transition cursor-pointer">
               {l.tracks.btnStudent}
@@ -198,10 +215,10 @@ setCatalogLoading(false);
           <div className="bg-white rounded-2xl border border-gray-100 shadow-md p-7">
             <div className="w-11 h-11 bg-capsule-dark-gold/10 rounded-xl flex items-center justify-center text-xl mb-4">🧑‍🏫</div>
             <h3 className="font-black text-capsule-navy mb-2">
-              {lang === 'ar' ? overview?.trainerTrack?.title : overview?.trainerTrack?.title_en || overview?.trainerTrack?.title}
+              {getLocalizedValue(overview?.trainerTrack?.title, overview?.trainerTrack?.title_en)}
             </h3>
             <p className="text-sm text-gray-500 leading-relaxed mb-5">
-              {lang === 'ar' ? overview?.trainerTrack?.description : overview?.trainerTrack?.description_en || overview?.trainerTrack?.description}
+              {getLocalizedValue(overview?.trainerTrack?.description, overview?.trainerTrack?.description_en)}
             </p>
             <button onClick={onNavigateToTrainerOnboarding} className="text-xs font-bold text-capsule-dark-gold hover:text-capsule-navy transition cursor-pointer">
               {l.tracks.btnTrainer}
@@ -211,10 +228,10 @@ setCatalogLoading(false);
           <div className="bg-white rounded-2xl border border-gray-100 shadow-md p-7">
             <div className="w-11 h-11 bg-capsule-navy/10 rounded-xl flex items-center justify-center text-xl mb-4">🏢</div>
             <h3 className="font-black text-capsule-navy mb-2">
-              {lang === 'ar' ? overview?.companyTrack?.title : overview?.companyTrack?.title_en || overview?.companyTrack?.title}
+              {getLocalizedValue(overview?.companyTrack?.title, overview?.companyTrack?.title_en)}
             </h3>
             <p className="text-sm text-gray-500 leading-relaxed mb-5">
-              {lang === 'ar' ? overview?.companyTrack?.description : overview?.companyTrack?.description_en || overview?.companyTrack?.description}
+              {getLocalizedValue(overview?.companyTrack?.description, overview?.companyTrack?.description_en)}
             </p>
             <button onClick={onNavigateToCompanyOnboarding} className="text-xs font-bold text-capsule-navy hover:text-capsule-teal transition cursor-pointer">
               {l.tracks.btnCompany}
@@ -236,15 +253,15 @@ setCatalogLoading(false);
         <div className="flex flex-wrap gap-3 mb-8">
           {CATEGORIES.map((category) => (
             <button
-              key={category}
-              onClick={() => handleCategoryClick(category)}
+              key={category.key}
+              onClick={() => handleCategoryClick(category.key)}
               className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
-                activeCategory === category
+                activeCategoryKey === category.key
                   ? 'bg-capsule-teal text-white shadow-xs'
                   : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-50'
               }`}
             >
-              {category}
+              {category.label}
             </button>
           ))}
         </div>
@@ -267,7 +284,7 @@ setCatalogLoading(false);
                     {course.category}
                   </span>
                   <h3 className="font-bold text-capsule-navy text-sm mt-3 leading-snug">
-                    {lang === 'ar' ? course.title : course.title_en || course.title}
+                    {getLocalizedValue(course.title, course.title_en)}
                   </h3>
 
                   <div className="flex items-center justify-between mt-4">

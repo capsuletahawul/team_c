@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 
 import { COPY } from "../i18n/copy";
 import { CapsuleMark, EyeIcon } from "../components/Icons";
+import { useAuth } from "../context/AuthContext";
 import "../styles/auth.css";
 
 /**
@@ -31,6 +32,7 @@ export default function SignUp({ lang, onToggleLang, onGoToSignIn }: SignUpProps
   const [role, setRole] = useState<number>(0);
 
   const navigate = useNavigate();
+  const { login } = useAuth();
 
 // تخزين اسم المستخدم.
 const [name, setName] = useState<string>("");
@@ -97,18 +99,21 @@ if (!isPasswordValid) {
 
   // Student
   if (role === 0) {
+    login("student");
     navigate("/student-dashboard");
     return;
   }
 
   // Trainer
   if (role === 1) {
+    login("trainer");
     navigate("/trainer-dashboard");
     return;
   }
 
   // Company
   if (role === 2) {
+    login("company");
     navigate("/company-dashboard");
     return;
   }
