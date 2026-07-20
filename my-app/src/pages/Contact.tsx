@@ -1,3 +1,4 @@
+// src/pages/Contact.tsx
 import React, { useState, useEffect, FormEvent, ChangeEvent } from 'react';
 import { 
   EnvelopeIcon, MapPinIcon, ClockIcon, PaperAirplaneIcon, 
@@ -5,14 +6,12 @@ import {
 } from '@heroicons/react/24/outline';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { submitContactForm } from '../mocks/mockApi';
 import { useLanguage } from '../context/LanguageContext';
 
 // ==========================================
 // 1. تعريف واجهات البيانات (TypeScript Interfaces)
 // ==========================================
 
-// واجهة تصف هيكل بيانات نموذج الاتصال بالكامل
 interface ContactFormData {
   fullName: string;
   email: string;
@@ -22,7 +21,6 @@ interface ContactFormData {
   message: string;
 }
 
-// واجهة تحدد أخطاء التحقق المحتملة لكل حقل
 interface ContactFormErrors {
   fullName?: string;
   email?: string;
@@ -32,7 +30,6 @@ interface ContactFormErrors {
   message?: string;
 }
 
-// واجهة لعناصر معلومات التواصل الجانبية الممررة للمصفوفة
 interface InfoItem {
   icon: React.ComponentType<{ className?: string }>;
   title: string;
@@ -41,22 +38,16 @@ interface InfoItem {
   link: string | null;
 }
 
-// واجهة استجابة الدالة الموك لطلب الإرسال
-interface ApiResponse {
-  success: boolean;
-  message?: string;
-}
-
 // ==========================================
 // 2. المكون البرمجي الرئيسي لصفحة اتصل بنا
 // ==========================================
 export default function Contact() {
-  // جلب النصوص والترجمات الحالية لإدارة اللغتين وتحديد اتجاه الصفحة
   const { t, lang } = useLanguage();
-  const c = t.contact; // الوصول المباشر لنصوص صفحة الاتصال من كابيتال copy.js
+  const c = t.contact; 
   const isRTL = lang === 'ar';
 
-  // إدارة حالات المدخلات والواجهة بأنواع صريحة ومقيدة
+  const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
   const [formData, setFormData] = useState<ContactFormData>({ 
     fullName: '', email: '', phone: '', subject: '', category: '', message: '' 
   });
@@ -65,7 +56,6 @@ export default function Contact() {
   const [showAlert, setShowAlert] = useState<boolean>(false);
   const [submitError, setSubmitError] = useState<string>("");
 
-  // نقل الشاشة لأعلى الصفحة تلقائياً بمجرد تحميل المكون
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -76,21 +66,17 @@ export default function Contact() {
   const validateForm = (): boolean => {
     const tempErrors: ContactFormErrors = {};
 
-    // التحقق من الاسم الثلاثي والحد الأدنى للحروف
     if (!formData.fullName.trim()) tempErrors.fullName = c.form.errRequired;
     else if (formData.fullName.trim().length < 3) tempErrors.fullName = c.form.errMinName;
 
-    // التحقق من صيغة البريد الإلكتروني عبر الـ Regex
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!formData.email.trim()) tempErrors.email = c.form.errRequired;
     else if (!emailRegex.test(formData.email)) tempErrors.email = c.form.errEmail;
 
-    // التحقق من صيغة رقم الجوال السعودي (يبدأ بـ 05 ويتكون من 10 أرقام)
     const phoneRegex = /^05\d{8}$/;
     if (!formData.phone.trim()) tempErrors.phone = c.form.errRequired;
     else if (!phoneRegex.test(formData.phone)) tempErrors.phone = c.form.errPhone;
     
-    // التحقق من تعبئة باقي الحقول وطول الرسالة
     if (!formData.subject.trim()) tempErrors.subject = c.form.errRequired;
     if (!formData.category) tempErrors.category = c.form.errRequired;
     if (!formData.message.trim()) tempErrors.message = c.form.errRequired;
@@ -101,7 +87,7 @@ export default function Contact() {
   };
 
   // ==========================================
-  // 4. معالجة إرسال النموذج وحفظ الحالات
+  // 4. معالجة إرسال النموذج وحفظ الحالات حياً مع السيرفر
   // ==========================================
   const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
@@ -110,19 +96,30 @@ export default function Contact() {
     setSubmitError("");
     setIsSubmitting(true);
     try {
-      const response = await submitContactForm(formData) as ApiResponse;
-      if (response && response.success) {
-        setShowAlert(true);
-        setFormData({ fullName: '', email: '', phone: '', subject: '', category: '', message: '' });
+      const response = await fetch(`${BASE_URL}/contact`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        setSubmitError(result.message || (isRTL ? "فشل إرسال الرسالة، يرجى التحقق من الخادم." : "Failed to send message, please check server response."));
+        return;
       }
+
+      setShowAlert(true);
+      setFormData({ fullName: '', email: '', phone: '', subject: '', category: '', message: '' });
     } catch (err) {
-      setSubmitError("حدث خطأ أثناء إرسال الرسالة، حاول مرة أخرى.");
+      setSubmitError(isRTL ? "حدث خطأ أثناء الاتصال بالسيرفر، حاول مرة أخرى." : "Network connection error, please try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // مصفوفة كروت معلومات التواصل الجانبية لتبسيط الـ Render عبر الـ Map
   const infoItems: InfoItem[] = [
     { icon: EnvelopeIcon, title: c.info.emailTitle, desc: c.info.emailDesc, val: c.info.emailValue, link: `mailto:${c.info.emailValue}` },
     { icon: MapPinIcon, title: c.info.locationTitle, desc: c.info.locationDesc, val: c.info.locationValue, link: null },
@@ -133,7 +130,6 @@ export default function Contact() {
     <div className="min-h-screen bg-gray-50 font-sans flex flex-col" dir={isRTL ? 'rtl' : 'ltr'}>
       <Navbar activePage="contact" />
 
-      {/* هيدر الصفحة العلوي (Hero Section) */}
       <section className="relative w-full overflow-hidden bg-gradient-to-br from-[#164961] via-[#1a5570] to-[#387B84] py-16 text-center text-white">
         <div className="max-w-7xl mx-auto px-6 flex flex-col items-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-6">
@@ -150,14 +146,11 @@ export default function Contact() {
         </div>
       </section>
 
-      {/* الحاوية الأساسية المقسمة لعمودين (النموذج والمعلومات) */}
       <main className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 lg:grid-cols-2 gap-12 w-full flex-grow">
         
-        {/* نموذج إدخال البيانات */}
         <div className="bg-white rounded-2xl border border-slate-100 shadow-xl shadow-slate-200/40 p-6 sm:p-8 space-y-6">
           <h2 className="text-2xl font-black text-[#0D4C54] border-b border-gray-100 pb-3">{c.form.title}</h2>
           
-          {/* تنبيه نجاح العملية */}
           {showAlert && (
             <div className="w-full bg-green-50 border border-green-500 rounded-xl p-4 shadow-sm flex items-start gap-3 transition-all duration-300" role="alert">
               <CheckCircleIcon className="w-6 h-6 text-green-600 flex-shrink-0" />
@@ -171,10 +164,10 @@ export default function Contact() {
             </div>
           )}
 
-          {/* تنبيه فشل الاتصال بالسيرفر */}
           {submitError && (
-            <div className="w-full bg-red-50 border border-red-400 text-red-700 rounded-xl p-4 mb-4 font-semibold text-sm">
-              {submitError}
+            <div className="w-full bg-red-50 border border-red-400 text-red-700 rounded-xl p-4 mb-4 font-bold text-xs flex items-center gap-2">
+              <ExclamationCircleIcon className="w-5 h-5 text-red-500 flex-shrink-0" />
+              <span>{submitError}</span>
             </div>
           )}
 
@@ -232,7 +225,6 @@ export default function Contact() {
           </form>
         </div>
 
-        {/* كروت معلومات التواصل الجانبية */}
         <div className="flex flex-col justify-start space-y-6">
           {infoItems.map((item, index) => (
             <div key={index} className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 group">

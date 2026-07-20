@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import Navbar from '../components/Navbar.jsx';
 import Footer from '../components/Footer.jsx';
@@ -129,19 +129,12 @@ export default function CompanyDashboard() {
     thEmpProgress: lang === 'ar' ? 'نسبة الإنجاز' : 'Completion Rate'
   };
 
-  // State Management Engine
-  const [tickets, setTickets] = useState<TicketItem[]>([
-    { id: 'TKT-9021', program: 'Cybersecurity Blue Team Bootcamp', count: 25, date: '2026-07-01', status: 'issued', domain: 'Cybersecurity', base: 4500, discount: 15 },
-    { id: 'TKT-8411', program: 'Generative AI & LLMs Enterprise Track', count: 12, date: '2026-07-09', status: 'review', domain: 'Artificial Intelligence', base: 6000, discount: 10 },
-    { id: 'TKT-7102', program: 'Cloud Native DevOps Architectures', count: 40, date: '2026-06-15', status: 'approved', domain: 'Cloud Computing', base: 3800, discount: 20 },
-  ]);
+  const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+  const token = localStorage.getItem('user_token');
 
-  const [employees] = useState<EmployeeItem[]>([
-    { id: 1, name: lang === 'ar' ? 'أحمد بن عبد الله' : 'Ahmed Bin Abdullah', progress: 84 },
-    { id: 2, name: lang === 'ar' ? 'سارة القحطاني' : 'Sara Al-Qahtani', progress: 92 },
-    { id: 3, name: lang === 'ar' ? 'خالد الشمري' : 'Khaled Al-Shammari', progress: 41 },
-    { id: 4, name: lang === 'ar' ? 'ريم الدوسري' : 'Reem Al-Dossary', progress: 100 },
-  ]);
+  // إفراغ المصفوفات من البيانات الثابتة لانتظار البيانات الحية من السيرفر[cite: 9]
+  const [tickets, setTickets] = useState<TicketItem[]>([]);
+  const [employees, setEmployees] = useState<EmployeeItem[]>([]);
 
   // UI Navigation & View Screen Switches
   const [activeTab, setActiveTab] = useState<'request' | 'tickets' | 'analytics'>('request');
@@ -154,24 +147,69 @@ export default function CompanyDashboard() {
   const [form, setForm] = useState<FormState>({ program: '', count: '', budget: '', domain: 'Cybersecurity' });
   const [uploadedFileName, setUploadedFileName] = useState<string>('');
 
-  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  // جلب بيانات عروض الأسعار والموظفين عند تحميل الصفحة بشكل ديناميكي[cite: 9]
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadCompanyData() {
+      try {
+        const ticketsRes = await fetch(`${BASE_URL}/company/tickets`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const ticketsData = await ticketsRes.json().catch(() => []);
+
+        const employeesRes = await fetch(`${BASE_URL}/company/employees`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const employeesData = await employeesRes.json().catch(() => []);
+
+        if (!isMounted) return;
+
+        setTickets(Array.isArray(ticketsData) ? ticketsData : []);
+        setEmployees(Array.isArray(employeesData) ? employeesData : []);
+      } catch (err) {
+        console.error('Failed to load company dashboard telemetry data', err);
+      }
+    }
+
+    loadCompanyData();
+    return () => { isMounted = false; };
+  }, [BASE_URL, token]);
+
+  const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const newTicket: TicketItem = {
-      id: `TKT-${Math.floor(1000 + Math.random() * 9000)}`,
-      program: form.program,
-      count: parseInt(form.count) || 10,
-      date: new Date().toISOString().split('T')[0],
-      status: 'review',
-      domain: form.domain,
-      base: 5000,
-      discount: 10
-    };
-    
-    setTickets([newTicket, ...tickets]);
-    setShowToast(true);
-    setForm({ program: '', count: '', budget: '', domain: 'Cybersecurity' });
-    setUploadedFileName('');
-    setTimeout(() => setShowToast(false), 5000);
+    try {
+      const response = await fetch(`${BASE_URL}/company/tickets`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          program: form.program,
+          count: parseInt(form.count) || 10,
+          budget: parseFloat(form.budget) || 0,
+          domain: form.domain,
+          fileName: uploadedFileName
+        })
+      });
+
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        alert(result.error || result.message || 'فشل في إرسال طلب المعسكر المخصص');
+        return;
+      }
+
+      const newTicket = result.ticket || result;
+      setTickets(prev => [newTicket, ...prev]);
+      setShowToast(true);
+      setForm({ program: '', count: '', budget: '', domain: 'Cybersecurity' });
+      setUploadedFileName('');
+      setTimeout(() => setShowToast(false), 5000);
+    } catch (err) {
+      alert('حدث خطأ في الاتصال بالخادم، يرجى المحاولة لاحقاً');
+    }
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -180,9 +218,28 @@ export default function CompanyDashboard() {
     }
   };
 
-  const handleUpdateQuoteStatus = (ticketId: string, nextStatus: 'review' | 'issued' | 'approved') => {
-    setTickets(tickets.map(tkt => tkt.id === ticketId ? { ...tkt, status: nextStatus } : tkt));
-    setSelectedQuote(null);
+  const handleUpdateQuoteStatus = async (ticketId: string, nextStatus: 'review' | 'issued' | 'approved') => {
+    try {
+      const response = await fetch(`${BASE_URL}/company/tickets/${ticketId}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ status: nextStatus })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        alert(errorData.error || 'فشل في تعديل حالة عرض السعر');
+        return;
+      }
+
+      setTickets(prev => prev.map(tkt => tkt.id === ticketId ? { ...tkt, status: nextStatus } : tkt));
+      setSelectedQuote(null);
+    } catch (err) {
+      alert('حدث خطأ أثناء إرسال الإجراء المقرب للسيرفر');
+    }
   };
 
   const handleExportCSV = () => {
@@ -362,7 +419,7 @@ export default function CompanyDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm flex items-center gap-4">
                 <div className="w-12 h-12 rounded-xl bg-[#00A499]/10 flex items-center justify-center text-[#00A499]"><UserGroupIcon className="w-6 h-6" /></div>
-                <div><p className="text-xs font-bold text-slate-400">{l.cardActiveEmp}</p><p className="text-xl font-black text-slate-900 font-mono mt-0.5">77</p></div>
+                <div><p className="text-xs font-bold text-slate-400">{l.cardActiveEmp}</p><p className="text-xl font-black text-slate-900 font-mono mt-0.5">{employees.length}</p></div>
               </div>
               <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm flex items-center gap-4">
                 <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-600"><ClockIcon className="w-6 h-6" /></div>

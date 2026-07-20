@@ -1,7 +1,5 @@
 // src/pages/TrainerDashboard.tsx
 import React, { useState, useEffect } from 'react';
-import { getTrainerAnalytics, submitB2BRequest, getCourses, getTrainerProfile, getTrainerStudentProgressMock } from '../mocks/mockApi';
-import { useApi } from '../hooks/useApi';
 
 // Reusable Components
 import TrainerNavbar from "../components/TrainerNavbar";
@@ -31,9 +29,13 @@ function TrainerDashboard() {
   const { t, lang } = useLanguage();
   const l = t.trainerDashboard;
 
+  const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+  const token = localStorage.getItem('user_token');
+
   const [coursesList, setCoursesList] = useState<CourseItem[]>([]); 
   const [reviewsList, setReviewsList] = useState<ReviewItem[]>([]); 
   const [progressList, setProgressList] = useState<StudentProgressItem[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
   const [message, setMessage] = useState<string>('');
 
@@ -41,24 +43,53 @@ function TrainerDashboard() {
     title: '', price: '', durationWeeks: '', maxStudents: '', videoDurationMinutes: '', level: 'beginner', category: 'Cybersecurity', description: '', requirementsNotes: ''
   });
 
-  // 🌟 استدعاء نظيف ومختصر بدون تكرار أسطر متوافق مع ويك 2
-  const { data: coursesData, loading: cLoad } = useApi(getCourses);
-  const { data: profileData, loading: pLoad } = useApi(getTrainerProfile);
-  const { data: progressData, loading: prLoad } = useApi(getTrainerStudentProgressMock);
-
+  // جلب كافة بيانات المدرب والإحصاءات الحية من الخادم دفعة واحدة
   useEffect(() => {
-    if (coursesData?.courses) {
-      setCoursesList((coursesData.courses as CourseItem[]).map(c => ({ ...c, price: c.price > 1000 ? 350 : c.price, isVisible: true })));
-    }
-  }, [coursesData]);
+    let isMounted = true;
 
-  useEffect(() => {
-    if (profileData?.reviews) {
-      setReviewsList((profileData.reviews as any[]).map(r => ({ ...r, comment: lang === 'ar' ? (r.commentAr || r.comment) : (r.commentEn || r.comment) })));
-    }
-  }, [profileData, lang]);
+    async function fetchDashboardTelemetry() {
+      try {
+        setLoading(true);
+        const headers = { 'Authorization': `Bearer ${token}` };
 
-  useEffect(() => { if (progressData) setProgressList(progressData as StudentProgressItem[]); }, [progressData]);
+        const [coursesRes, profileRes, progressRes] = await Promise.all([
+          fetch(`${BASE_URL}/trainer/courses`, { headers }),
+          fetch(`${BASE_URL}/trainer/profile`, { headers }),
+          fetch(`${BASE_URL}/trainer/students-progress`, { headers })
+        ]);
+
+        const coursesData = await coursesRes.json().catch(() => ({ courses: [] }));
+        const profileData = await profileRes.json().catch(() => ({ reviews: [] }));
+        const progressData = await progressRes.json().catch(() => []);
+
+        if (!isMounted) return;
+
+        if (coursesData?.courses) {
+          setCoursesList((coursesData.courses as CourseItem[]).map(c => ({ 
+            ...c, 
+            price: c.price > 1000 ? 350 : c.price, 
+            isVisible: c.isVisible !== false 
+          })));
+        }
+        
+        if (profileData?.reviews) {
+          setReviewsList(profileData.reviews as ReviewItem[]);
+        }
+        
+        if (Array.isArray(progressData)) {
+          setProgressList(progressData as StudentProgressItem[]);
+        }
+      } catch (err) {
+        console.error('Error fetching trainer dashboard endpoint data', err);
+        setError(lang === 'ar' ? 'فشل في جلب بيانات لوحة التحكم من السيرفر' : 'Failed to fetch engine dashboard telemetry');
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    }
+
+    fetchDashboardTelemetry();
+    return () => { isMounted = false; };
+  }, [BASE_URL, token, lang]);
 
   const calculateCourseEarnings = (students: number, price: number): number => {
     return Math.round((students || 0) * (price || 0) * 0.8);
@@ -72,24 +103,60 @@ function TrainerDashboard() {
     .filter((c: CourseItem) => c.status === 'available')
     .reduce((acc: number, course: CourseItem) => acc + (course.students || 0), 0);
 
-  const requestDeletionFromAdmin = (courseId: number, courseTitle: string) => {
+  const requestDeletionFromAdmin = async (courseId: number, courseTitle: string) => {
     const confirmRequest = window.confirm(lang === 'ar' ? `هل تريد إرسال طلب للمسؤول لحذف دورة "${courseTitle}"؟` : `Submit deletion request for "${courseTitle}"?`);
-    if (confirmRequest) {
+    if (!confirmRequest) return;
+
+    try {
+      const response = await fetch(`${BASE_URL}/trainer/courses/${courseId}/deletion-request`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!response.ok) {
+        alert(lang === 'ar' ? 'تعذر إرسال طلب الحذف، يرجى المحاولة لاحقاً' : 'Failed to submit deletion request stream');
+        return;
+      }
+
       setCoursesList((prev: CourseItem[]) => prev.map((c: CourseItem) => c.id === courseId ? { ...c, status: 'pending_deletion' } : c));
       setMessage(lang === 'ar' ? '🚀 تم إرسال طلب الحذف للمسؤول بنجاح.' : '🚀 Deletion request submitted successfully.');
+    } catch (err) {
+      console.error(err);
     }
   };
 
-  const toggleVisibility = (courseId: number) => {
-    setCoursesList((prev: CourseItem[]) => prev.map((c: CourseItem) => c.id === courseId ? { ...c, isVisible: !c.isVisible } : c));
-    setMessage(lang === 'ar' ? '👁️ تم تحديث حالة ظهور الدورة في المتجر.' : '👁️ Course store visibility updated.');
+  const toggleVisibility = async (courseId: number) => {
+    const targetCourse = coursesList.find(c => c.id === courseId);
+    if (!targetCourse) return;
+    const nextVisibility = !targetCourse.isVisible;
+
+    try {
+      const response = await fetch(`${BASE_URL}/trainer/courses/${courseId}/visibility`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ isVisible: nextVisibility })
+      });
+
+      if (!response.ok) {
+        alert(lang === 'ar' ? 'فشل تعديل حالة ظهور الدورة' : 'Failed to synchronize course visibility parameters');
+        return;
+      }
+
+      setCoursesList((prev: CourseItem[]) => prev.map((c: CourseItem) => c.id === courseId ? { ...c, isVisible: nextVisibility } : c));
+      setMessage(lang === 'ar' ? '👁️ تم تحديث حالة ظهور الدورة في المتجر.' : '👁️ Course store visibility updated.');
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage('');
     setError('');
@@ -99,26 +166,41 @@ function TrainerDashboard() {
       return;
     }
 
-    submitB2BRequest(formData).then(result => {
-      if (result.success && result.data) {
-        setMessage(`${lang === 'ar' ? '✅ تم رفع الدورة المفصلة بنجاح وهي قيد المراجعة: ' : '✅ Course submitted under review with ID: '}${result.data.ticketId}`);
-        
-        const newCourseDraft: CourseItem = {
-          id: result.data.ticketId, title: formData.title, category: formData.category, description: formData.description, subtitle: formData.description,
-          instructor: lang === 'ar' ? 'أحمد محمد' : 'Ahmed Mohammed', trainerId: 'ahmed-mohammed', price: parseInt(formData.price) || 0,
-          originalPrice: (parseInt(formData.price) || 0) * 1.5, discount: '30% OFF', duration: `${formData.durationWeeks} Weeks`, level: formData.level,
-          language: 'Arabic / English', updated: '07/2026', rating: 0, status: "coming_soon", students: 0, thumbnail: 'default.jpg', isVisible: true
-        };
-        
-        setCoursesList((prev: CourseItem[]) => [newCourseDraft, ...prev]);
-        setFormData({ title: '', price: '', durationWeeks: '', maxStudents: '', videoDurationMinutes: '', level: 'beginner', category: 'Cybersecurity', description: '', requirementsNotes: '' });
-      } else {
-        setError(l.messages.genericError);
+    try {
+      const response = await fetch(`${BASE_URL}/trainer/courses`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(formData)
+      });
+
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        setError(result.error || result.message || l.messages.genericError);
+        return;
       }
-    });
+
+      const generatedId = result.ticketId || result.id || Math.floor(Math.random() * 9000);
+      setMessage(`${lang === 'ar' ? '✅ تم رفع الدورة المفصلة بنجاح وهي قيد المراجعة: ' : '✅ Course submitted under review with ID: '}${generatedId}`);
+      
+      const newCourseDraft: CourseItem = {
+        id: generatedId, title: formData.title, category: formData.category, description: formData.description, subtitle: formData.description,
+        instructor: lang === 'ar' ? 'أحمد محمد' : 'Ahmed Mohammed', trainerId: 'ahmed-mohammed', price: parseInt(formData.price) || 0,
+        originalPrice: (parseInt(formData.price) || 0) * 1.5, discount: '30% OFF', duration: `${formData.durationWeeks} Weeks`, level: formData.level,
+        language: 'Arabic / English', updated: '07/2026', rating: 0, status: "coming_soon", students: 0, thumbnail: 'default.jpg', isVisible: true
+      };
+      
+      setCoursesList((prev: CourseItem[]) => [newCourseDraft, ...prev]);
+      setFormData({ title: '', price: '', durationWeeks: '', maxStudents: '', videoDurationMinutes: '', level: 'beginner', category: 'Cybersecurity', description: '', requirementsNotes: '' });
+    } catch (err) {
+      setError(l.messages.genericError);
+    }
   };
 
-  if (cLoad || pLoad || prLoad) {
+  if (loading) {
     return <div className="min-h-screen bg-capsule-bg flex flex-col items-center justify-center"><LoadingIndicator message={l.loading} /></div>;
   }
 
@@ -294,7 +376,9 @@ function TrainerDashboard() {
                     <span>{rev.name}</span>
                     <span className="text-capsule-gold font-mono">{"★".repeat(rev.rating)}</span>
                   </div>
-                  <p className="text-gray-500 text-xs">{rev.comment}</p>
+                  <p className="text-gray-500 text-xs">
+                    {lang === 'ar' ? (rev.commentAr || rev.comment) : (rev.commentEn || rev.comment)}
+                  </p>
                 </div>
               ))}
             </div>
