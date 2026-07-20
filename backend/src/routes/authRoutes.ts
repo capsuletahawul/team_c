@@ -6,9 +6,9 @@
 // routes that need them.
 
 import { Router } from "express";
-import { authController } from "../controllers/authController.js";
-import { authLimiter } from "../middleware/rateLimiter.js";
-import { requireAuth } from "../middleware/authMiddleware.js";
+import { authController } from "../controllers/authController";
+import { authLimiter } from "../middleware/rateLimiter";
+import { requireAuth } from "../middleware/authMiddleware";
 
 const router = Router();
 

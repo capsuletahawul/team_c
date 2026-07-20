@@ -9,8 +9,8 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 
-import authRoutes from "./routes/authRoutes.js";
-import contactRoutes from "./routes/contactRoutes.js";
+import authRoutes from "./routes/authRoutes";
+import contactRoutes from "./routes/contactRoutes";
 
 const app = express();
 const PORT = process.env.PORT ? Number(process.env.PORT) : 5000;
