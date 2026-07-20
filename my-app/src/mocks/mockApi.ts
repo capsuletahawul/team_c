@@ -4,6 +4,8 @@
  * This file simulates a backend database and server processing environment.
  */
 
+import { login, register, submitContact } from '../services/api';
+
 // ============================================================================
 // TYPES & INTERFACES DEFINITIONS
 // ============================================================================
@@ -54,7 +56,6 @@ export interface Enrollment {
   timer: string;
 }
 
-// Interfaces designed explicitly to prevent block-scope compiler issues
 export interface CurriculumTranslation {
   title: string;
   subtitle: string;
@@ -120,7 +121,6 @@ export interface Course {
   curriculum: CurriculumModule[];
   enrollment: Enrollment;
   
-  // Localized Fields (Injected Dynamically)
   translatedCurriculum?: CurriculumTranslation;
   translatedRequirements?: RequirementsTranslation;
   translatedEnrollment?: EnrollmentTranslation;
@@ -141,7 +141,7 @@ export interface User {
 }
 
 export interface CourseEnrollment {
-  courseId: number; // Unified parameter to prevent logical mismatch
+  courseId: number; 
   progress: number;
   status: 'In Progress' | 'Completed' | string;
 }
@@ -210,7 +210,7 @@ export interface AdminUserRecord {
 const delay = (ms: number): Promise<void> => new Promise(res => setTimeout(res, ms));
 
 // ============================================================================
-// SIMULATED IN-MEMORY DATABASE (State persists while browser tab is open)
+// SIMULATED IN-MEMORY DATABASE
 // ============================================================================
 
 let mockCourses: Course[] = [
@@ -486,7 +486,6 @@ let mockUser: User = {
   companyAffiliation: "ABC Technologies"
 };
 
-// Unified the property name to 'courseId' to prevent dynamic data fetch issues
 let mockEnrollments: CourseEnrollment[] = [
   { courseId: 15, progress: 45, status: "In Progress" },
   { courseId: 16, progress: 100, status: "Completed" }
@@ -503,13 +502,12 @@ let mockNotifications: Notification[] = [
   }
 ];
 
-// Typed in-memory state storage lists
-let mockSupportTickets: Array<ContactFormPayload & { id: number; createdAt: string }> = [];
+let mockSupportTickets: Array<unknown> = [];
 let mockB2BRequests: Array<B2BRequestPayload & { ticketId: number; status: string }> = [];
 let mockCourseDrafts: unknown[] = [];
 
 // ============================================================================
-// NEW STATIC DATA FOR INTEGRATION (Course Details, Trainer Details, Contact)
+// NEW STATIC DATA FOR INTEGRATION
 // ============================================================================
 
 export const courseHeroData = {
@@ -681,48 +679,59 @@ export const contactPageData = {
 };
 
 // ============================================================================
-// MODULE 1: AUTHENTICATION APIs (Feature 3)
+// MODULE 1: AUTHENTICATION APIs (Feature 3) - LIVE BACKEND INTEGRATION
 // ============================================================================
 
 export interface RegisterPayload {
+  name?: string;
   fullName?: string;
   email?: string;
   password?: string;
   confirmPassword?: string;
+  role?: string;
 }
 
-export async function registerStudent(payload: RegisterPayload): Promise<ApiResponse<unknown>> {
-  await delay(800);
+export async function registerUser(payload: RegisterPayload): Promise<ApiResponse<unknown>> {
+  await delay(500);
   
-  if (!payload.fullName || !payload.email || !payload.password || !payload.confirmPassword) {
+  const finalName = payload.name || payload.fullName;
+
+  if (!finalName || !payload.email || !payload.password) {
     return {
       success: false,
       error: "validation_error",
-      details: { global: "All required form fields must be populated before registration confirmation." }
+      details: { global: "جميع الحقول مطلوبة لإتمام عملية التسجيل." }
     };
   }
 
-  if (payload.fullName.length < 3) {
+  if (finalName.length < 3) {
     return {
       success: false,
       error: "validation_error",
-      details: { fullName: "Full name must be at least 3 characters long." }
+      details: { global: "يجب أن يكون الاسم 3 حروف أو أكثر." }
     };
   }
 
-  if (payload.password !== payload.confirmPassword) {
+  try {
+    const response = await register({
+      fullName: finalName,
+      email: payload.email,
+      password: payload.password,
+      role: payload.role || "Student"
+    });
+
+    return {
+      success: true,
+      message: "تم إنشاء الحساب بنجاح.",
+      data: response
+    };
+  } catch (err: any) {
     return {
       success: false,
-      error: "validation_error",
-      details: { confirmPassword: "Passwords do not match." }
+      error: "registration_error",
+      details: { global: err.message || "حدث خطأ أثناء إنشاء الحساب." }
     };
   }
-
-  return {
-    success: true,
-    message: "Student account created successfully.",
-    data: { id: Math.floor(Math.random() * 1000), role: "Student", email: payload.email }
-  };
 }
 
 export interface LoginPayload {
@@ -731,21 +740,40 @@ export interface LoginPayload {
 }
 
 export async function loginUser(payload: LoginPayload): Promise<ApiResponse<{ token: string; userId: number; role: string; name: string }>> {
-  await delay(600);
+  await delay(500);
 
   if (!payload.email || !payload.password) {
     return {
       success: false,
       error: "validation_error",
-      details: { auth: "Email and password fields are both required." }
+      details: { auth: "البريد الإلكتروني وكلمة المرور حقول مطلوبة." }
     };
   }
 
-  return {
-    success: true,
-    message: "Login successful.",
-    data: { token: "MOCK_JWT_TOKEN_2026", userId: mockUser.id, role: mockUser.role, name: mockUser.fullName }
-  };
+  try {
+    const response = await login(payload.email, payload.password);
+    
+    if (response.token) {
+      localStorage.setItem('token', response.token);
+    }
+
+    return {
+      success: true,
+      message: "تم تسجيل الدخول بنجاح.",
+      data: {
+        token: response.token,
+        userId: response.user?.id || mockUser.id,
+        role: response.user?.role || mockUser.role,
+        name: response.user?.fullName || response.user?.name || mockUser.fullName
+      }
+    };
+  } catch (err: any) {
+    return {
+      success: false,
+      error: "validation_error",
+      details: { auth: err.message || "خطأ في البريد الإلكتروني أو كلمة المرور." }
+    };
+  }
 }
 
 // ============================================================================
@@ -967,7 +995,7 @@ export async function submitQuiz(quizId: string | number, payload: QuizPayload):
 }
 
 // ============================================================================
-// MODULE 6: COMMUNICATIONS & SUPPORT (Feature 10, Mandatory Contact Form Check)
+// MODULE 6: COMMUNICATIONS & SUPPORT - LIVE BACKEND INTEGRATION
 // ============================================================================
 
 export interface ContactFormPayload {
@@ -978,27 +1006,39 @@ export interface ContactFormPayload {
 }
 
 export async function submitContactForm(data: ContactFormPayload): Promise<ApiResponse<unknown>> {
-  await delay(800);
+  await delay(500);
   
   if (!data.fullName || data.fullName.length < 3) {
-    return { success: false, error: "validation_error", details: { name: "Name must be at least 3 characters." } };
+    return { success: false, error: "validation_error", details: { name: "يجب أن يكون الاسم 3 حروف أو أكثر." } };
   }
   if (!data.email || !data.email.includes("@")) {
-    return { success: false, error: "validation_error", details: { email: "Provide a clean valid email syntax structure." } };
+    return { success: false, error: "validation_error", details: { email: "يرجى إدخال بريد إلكتروني صحيح." } };
   }
   if (!data.phone || !data.phone.startsWith("05") || data.phone.length !== 10) {
     return {
       success: false,
       error: "validation_error",
-      details: { phone: "Must start with 05 and contain exactly 10 programmatic digits." }
+      details: { phone: "يجب أن يبدأ رقم الجوال بـ 05 ويتكون من 10 أرقام." }
     };
   }
   if (!data.message || data.message.length < 20 || data.message.length > 500) {
-    return { success: false, error: "validation_error", details: { message: "Message block must range between 20 and 500 parameters." } };
+    return { success: false, error: "validation_error", details: { message: "يجب أن تكون الرسالة بين 20 و 500 حرف." } };
   }
 
-  mockSupportTickets.push({ id: Math.floor(Math.random() * 1000), ...data, createdAt: new Date().toISOString() });
-  return { success: true, message: "Your message was received." };
+  try {
+    const response = await submitContact(data);
+    return { 
+      success: true, 
+      message: "تم استلام رسالتك بنجاح وسنتواصل معك قريباً.",
+      data: response 
+    };
+  } catch (err: any) {
+    return {
+      success: false,
+      error: "contact_error",
+      details: { message: err.message || "فشل إرسال الرسالة، يرجى المحاولة لاحقاً." }
+    };
+  }
 }
 
 export async function sendChatbotMessage(msgInput: string): Promise<ApiResponse<{ replyBubble: string }>> {
@@ -1117,7 +1157,6 @@ export interface GrowthMetric {
   count: number;
 }
 
-// دالة جلب إحصائيات النمو الشهري من السيرفر الفيك
 export const getAdminGrowthStats = async (): Promise<{ success: boolean; data: GrowthMetric[] }> => {
   return {
     success: true,
@@ -1129,7 +1168,6 @@ export const getAdminGrowthStats = async (): Promise<{ success: boolean; data: G
   };
 };
 
-// الدالة الرسمية لجلب الشكاوى متوافقة مع نظام الـ ApiResponse حق الموك
 export const getAdminComplaints = async (): Promise<{ success: boolean; data: ComplaintItem[] }> => {
   return {
     success: true,
@@ -1263,7 +1301,6 @@ export async function toggleUserStatusInMock(userId: string): Promise<ApiRespons
   return { success: true };
 }
 
-
 export interface ReviewItem {
   id: number;
   name: string;
@@ -1273,7 +1310,6 @@ export interface ReviewItem {
   commentEn: string;
 }
 
-// دالة جلب تقييمات المدرب ديناميكياً من الموك
 export const getTrainerReviewsMock = async (): Promise<{ success: boolean; data: ReviewItem[] }> => {
   return {
     success: true,
@@ -1292,7 +1328,6 @@ export interface StudentProgressItem {
   progress: number;
 }
 
-// دالة جلب سجل تقدم الطلاب ديناميكياً بدون هارد كودد بالواجهة
 export const getTrainerStudentProgressMock = async (): Promise<{ success: boolean; data: StudentProgressItem[] }> => {
   return {
     success: true,

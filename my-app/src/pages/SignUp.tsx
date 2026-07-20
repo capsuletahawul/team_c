@@ -1,6 +1,5 @@
-// صفحة إنشاء حساب جديد.
+// صفحة إنشاء حساب جديد حية ومتصلة بالسيرفر
 import React, { useState, ChangeEvent, FormEvent } from "react";
-
 import { useNavigate } from "react-router-dom";
 
 import { COPY } from "../i18n/copy";
@@ -15,115 +14,141 @@ import "../styles/auth.css";
  * - onToggleLang: دالة لتبديل اللغة
  * - onGoToSignIn: دالة للتنقل إلى صفحة تسجيل الدخول
  */
-// الخصائص التي يستقبلها المكون من الصفحة الرئيسية.
 interface SignUpProps {
   lang: string;
   onToggleLang: () => void;
   onGoToSignIn: () => void;
 }
 
-// المكون الرئيسي المسؤول عن إنشاء حساب جديد.
 export default function SignUp({ lang, onToggleLang, onGoToSignIn }: SignUpProps) {
-  // تحديد ما إذا كانت كلمة المرور ظاهرة أو مخفية.
   const [showPw, setShowPw] = useState<boolean>(false);
-  // تخزين كلمة المرور التي يدخلها المستخدم.
   const [pwValue, setPwValue] = useState<string>("");
-  // تخزين نوع الحساب الذي يختاره المستخدم.
-  const [role, setRole] = useState<number>(0);
+  const [role, setRole] = useState<number>(0); // 0: Student, 1: Trainer, 2: Company
+  const [name, setName] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [acceptedTerms, setAcceptedTerms] = useState<boolean>(false);
+  
+  // حالات التحميل ورسائل الأخطاء القادمة من السيرفر
+  const [loading, setLoading] = useState<boolean>(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const navigate = useNavigate();
   const { login } = useAuth();
 
-// تخزين اسم المستخدم.
-const [name, setName] = useState<string>("");
-// تخزين البريد الإلكتروني.
-const [email, setEmail] = useState<string>("");
-
-//
-const [acceptedTerms, setAcceptedTerms] = useState<boolean>(false);
+  const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
   const t = COPY[lang as keyof typeof COPY];
   const form = t.signup;
 
   // حساب مستوى قوة كلمة المرور.
   const pwStrength =
-  pwValue.length < 6
-    ? 0
-    : pwValue.length < 10
-    ? 1
-    : 2;
+    pwValue.length < 6
+      ? 0
+      : pwValue.length < 10
+      ? 1
+      : 2;
 
-// التحقق من استيفاء كلمة المرور لجميع الشروط المطلوبة.
-const passwordChecks = {
-  length: pwValue.length >= 8,
-  uppercase: /[A-Z]/.test(pwValue),
-  lowercase: /[a-z]/.test(pwValue),
-  number: /[0-9]/.test(pwValue),
-  special: /[!@#$%^&*(),.?":{}|<>]/.test(pwValue),
-};
+  // التحقق من استيفاء كلمة المرور لجميع الشروط المطلوبة.
+  const passwordChecks = {
+    length: pwValue.length >= 8,
+    uppercase: /[A-Z]/.test(pwValue),
+    lowercase: /[a-z]/.test(pwValue),
+    number: /[0-9]/.test(pwValue),
+    special: /[!@#$%^&*(),.?":{}|<>]/.test(pwValue),
+  };
 
+  // التحقق من صحة البيانات ثم إنشاء الحساب وتوجيه المستخدم حسب نوعه حياً مع الباك إند
+  const handleSignUp = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setErrorMsg(null);
 
-// التحقق من صحة البيانات ثم إنشاء الحساب وتوجيه المستخدم حسب نوعه.
-const handleSignUp = (e: FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
+    // نتأكد أن الحقول ليست فارغة
+    if (!name || !email || !pwValue) {
+      setErrorMsg(lang === "ar" ? "يرجى تعبئة جميع الحقول المطلوبة." : "Please fill in all required fields.");
+      return;
+    }
 
-  // نتأكد أن الحقول ليست فارغة
-  if (!name || !email || !pwValue) {
-    alert("يرجى تعبئة جميع الحقول");
-    return;
-  }
+    // التحقق من قبول الشروط
+    if (!acceptedTerms) {
+      setErrorMsg(
+        lang === "ar"
+          ? "يجب الموافقة على الشروط والأحكام أولاً للمتابعة."
+          : "You must accept the Terms and Conditions to proceed."
+      );
+      return;
+    }
 
-  // التحقق من قبول الشروط
-if (!acceptedTerms) {
-  alert(
-    lang === "ar"
-      ? "يجب الموافقة على الشروط والأحكام أولاً."
-      : "You must accept the Terms and Conditions first."
-  );
-  return;
-}
+    const isPasswordValid =
+      passwordChecks.length &&
+      passwordChecks.uppercase &&
+      passwordChecks.lowercase &&
+      passwordChecks.number &&
+      passwordChecks.special;
 
-  const isPasswordValid =
-  passwordChecks.length &&
-  passwordChecks.uppercase &&
-  passwordChecks.lowercase &&
-  passwordChecks.number &&
-  passwordChecks.special;
+    if (!isPasswordValid) {
+      setErrorMsg(
+        lang === "ar" 
+          ? "تأكد من استيفاء كلمة المرور لجميع الشروط الأمنية بالأسفل." 
+          : "Please ensure your password meets all security requirements below."
+      );
+      return;
+    }
 
-if (!isPasswordValid) {
-  alert(
-    "يجب أن تحتوي كلمة المرور على 8 أحرف على الأقل، وحرف كبير، وحرف صغير، ورقم، ورمز خاص."
-  );
-  return;
-}
+    setLoading(true);
 
-  // Student
-  if (role === 0) {
-    login("student");
-    navigate("/student-dashboard");
-    return;
-  }
+    // تحويل رتبة الحساب الرقمية إلى نصية تتوافق مع السيرفر ونظام التوجيه
+    const roleMapping = ["student", "trainer", "company"];
+    const roleString = roleMapping[role] || "student";
 
-  // Trainer
-  if (role === 1) {
-    login("trainer");
-    navigate("/trainer-dashboard");
-    return;
-  }
+    try {
+      const response = await fetch(`${BASE_URL}/auth/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          password: pwValue,
+          role: roleString
+        })
+      });
 
-  // Company
-  if (role === 2) {
-    login("company");
-    navigate("/company-dashboard");
-    return;
-  }
-};
+      const result = await response.json().catch(() => ({}));
 
+      if (!response.ok) {
+        // استخلاص رسالة الخطأ القادمة من السيرفر مباشرة
+        const serverError = result.error || result.message || result.details?.email || result.details?.global;
+        setErrorMsg(serverError || (lang === "ar" ? "فشل إنشاء الحساب، يرجى التحقق من البيانات." : "Failed to create account."));
+        return;
+      }
+
+      // حفظ بيانات التوكين حية داخل الـ Storage في حال إرجاعها من السيرفر مباشرة بعد التسجيل
+      if (result.token) {
+        localStorage.setItem("user_token", result.token);
+      }
+
+      login(roleString as any);
+
+      // التوجيه التلقائي إلى لوحة التحكم المناسبة للدور الفعلي
+      if (roleString === "student") {
+        navigate("/student-dashboard");
+      } else if (roleString === "trainer") {
+        navigate("/trainer-dashboard");
+      } else if (roleString === "company") {
+        navigate("/company-dashboard");
+      }
+
+    } catch (err: any) {
+      setErrorMsg(lang === "ar" ? "حدث خطأ في الاتصال بالخادم، يرجى المحاولة مرة أخرى." : "Server connection failure, please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="auth-root" dir={t.dir} lang={lang}>
       <div className="auth-shell">
-        {/* القسم الخاص بالشكل والتصميم */}
         <div className="auth-visual">
           <button className="lang-toggle" onClick={onToggleLang}>
             {lang === "ar" ? "EN" : "AR"}
@@ -143,27 +168,26 @@ if (!isPasswordValid) {
           </div>
         </div>
 
-        {/* نموذج إنشاء الحساب */}
         <div className="auth-form-side">
           <div className="auth-form-wrap">
-
-<div
-  style={{
-    textAlign: lang === "ar" ? "left" : "right",
-    marginBottom: "16px",
-  }}
->
-  <button
-    type="button"
-    onClick={() => navigate("/")}
-    className="text-[#0f4c81] font-semibold"
-  >
-    {lang === "ar" ? "← رجوع" : "Back →"}
-  </button>
-</div>
+            <div
+              style={{
+                textAlign: lang === "ar" ? "left" : "right",
+                marginBottom: "16px",
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => navigate("/")}
+                className="text-[#0f4c81] font-semibold"
+                disabled={loading}
+              >
+                {lang === "ar" ? "← رجوع" : "Back →"}
+              </button>
+            </div>
 
             <div className="auth-tabs">
-              <button onClick={onGoToSignIn}>{t.tabs.login}</button>
+              <button onClick={onGoToSignIn} disabled={loading}>{t.tabs.login}</button>
               <button className="is-active">{t.tabs.signup}</button>
               <span className="tab-underline pos-2" />
             </div>
@@ -171,32 +195,46 @@ if (!isPasswordValid) {
             <h2>{form.title}</h2>
             <p className="auth-subtitle">{form.subtitle}</p>
 
+            {errorMsg && (
+              <div 
+                style={{
+                  padding: "10px 14px",
+                  backgroundColor: "#fee2e2",
+                  color: "#991b1b",
+                  borderRadius: "6px",
+                  marginBottom: "16px",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                  textAlign: "right"
+                }}
+              >
+                ⚠️ {errorMsg}
+              </div>
+            )}
 
-{/* نموذج إدخال بيانات إنشاء الحساب */}
-<form className="auth-form" onSubmit={handleSignUp}>
-
-
+            <form className="auth-form" onSubmit={handleSignUp}>
               <div className="field">
                 <label>{form.name}</label>
-<input
-  type="text"
-  placeholder={form.namePh}
-  value={name}
-  onChange={(e: ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
-/>
-
+                <input
+                  type="text"
+                  placeholder={form.namePh}
+                  value={name}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
+                  disabled={loading}
+                  required
+                />
               </div>
 
               <div className="field">
                 <label>{form.email}</label>
-
-<input
-  type="email"
-  placeholder={form.emailPh}
-  value={email}
-  onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
-/>
-
+                <input
+                  type="email"
+                  placeholder={form.emailPh}
+                  value={email}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+                  disabled={loading}
+                  required
+                />
               </div>
 
               <div className="field">
@@ -207,6 +245,8 @@ if (!isPasswordValid) {
                     placeholder={form.passwordPh}
                     value={pwValue}
                     onChange={(e: ChangeEvent<HTMLInputElement>) => setPwValue(e.target.value)}
+                    disabled={loading}
+                    required
                   />
                   <button
                     type="button"
@@ -232,47 +272,28 @@ if (!isPasswordValid) {
                 {pwValue.length === 0 && <span className="pw-hint">{t.passwordHint}</span>}
               </div>
 
-
-
- {/* عرض شروط كلمة المرور للمستخدم */}
-<div className="password-rules">
-
-  <div className="rule">
-    <span className={`rule-dot ${passwordChecks.length ? "valid" : ""}`}></span>
-    <span>
-      {lang === "ar" ? "8 أحرف على الأقل" : "At least 8 characters"}
-    </span>
-  </div>
-
-  <div className="rule">
-    <span className={`rule-dot ${passwordChecks.uppercase ? "valid" : ""}`}></span>
-    <span>
-      {lang === "ar" ? "حرف كبير (A-Z)" : "Uppercase letter (A-Z)"}
-    </span>
-  </div>
-
-  <div className="rule">
-    <span className={`rule-dot ${passwordChecks.lowercase ? "valid" : ""}`}></span>
-    <span>
-      {lang === "ar" ? "حرف صغير (a-z)" : "Lowercase letter (a-z)"}
-    </span>
-  </div>
-
-  <div className="rule">
-    <span className={`rule-dot ${passwordChecks.number ? "valid" : ""}`}></span>
-    <span>
-      {lang === "ar" ? "رقم (0-9)" : "Number (0-9)"}
-    </span>
-  </div>
-
-  <div className="rule">
-    <span className={`rule-dot ${passwordChecks.special ? "valid" : ""}`}></span>
-    <span>
-      {lang === "ar" ? "رمز خاص (!@#$)" : "Special character (!@#$)"}
-    </span>
-  </div>
-
-</div>
+              <div className="password-rules">
+                <div className="rule">
+                  <span className={`rule-dot ${passwordChecks.length ? "valid" : ""}`}></span>
+                  <span>{lang === "ar" ? "8 أحرف على الأقل" : "At least 8 characters"}</span>
+                </div>
+                <div className="rule">
+                  <span className={`rule-dot ${passwordChecks.uppercase ? "valid" : ""}`}></span>
+                  <span>{lang === "ar" ? "حرف كبير (A-Z)" : "Uppercase letter (A-Z)"}</span>
+                </div>
+                <div className="rule">
+                  <span className={`rule-dot ${passwordChecks.lowercase ? "valid" : ""}`}></span>
+                  <span>{lang === "ar" ? "حرف صغير (a-z)" : "Lowercase letter (a-z)"}</span>
+                </div>
+                <div className="rule">
+                  <span className={`rule-dot ${passwordChecks.number ? "valid" : ""}`}></span>
+                  <span>{lang === "ar" ? "رقم (0-9)" : "Number (0-9)"}</span>
+                </div>
+                <div className="rule">
+                  <span className={`rule-dot ${passwordChecks.special ? "valid" : ""}`}></span>
+                  <span>{lang === "ar" ? "رمز خاص (!@#$)" : "Special character (!@#$)"}</span>
+                </div>
+              </div>
 
               <div className="field">
                 <label>{form.role}</label>
@@ -283,6 +304,7 @@ if (!isPasswordValid) {
                       key={i}
                       className={role === i ? "is-active" : ""}
                       onClick={() => setRole(i)}
+                      disabled={loading}
                     >
                       {r}
                     </button>
@@ -291,23 +313,30 @@ if (!isPasswordValid) {
               </div>
 
               <label className="checkbox terms-check">
-  <input
-    type="checkbox"
-    checked={acceptedTerms}
-    onChange={(e) => setAcceptedTerms(e.target.checked)}
-  />
-  <span>{form.terms}</span>
-</label>
+                <input
+                  type="checkbox"
+                  checked={acceptedTerms}
+                  onChange={(e) => setAcceptedTerms(e.target.checked)}
+                  disabled={loading}
+                />
+                <span>{form.terms}</span>
+              </label>
 
-              <button type="submit" className="submit-btn">{form.submit}</button>
+              <button 
+                type="submit" 
+                className="submit-btn" 
+                disabled={loading}
+                style={{ opacity: loading ? 0.7 : 1, cursor: loading ? "not-allowed" : "pointer" }}
+              >
+                {loading ? (lang === "ar" ? "جاري إنشاء الحساب..." : "Creating account...") : form.submit}
+              </button>
             </form>
 
             <div className="divider"><span>{form.or}</span></div>
 
-            {/* أزرار التسجيل باستخدام وسائل التواصل */}
             <div className="social-row">
               {t.social.map((s: string, i: number) => (
-                <button key={i} className="social-btn">
+                <button key={i} className="social-btn" disabled={loading}>
                   {s === "Google" ? "🔴" : "🔵"} {s}
                 </button>
               ))}
@@ -315,7 +344,7 @@ if (!isPasswordValid) {
 
             <p className="switch-line">
               {form.haveAccount}{" "}
-              <button className="switch-btn" onClick={onGoToSignIn}>
+              <button className="switch-btn" onClick={onGoToSignIn} disabled={loading}>
                 {form.switchLink}
               </button>
             </p>
