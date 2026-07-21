@@ -1,3 +1,4 @@
+//
 // 1. Define your COPY object normally with 'as const'
 export const COPY = {
   ar: {
