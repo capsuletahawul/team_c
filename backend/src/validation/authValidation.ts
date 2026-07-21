@@ -1,4 +1,3 @@
-
 import { z } from 'zod';
 
 // سكيما فحص بيانات التسجيل حسب شروط الكتيب
@@ -19,3 +18,14 @@ export const registerSchema = z.object({
 
 // تايب مستنتج تلقائياً لتسهيل استخدامه في الكونترولر والخدمات
 export type RegisterInput = z.infer<typeof registerSchema>;
+
+// سكيما فحص بيانات تسجيل الدخول
+export const loginSchema = z.object({
+  email: z.string()
+    .email({ message: 'صيغة البريد الإلكتروني غير صحيحة / Invalid email format' }),
+
+  password: z.string()
+    .min(1, { message: 'كلمة المرور مطلوبة / Password is required' }),
+});
+
+export type LoginInput = z.infer<typeof loginSchema>;

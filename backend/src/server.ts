@@ -19,25 +19,15 @@ const PORT = process.env.PORT ? Number(process.env.PORT) : 5000;
 // Global middleware
 // ---------------------------------------------------------------------
 
-
 // CORS: allow only the configured frontend origin — never a wildcard when
 // credentials (auth tokens) are involved (Handbook Section 12.3).
-// 1. Enable CORS for your Vite frontend URL
 app.use(cors({
-  origin: "http://localhost:5173", // Allows your React app to talk to Express
+  origin: process.env.CORS_ORIGIN || "http://localhost:5173",
   credentials: true,
 }));
 
-// 2. Parse JSON body payload
+// Parse JSON body payload
 app.use(express.json());
-
-// 3. Mount routes
-app.use("/api/auth", authRoutes);
-app.use("/api/contact", contactRoutes);
-
-app.listen(5000, () => {
-  console.log("Server listening on http://localhost:5000");
-});
 
 // ---------------------------------------------------------------------
 // Health check — required by the Postman test table (Handbook Section 11)

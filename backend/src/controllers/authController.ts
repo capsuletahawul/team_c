@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { registerSchema } from '../validation/authValidation.js';
+import { registerSchema, loginSchema } from '../validation/authValidation.js';
 import { authService } from '../services/authService.js';
 
 export const authController = {
@@ -40,11 +40,23 @@ export const authController = {
    */
   async login(req: Request, res: Response) {
     try {
-      // TODO: Connect login logic to authService
-      return res.status(200).json({
-        success: true,
-        message: "Login route operational"
-      });
+      const validationResult = loginSchema.safeParse(req.body);
+
+      if (!validationResult.success) {
+        return res.status(400).json({
+          success: false,
+          error: 'خطأ في التحقق من البيانات / Validation Error',
+          details: validationResult.error.flatten().fieldErrors
+        });
+      }
+
+      const result = await authService.login(validationResult.data);
+
+      if (!result.success) {
+        return res.status(401).json(result);
+      }
+
+      return res.status(200).json(result);
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Server Error';
       return res.status(500).json({
