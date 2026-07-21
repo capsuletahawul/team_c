@@ -11,8 +11,7 @@ import {
 } from '../mocks/mockApi';
 
 // استيراد الـ Hook المشترك والأصلح لويك 2
-import { useApi } from '../hooks/useApi';
-
+import { useApi } from '../Hooks/useApi'; // Capital 'H'
 // Reusable Components
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
