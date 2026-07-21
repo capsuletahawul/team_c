@@ -13,4 +13,4 @@ export interface IUserRepository {
   create(data: CreateUserInput): Promise<User>;
 }
 
-export { memoryUserRepository as userRepository } from './memoryUserRepository';
+export { memoryUserRepository as userRepository } from './memoryUserRepository.js';

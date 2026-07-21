@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import type { User, CreateUserInput, IUserRepository } from './userRepository';
+import type { User, CreateUserInput, IUserRepository } from './userRepository.ts';
 
 // مصفوفة في الذاكرة تلعب دور قاعدة البيانات مؤقتاً
 const users: User[] = [];
