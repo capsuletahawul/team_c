@@ -55,18 +55,12 @@ app.use((_req, res) => {
 // Centralized error handler — must be registered LAST, with 4 params,
 // for Express to recognize it as an error handler.
 // ---------------------------------------------------------------------
-app.use(
-  (
-    err: unknown,
-    _req: express.Request,
-    res: express.Response,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    _next: express.NextFunction
-  ) => {
-    console.error(err);
-    res.status(500).json({ success: false, error: "internal_server_error" });
-  }
-);
+const errorHandler: express.ErrorRequestHandler = (err, _req, res, _next) => {
+  console.error(err);
+  res.status(500).json({ success: false, error: "internal_server_error" });
+};
+
+app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log(`Server listening on http://localhost:${PORT}`);
