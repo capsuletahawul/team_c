@@ -8,8 +8,8 @@ export interface AuthenticatedRequest extends Request {
     email: string;
   };
 }
-
-export function requireAuth(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+//
+export function requireAuth(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(' ')[1];
 
@@ -20,7 +20,7 @@ export function requireAuth(req: AuthenticatedRequest, res: Response, next: Next
   try {
     const secret = process.env.JWT_SECRET || 'fallback-secret-key';
     const decoded = jwt.verify(token, secret) as AuthenticatedRequest['user'];
-    req.user = decoded;
+    (req as AuthenticatedRequest).user = decoded;
     next();
   } catch (err) {
     return res.status(401).json({ success: false, error: 'invalid_token' });

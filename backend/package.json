@@ -1,17 +1,17 @@
 {
   "name": "backend",
   "version": "1.0.0",
+  "type": "module",
   "description": "Capsule Tahawul — Week 3 Express API",
   "main": "dist/server.js",
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only --node-arg=--loader=ts-node/esm src/server.ts",
+    "dev": "tsx watch src/server.ts",
     "start": "node dist/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
     "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
@@ -30,6 +30,7 @@
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "tsconfig-paths": "^4.2.0",
+    "tsx": "^4.23.1",
     "typescript": "^5.9.3"
   }
 }

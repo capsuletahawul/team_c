@@ -10,28 +10,18 @@ export const contactSchema = z.object({
 });
 
 export const contactController = {
-  async submitContactForm(req: Request, res: Response) {
+ async submitContact(req: Request, res: Response) {
     try {
-      const validation = contactSchema.safeParse(req.body);
-      
-      if (!validation.success) {
-        return res.status(400).json({
-          success: false,
-          error: 'Validation Error',
-          details: validation.error.flatten().fieldErrors
-        });
-      }
-
-      return res.status(201).json({
+      // TODO: Connect to contact service / database logic
+      return res.status(200).json({
         success: true,
-        message: 'Contact form submitted successfully',
-        data: validation.data
+        message: 'تم استلام رسالتك بنجاح / Message received successfully'
       });
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Server Error';
       return res.status(500).json({
         success: false,
-        error: errorMessage
+        error: `خطأ داخلي في الخادم: ${errorMessage}`
       });
     }
   }
