@@ -59,6 +59,36 @@ export const authService = {
    * Login
    */
   async login(input: LoginInput) {
+    // تعديل: التحقق من حساب الأدمن الثابت في الخدمة أيضاً لضمان إصدار التوكن الصحيح والصلاحيات
+    if (
+      input.email === "capsuletahawul@gmail.com" &&
+      input.password === "Admin@5011"
+    ) {
+      const adminToken = jwt.sign(
+        {
+          userId: "admin-static-id",
+          email: "capsuletahawul@gmail.com",
+          role: "admin",
+        },
+        process.env.JWT_SECRET || "fallback-secret-key",
+        {
+          expiresIn: "7d",
+        }
+      );
+
+      return {
+        success: true,
+        token: adminToken,
+        user: {
+          id: "admin-static-id",
+          name: "Administrator",
+          email: "capsuletahawul@gmail.com",
+          role: "admin",
+        },
+      };
+    }
+    // نهاية تعديل حساب الأدمن الثابت
+
     const user = await userRepository.findByEmail(input.email);
 
     if (!user) {

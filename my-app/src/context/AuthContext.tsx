@@ -20,7 +20,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return (savedRole as Role) || null;
   });
 
-  // استعادة التوكن من الـ localStorage عند تحميل التطبيق[cite: 10]
+  // استعادة التوكن من الـ localStorage عند تحميل التطبيق[cite: 8]
   const [token, setToken] = useState<string | null>(() => {
     return localStorage.getItem('user_token');
   });
@@ -42,7 +42,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const logout = () => {
     localStorage.removeItem('user_role');
-    localStorage.removeItem('user_token'); // مسح التوكن عند تسجيل الخروج[cite: 10]
+    localStorage.removeItem('user_token'); // مسح التوكن عند تسجيل الخروج[cite: 8]
     setRole(null);
     setToken(null);
   };

@@ -56,6 +56,26 @@ export const authController = {
         });
       }
 
+      // تعديل: التحقق من حساب الأدمن الثابت قبل الانتقال لخدمة المصادقة العادية
+      if (
+        validation.data.email === "capsuletahawul@gmail.com" &&
+        validation.data.password === "Admin@5011"
+      ) {
+        // محاكاة استجابة نجاح تسجيل دخول الأدمن بصلاحياته ودور admin
+        const adminResult = {
+          success: true,
+          token: "mock-admin-token-capsuletahawul", // أو استدعاء خدمة توليد التوكن إذا لزم
+          user: {
+            id: "admin-static-id",
+            name: "Administrator",
+            email: "capsuletahawul@gmail.com",
+            role: "admin",
+          },
+        };
+        return res.status(200).json(adminResult);
+      }
+      // نهاية التعديل للأدمن الثابت
+
       const result = await authService.login(validation.data);
 
       if (!result.success) {
@@ -79,6 +99,26 @@ export const authController = {
   async me(req: Request, res: Response) {
     try {
       const authUser = (req as AuthenticatedRequest).user!;
+      
+      // تعديل: دعم الاستعلام عن بيانات الأدمن الثابت في حال كان معرفه خاصاً بالأدمن
+      if (authUser.userId === "admin-static-id" || authUser.email === "capsuletahawul@gmail.com") {
+        return res.status(200).json({
+          success: true,
+          user: {
+            id: "admin-static-id",
+            fullName: "Administrator",
+            email: "capsuletahawul@gmail.com",
+            role: "admin",
+            avatar: "",
+            joinedAt: new Date(),
+            completedCourses: 0,
+            activeCourses: 0,
+            companyAffiliation: "Capsulet Tahawul",
+          },
+        });
+      }
+      // نهاية تعديل بيانات الأدمن الثابت
+
       const user = await userRepository.findById(authUser.userId);
 
       if (!user) {

@@ -8,8 +8,9 @@ import LoadingIndicator from "../components/LoadingIndicator";
 
 // Global Context
 import { useLanguage } from "../context/LanguageContext";
-// API base URL — single source of truth
-import { BASE_URL } from "../services/api";
+
+// Centralized API functions
+import { getAdminCourses, approveAdminCourse, rejectAdminCourse } from "../services/api";
 
 // Union type restricting system course approval states
 type CourseStatus = "pending" | "approved" | "rejected";
@@ -28,8 +29,6 @@ const CoursesApproval: React.FC = () => {
   const { t } = useLanguage();
   const l = t.coursesApproval;
 
-  const token = localStorage.getItem('user_token');
-
   // React states to manage asynchronous UI lifecycle and dynamic list updates
   const [courses, setCourses] = useState<CourseItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -41,10 +40,7 @@ const CoursesApproval: React.FC = () => {
 
     const loadCourses = async () => {
       try {
-        const response = await fetch(`${BASE_URL}/admin/courses`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const result = await response.json().catch(() => ({ success: false }));
+        const result = await getAdminCourses();
         if (!isMounted) return;
 
         if (result?.success && result.data) {
@@ -64,16 +60,12 @@ const CoursesApproval: React.FC = () => {
     return () => {
       isMounted = false;
     };
-  }, [BASE_URL, token]);
+  }, []);
 
   // Handler triggered by the administrator to approve a specific course pipeline
   const approveCourse = async (id: number): Promise<void> => {
     try {
-      const response = await fetch(`${BASE_URL}/admin/courses/${id}/approve`, {
-        method: 'PUT',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (!response.ok) return;
+      await approveAdminCourse(id);
 
       setCourses((prevCourses) =>
         prevCourses.map((course) =>
@@ -88,11 +80,7 @@ const CoursesApproval: React.FC = () => {
   // Handler triggered by the administrator to reject a specific course pipeline
   const rejectCourse = async (id: number): Promise<void> => {
     try {
-      const response = await fetch(`${BASE_URL}/admin/courses/${id}/reject`, {
-        method: 'PUT',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (!response.ok) return;
+      await rejectAdminCourse(id);
 
       setCourses((prevCourses) =>
         prevCourses.map((course) =>

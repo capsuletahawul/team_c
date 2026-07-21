@@ -9,7 +9,9 @@ import { requireAuth, requireRole } from "../middleware/authMiddleware.js";
 
 const router = Router();
 
-router.use(requireAuth, requireRole("Admin"));
+// تعديل: ضمان توافق فحص الدور (Role) مع الحرف الكبير والصغير (مثل Admin و admin) لتفادي أي رفض غير مقصود للصلاحيات
+router.use(requireAuth, requireRole("Admin", "admin"));
+// نهاية تعديل صلاّحية الأدمن
 
 router.get("/courses", adminController.getCourses);
 router.put("/courses/:id/approve", adminController.approveCourse);

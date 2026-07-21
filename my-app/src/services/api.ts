@@ -87,3 +87,23 @@ export async function submitContact(contactData: any) {
     body: JSON.stringify(contactData),
   });
 }
+
+// =======================
+// Admin Courses Approval
+// =======================
+
+export async function getAdminCourses() {
+  return apiFetch<{ success: boolean; data: { courses: any[] } }>("/admin/courses");
+}
+
+export async function approveAdminCourse(id: number) {
+  return apiFetch(`/admin/courses/${id}/approve`, {
+    method: "PUT",
+  });
+}
+
+export async function rejectAdminCourse(id: number) {
+  return apiFetch(`/admin/courses/${id}/reject`, {
+    method: "PUT",
+  });
+}

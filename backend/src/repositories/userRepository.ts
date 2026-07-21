@@ -18,4 +18,5 @@ export interface IUserRepository {
   updateProfile(id: string, updates: { name?: string; avatar?: string }): Promise<User | undefined>;
 }
 
+// تعديل: إضافة حساب الأدمن الثابت ضمن مستودع الذاكرة أو السماح بالتعامل معه إن وُجد في الذاكرة
 export { memoryUserRepository as userRepository } from './memoryUserRepository.js';

@@ -140,6 +140,8 @@ export default function SignIn({ lang, onToggleLang, onGoToSignUp }: SignInProps
             <h2>{form.title}</h2>
             <p className="auth-subtitle">{form.subtitle}</p>
 
+            {/* تم حذف زر تعبئة بيانات الأدمن السريع من هنا */}
+
             {/* عرض رسالة الخطأ في حال وجودها */}
             {errorMsg && (
               <div 
