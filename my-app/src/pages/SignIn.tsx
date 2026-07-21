@@ -49,7 +49,7 @@ export default function SignIn({ lang, onToggleLang, onGoToSignUp }: SignInProps
         const role = response.data.role.toLowerCase();
         
         // التعديل هنا: تمرير النوع كـ any لحل مشكلة الفحص الصارم للـ TypeScript
-        login(role as any);
+        login(role as any, response.data.token);
 
         // التوجيه للوحة التحكم الصحيحة بناءً على نوع المستخدم
         if (role === "student") {

@@ -752,10 +752,6 @@ export async function loginUser(payload: LoginPayload): Promise<ApiResponse<{ to
 
   try {
     const response = await login(payload.email, payload.password);
-    
-    if (response.token) {
-      localStorage.setItem('token', response.token);
-    }
 
     return {
       success: true,
