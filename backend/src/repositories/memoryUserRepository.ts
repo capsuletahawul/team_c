@@ -9,6 +9,10 @@ export const memoryUserRepository: IUserRepository = {
     return users.find((user) => user.email === email);
   },
 
+  async findById(id) {
+    return users.find((user) => user.id === id);
+  },
+
   async create(data) {
     const newUser: User = {
       id: randomUUID(),
@@ -16,5 +20,11 @@ export const memoryUserRepository: IUserRepository = {
     };
     users.push(newUser);
     return newUser;
+  },
+
+  async updateName(id, name) {
+    const user = users.find((u) => u.id === id);
+    if (user) user.name = name;
+    return user;
   }
 };

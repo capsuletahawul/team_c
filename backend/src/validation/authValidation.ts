@@ -24,9 +24,9 @@ export const registerSchema = z.object({
         "كلمة المرور يجب أن لا تقل عن 8 خانات / Password must be at least 8 characters",
     }),
 
-  role: z.enum(["Student", "Trainer", "Company"], {
+  role: z.enum(["Student", "Trainer", "Company", "Admin"], {
     error: () =>
-      "يجب اختيار رتبة صحيحة / Role must be Student, Trainer, or Company",
+      "يجب اختيار رتبة صحيحة / Role must be Student, Trainer, Company, or Admin",
   }),
 });
 

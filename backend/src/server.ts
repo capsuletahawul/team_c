@@ -6,6 +6,8 @@ import cors from "cors";
 
 import authRoutes from "./routes/authRoutes.js";
 import contactRoutes from "./routes/contactRoutes.js";
+import trainerRoutes from "./routes/trainerRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
 
 const app = express();
 const PORT = process.env.PORT ? Number(process.env.PORT) : 3001;
@@ -32,6 +34,8 @@ app.use((req, _res, next) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/contact", contactRoutes);
+app.use("/api/trainer", trainerRoutes);
+app.use("/api/admin", adminRoutes);
 
 // ---------------------------------------------------------------------
 // Health check
