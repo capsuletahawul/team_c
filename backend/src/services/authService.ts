@@ -10,7 +10,7 @@ import { userRepository } from "../repositories/userRepository.js";
 
 export const authService = {
   /**
-   * Register
+   * Register with Auto-Login Token Generation
    */
   async register(input: RegisterInput) {
     const existingUser = await userRepository.findByEmail(input.email);
@@ -31,6 +31,7 @@ export const authService = {
       role: input.role,
     });
 
+    // 🌟 إصدار توكن فوري وصالح لمدة ساعتين للتسجيل التلقائي الشامل
     const token = jwt.sign(
       {
         userId: newUser.id,
@@ -39,7 +40,7 @@ export const authService = {
       },
       process.env.JWT_SECRET || "fallback-secret-key",
       {
-        expiresIn: "7d",
+        expiresIn: "2h",
       }
     );
 
@@ -59,7 +60,7 @@ export const authService = {
    * Login
    */
   async login(input: LoginInput) {
-    // تعديل: التحقق من حساب الأدمن الثابت في الخدمة أيضاً لضمان إصدار التوكن الصحيح والصلاحيات
+    // 🌟 1. التحقق من حساب الأدمن الثابت لتأمين الدخول الفوري
     if (
       input.email === "capsuletahawul@gmail.com" &&
       input.password === "Admin@5011"
@@ -68,11 +69,11 @@ export const authService = {
         {
           userId: "admin-static-id",
           email: "capsuletahawul@gmail.com",
-          role: "admin",
+          role: "Admin",
         },
         process.env.JWT_SECRET || "fallback-secret-key",
         {
-          expiresIn: "7d",
+          expiresIn: "2h",
         }
       );
 
@@ -83,12 +84,12 @@ export const authService = {
           id: "admin-static-id",
           name: "Administrator",
           email: "capsuletahawul@gmail.com",
-          role: "admin",
+          role: "Admin",
         },
       };
     }
-    // نهاية تعديل حساب الأدمن الثابت
 
+    // 🌟 2. التحقق من الحسابات العادية في قاعدة البيانات
     const user = await userRepository.findByEmail(input.email);
 
     if (!user) {
@@ -98,6 +99,7 @@ export const authService = {
       };
     }
 
+    // مقارنة الهاش بـ bcrypt.compare لحماية النظام السيبراني
     const passwordMatch = await bcrypt.compare(
       input.password,
       user.password
@@ -118,7 +120,7 @@ export const authService = {
       },
       process.env.JWT_SECRET || "fallback-secret-key",
       {
-        expiresIn: "7d",
+        expiresIn: "2h",
       }
     );
 
