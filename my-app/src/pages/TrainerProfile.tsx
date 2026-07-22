@@ -98,7 +98,7 @@ const TrainerProfile: React.FC = () => {
         setLoading(true);
         const headers = { 'Authorization': `Bearer ${token}` };
 
-        const response = await fetch(`${BASE_URL}/trainer/profile`, { headers });
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/trainer/profile`, { headers });
         const result = await response.json().catch(() => ({ success: false }));
 
         if (!isMounted) return;
