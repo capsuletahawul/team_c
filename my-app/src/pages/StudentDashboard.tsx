@@ -74,13 +74,22 @@ function StudentDashboard({ onNavigateToProfile }: StudentDashboardProps) {
         setError('');
 
         // 1. جلب بيانات بروفايل الطالب الحالي من الباك إند
-        const userResponse :any = await getCurrentUser();
+        const userResponse = await getCurrentUser();
         
         // 2. جلب دورات الطالب وإشعاراته من السيرفر (تحديث المسارات بناءً على إعدادات الباك إند لديك)
-        const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+        const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
         const token = localStorage.getItem('user_token');
-const coursesData: Course[] = [];
-const notifsData: Notification[] = [];
+
+        const coursesRes = await fetch(`${BASE_URL}/student/courses`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const coursesData = await coursesRes.json().catch(() => []);
+
+        const notifsRes = await fetch(`${BASE_URL}/student/notifications`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const notifsData = await notifsRes.json().catch(() => []);
+
         if (!isMounted) return;
 
         // تعيين البيانات القادمة من السيرفر في الـ State لقراءتها ديناميكياً[cite: 10]

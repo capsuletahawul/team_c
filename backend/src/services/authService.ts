@@ -1,106 +1,44 @@
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
+import bcrypt from 'bcrypt';
+import { RegisterInput } from '../validation/authValidation';
 
-import {
-  RegisterInput,
-  LoginInput,
-} from "../validation/authValidation.js";
-
-import { userRepository } from "../repositories/userRepository.js";
+// 🌟 ملاحظة: هنا بنستورد الإنترفيس اللي خويك (Person 1) بيسويه
+// إذا لسه ما سوا الملف، اطلب منه يسوي الفولدر والملف ويكتب الإنترفيس بس عشان ما يطلع لك خط أحمر
+import { userRepository } from '../repositories/userRepository';
 
 export const authService = {
   /**
-   * Register
+   * تسجيل مستخدم جديد وتعميد هويته أمنياً
    */
   async register(input: RegisterInput) {
+    // 1. التحقق من عدم تكرار البريد الإلكتروني في النظام
     const existingUser = await userRepository.findByEmail(input.email);
-
     if (existingUser) {
       return {
         success: false,
-        error: "Email already registered",
+        error: 'البريد الإلكتروني مسجل مسبقاً في النظام / Email already registered'
       };
     }
 
+    // 2. تشفير كلمة المرور بـ 10 جولات (Salt Rounds) لحمايتها سيبرانياً
     const hashedPassword = await bcrypt.hash(input.password, 10);
 
+    // 3. تجهيز كائن المستخدم النظيف لإرساله لقاعدة البيانات/الموك
     const newUser = await userRepository.create({
       name: input.name,
       email: input.email,
-      password: hashedPassword,
-      role: input.role,
+      password: hashedPassword, // نرسل الهاش المشفر فقط
+      role: input.role
     });
 
-    const token = jwt.sign(
-      {
-        userId: newUser.id,
-        email: newUser.email,
-        role: newUser.role,
-      },
-      process.env.JWT_SECRET || "fallback-secret-key",
-      {
-        expiresIn: "7d",
-      }
-    );
-
+    // 4. إرجاع النتيجة بنجاح بدون إرسال الباسورد للواجهة
     return {
       success: true,
-      token,
-      user: {
+      data: {
         id: newUser.id,
         name: newUser.name,
         email: newUser.email,
-        role: newUser.role,
-      },
-    };
-  },
-
-  /**
-   * Login
-   */
-  async login(input: LoginInput) {
-    const user = await userRepository.findByEmail(input.email);
-
-    if (!user) {
-      return {
-        success: false,
-        error: "Invalid email or password",
-      };
-    }
-
-    const passwordMatch = await bcrypt.compare(
-      input.password,
-      user.password
-    );
-
-    if (!passwordMatch) {
-      return {
-        success: false,
-        error: "Invalid email or password",
-      };
-    }
-
-    const token = jwt.sign(
-      {
-        userId: user.id,
-        email: user.email,
-        role: user.role,
-      },
-      process.env.JWT_SECRET || "fallback-secret-key",
-      {
-        expiresIn: "7d",
+        role: newUser.role
       }
-    );
-
-    return {
-      success: true,
-      token,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
     };
-  },
+  }
 };
