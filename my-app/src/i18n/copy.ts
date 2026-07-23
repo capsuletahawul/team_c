@@ -322,8 +322,6 @@ export const COPY = {
         rejectedText: "مرفوض"
       }
     },
-<<<<<<< HEAD
-=======
     contractsApproval: {
       loading: "جاري تحميل طلبات الشركات...",
       hero: {
@@ -354,7 +352,6 @@ export const COPY = {
         rejectedText: "مرفوض"
       }
     },
->>>>>>> fix/week3-company-dashboard
     contactPage: {
       title: "تواصل معنا الآن",
       subtitle: "نحن هنا لمساعدتك في قيادة تحولك الرقمي وبناء مسيرتك التقنية الفعالة والناجحة.",
@@ -875,8 +872,6 @@ export const COPY = {
         rejectedText: "Rejected"
       }
     },
-<<<<<<< HEAD
-=======
     contractsApproval: {
       loading: "Loading contract requests...",
       hero: {
@@ -907,7 +902,6 @@ export const COPY = {
         rejectedText: "Rejected"
       }
     },
->>>>>>> fix/week3-company-dashboard
     contactPage: {
       title: "Get in Touch",
       subtitle: "We are here to help you deploy your digital shift. Reach out anytime.",
