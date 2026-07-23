@@ -23,6 +23,7 @@ import Cart from './pages/Cart';
 import ForgotPassword from "./pages/ForgotPassword";
 import CompanyDashboard from './pages/CompanyDashboard'; 
 import PaymentPage from './pages/PaymentPage';
+import TrainerCourses from "./pages/TrainerCourses";
 
 // --- مكون حماية المسارات (Protected Route Component) ---
 interface ProtectedRouteProps {
@@ -159,6 +160,7 @@ const App: React.FC = () => {
       {/* مسارات المدربين المحمية */}
       <Route path="/trainer-dashboard" element={<ProtectedRoute allowedRoles={['trainer']} element={<TrainerDashboard />} />} />
       <Route path="/trainer-profile" element={<ProtectedRoute allowedRoles={['trainer']} element={<TrainerProfile />} />} />
+      <Route path="/trainer-courses" element={<ProtectedRoute allowedRoles={['trainer']} element={<TrainerCourses />} />} />
 
       {/* مسارات المسؤول (Admin) المحمية */}
       <Route path="/admin-dashboard" element={<ProtectedRoute allowedRoles={['admin']} element={<AdminDashboard />} />} />

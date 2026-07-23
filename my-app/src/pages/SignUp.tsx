@@ -3,7 +3,8 @@ import React, { useState, ChangeEvent, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { COPY } from "../i18n/copy";
-import { CapsuleMark, EyeIcon } from "../components/Icons";
+import { EyeIcon } from "../components/Icons";
+import logo from "../assets/logo.png";
 import { useAuth } from "../context/AuthContext";
 import "../styles/auth.css";
 
@@ -35,7 +36,7 @@ export default function SignUp({ lang, onToggleLang, onGoToSignIn }: SignUpProps
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+  const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
   const t = COPY[lang as keyof typeof COPY];
   const form = t.signup;
@@ -96,9 +97,12 @@ export default function SignUp({ lang, onToggleLang, onGoToSignIn }: SignUpProps
 
     setLoading(true);
 
-    // تحويل رتبة الحساب الرقمية إلى نصية تتوافق مع السيرفر ونظام التوجيه
+    // تحويل رتبة الحساب الرقمية إلى نصية تتوافق مع نظام التوجيه في الواجهة
     const roleMapping = ["student", "trainer", "company"];
     const roleString = roleMapping[role] || "student";
+
+    // السيرفر يتوقع القيمة بحرف كبير في البداية (Student/Trainer/Company)
+    const roleForServer = roleString.charAt(0).toUpperCase() + roleString.slice(1);
 
     try {
       const response = await fetch(`${BASE_URL}/auth/register`, {
@@ -110,7 +114,7 @@ export default function SignUp({ lang, onToggleLang, onGoToSignIn }: SignUpProps
           name,
           email,
           password: pwValue,
-          role: roleString
+          role: roleForServer
         })
       });
 
@@ -123,12 +127,8 @@ export default function SignUp({ lang, onToggleLang, onGoToSignIn }: SignUpProps
         return;
       }
 
-      // حفظ بيانات التوكين حية داخل الـ Storage في حال إرجاعها من السيرفر مباشرة بعد التسجيل
-      if (result.token) {
-        localStorage.setItem("user_token", result.token);
-      }
-
-      login(roleString as any);
+      // تمرير التوكين إلى AuthContext مباشرة (يتكفل هو بحفظه في الـ localStorage)
+      login(roleString as any, result.token);
 
       // التوجيه التلقائي إلى لوحة التحكم المناسبة للدور الفعلي
       if (roleString === "student") {
@@ -154,15 +154,24 @@ export default function SignUp({ lang, onToggleLang, onGoToSignIn }: SignUpProps
             {lang === "ar" ? "EN" : "AR"}
           </button>
           <div className="auth-visual-inner">
-            <div className="auth-brand">
-              <CapsuleMark size={36} />
-              <span>{t.brand}</span>
-            </div>
-            <div className="auth-art" aria-hidden="true">
-              <div className="capsule-big" />
-              <div className="capsule-small" />
-              <span className="spark spark-1">✦</span>
-              <span className="spark spark-2">✦</span>
+            <div
+              className="auth-brand"
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: "20px",
+              }}
+            >
+              <img
+                src={logo}
+                alt="Capsule Tahawul"
+                style={{
+                  width: "300px",
+                  
+                  height: "auto",
+                }}
+              />
             </div>
             <p className="auth-tagline">{t.tagline}</p>
           </div>

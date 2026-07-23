@@ -9,9 +9,8 @@ import LoadingIndicator from "../components/LoadingIndicator";
 // Global Context
 import { useLanguage } from "../context/LanguageContext";
 
-// Mock API layer
-import { getCourses } from "../mocks/mockApi";
-import type { Course as ApiCourse } from "../mocks/mockApi";
+// Centralized API functions
+import { getAdminCourses, approveAdminCourse, rejectAdminCourse } from "../services/api";
 
 // Union type restricting system course approval states
 type CourseStatus = "pending" | "approved" | "rejected";
@@ -24,19 +23,6 @@ interface CourseItem {
   category: string;
   durationVal: number;
   status: CourseStatus;
-}
-
-  //Adapter utility that maps raw API courses to "pending" status locally for UI approval workflow.
-function apiToCourseItem(course: ApiCourse): CourseItem {
-  const parsedDuration = parseInt(course.duration, 10);
-  return {
-    id: course.id,
-    title: course.title,
-    trainer: course.instructor,
-    category: course.category,
-    durationVal: Number.isNaN(parsedDuration) ? 0 : parsedDuration,
-    status: "pending",
-  };
 }
 
 const CoursesApproval: React.FC = () => {
@@ -53,17 +39,21 @@ const CoursesApproval: React.FC = () => {
     let isMounted = true;
 
     const loadCourses = async () => {
-      const response = await getCourses();
-      if (!isMounted) return;
+      try {
+        const result = await getAdminCourses();
+        if (!isMounted) return;
 
-      if (response.success && response.data) {
-        // Map data immediately upon successful retrieval to preserve structural integrity
-        setCourses(response.data.courses.map(apiToCourseItem));
-      } else {
-        setLoadError(true);
+        if (result?.success && result.data) {
+          setCourses(result.data.courses as CourseItem[]);
+        } else {
+          setLoadError(true);
+        }
+      } catch (err) {
+        console.error('Error fetching courses for approval', err);
+        if (isMounted) setLoadError(true);
       }
 
-      setLoading(false);
+      if (isMounted) setLoading(false);
     };
 
     loadCourses();
@@ -73,21 +63,33 @@ const CoursesApproval: React.FC = () => {
   }, []);
 
   // Handler triggered by the administrator to approve a specific course pipeline
-  const approveCourse = (id: number): void => {
-    setCourses((prevCourses) =>
-      prevCourses.map((course) =>
-        course.id === id ? { ...course, status: "approved" } : course
-      )
-    );
+  const approveCourse = async (id: number): Promise<void> => {
+    try {
+      await approveAdminCourse(id);
+
+      setCourses((prevCourses) =>
+        prevCourses.map((course) =>
+          course.id === id ? { ...course, status: "approved" } : course
+        )
+      );
+    } catch (err) {
+      console.error('Error approving course', err);
+    }
   };
 
   // Handler triggered by the administrator to reject a specific course pipeline
-  const rejectCourse = (id: number): void => {
-    setCourses((prevCourses) =>
-      prevCourses.map((course) =>
-        course.id === id ? { ...course, status: "rejected" } : course
-      )
-    );
+  const rejectCourse = async (id: number): Promise<void> => {
+    try {
+      await rejectAdminCourse(id);
+
+      setCourses((prevCourses) =>
+        prevCourses.map((course) =>
+          course.id === id ? { ...course, status: "rejected" } : course
+        )
+      );
+    } catch (err) {
+      console.error('Error rejecting course', err);
+    }
   };
 
   // Dynamic localization mapper to keep rendering logic clean and independent

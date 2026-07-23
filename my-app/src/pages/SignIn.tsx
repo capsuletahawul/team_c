@@ -4,7 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 
 import { COPY } from "../i18n/copy";
-import { CapsuleMark, EyeIcon } from "../components/Icons";
+import { EyeIcon } from "../components/Icons";
+import logo from "../assets/logo.png";
 import { useAuth } from "../context/AuthContext";
 import { loginUser } from "../mocks/mockApi";
 // @ts-ignore: allow side-effect CSS import without type declarations
@@ -49,7 +50,7 @@ export default function SignIn({ lang, onToggleLang, onGoToSignUp }: SignInProps
         const role = response.data.role.toLowerCase();
         
         // التعديل هنا: تمرير النوع كـ any لحل مشكلة الفحص الصارم للـ TypeScript
-        login(role as any);
+        login(role as any, response.data.token);
 
         // التوجيه للوحة التحكم الصحيحة بناءً على نوع المستخدم
         if (role === "student") {
@@ -83,15 +84,13 @@ export default function SignIn({ lang, onToggleLang, onGoToSignUp }: SignInProps
             {lang === "ar" ? "EN" : "AR"}
           </button>
           <div className="auth-visual-inner">
-            <div className="auth-brand">
-              <CapsuleMark size={36} />
+            <div className="auth-brand" style={{display:"flex",flexDirection:"column",alignItems:"center",gap:"12px"}}>
+              <img
+                src={logo}
+                alt="Capsule Tahawul"
+                style={{width:"300px",height:"auto"}}
+              />
               <span>{t.brand}</span>
-            </div>
-            <div className="auth-art" aria-hidden="true">
-              <div className="capsule-big" />
-              <div className="capsule-small" />
-              <span className="spark spark-1">✦</span>
-              <span className="spark spark-2">✦</span>
             </div>
             <p className="auth-tagline">{t.tagline}</p>
           </div>

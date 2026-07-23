@@ -9,6 +9,8 @@ import LoadingIndicator from '../components/LoadingIndicator';
 import ErrorMessage from '../components/ErrorMessage';
 // Global Context
 import { useLanguage } from '../context/LanguageContext';
+// API base URL — single source of truth
+import { BASE_URL } from '../services/api';
 
 export interface CourseItem {
   id: number; title: string; category: string; description: string; subtitle: string; instructor: string; trainerId: string;
@@ -29,7 +31,6 @@ function TrainerDashboard() {
   const { t, lang } = useLanguage();
   const l = t.trainerDashboard;
 
-  const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
   const token = localStorage.getItem('user_token');
 
   const [coursesList, setCoursesList] = useState<CourseItem[]>([]); 
@@ -59,21 +60,21 @@ function TrainerDashboard() {
         ]);
 
         const coursesData = await coursesRes.json().catch(() => ({ courses: [] }));
-        const profileData = await profileRes.json().catch(() => ({ reviews: [] }));
+        const profileData = await profileRes.json().catch(() => ({ data: { reviews: [] } }));
         const progressData = await progressRes.json().catch(() => []);
 
         if (!isMounted) return;
 
         if (coursesData?.courses) {
-          setCoursesList((coursesData.courses as CourseItem[]).map(c => ({ 
-            ...c, 
-            price: c.price > 1000 ? 350 : c.price, 
-            isVisible: c.isVisible !== false 
+          setCoursesList((coursesData.courses as CourseItem[]).map(c => ({
+            ...c,
+            price: c.price > 1000 ? 350 : c.price,
+            isVisible: c.isVisible !== false
           })));
         }
-        
-        if (profileData?.reviews) {
-          setReviewsList(profileData.reviews as ReviewItem[]);
+
+        if (profileData?.data?.reviews) {
+          setReviewsList(profileData.data.reviews as ReviewItem[]);
         }
         
         if (Array.isArray(progressData)) {
@@ -156,6 +157,25 @@ function TrainerDashboard() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // يعيد تحميل قائمة الدورات من السيرفر بعد أي تعديل، بدل الاعتماد على بيانات محلية مفترضة
+  const refetchCourses = async () => {
+    try {
+      const response = await fetch(`${BASE_URL}/trainer/courses`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json().catch(() => ({ courses: [] }));
+      if (data?.courses) {
+        setCoursesList((data.courses as CourseItem[]).map(c => ({
+          ...c,
+          price: c.price > 1000 ? 350 : c.price,
+          isVisible: c.isVisible !== false
+        })));
+      }
+    } catch (err) {
+      console.error('Error refetching trainer courses', err);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage('');
@@ -179,21 +199,21 @@ function TrainerDashboard() {
       const result = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        setError(result.error || result.message || l.messages.genericError);
+        // أخطاء التحقق من الحقول ترجع من الباك اند كـ object (حقل -> رسائل)، نحولها لنص واحد مقروء
+        const rawError = result.error || result.message;
+        const serverError =
+          rawError && typeof rawError === 'object'
+            ? Object.values(rawError).flat().join(' ')
+            : rawError;
+
+        setError(serverError || l.messages.genericError);
         return;
       }
 
-      const generatedId = result.ticketId || result.id || Math.floor(Math.random() * 9000);
+      const generatedId = result.ticketId || result.id;
       setMessage(`${lang === 'ar' ? '✅ تم رفع الدورة المفصلة بنجاح وهي قيد المراجعة: ' : '✅ Course submitted under review with ID: '}${generatedId}`);
-      
-      const newCourseDraft: CourseItem = {
-        id: generatedId, title: formData.title, category: formData.category, description: formData.description, subtitle: formData.description,
-        instructor: lang === 'ar' ? 'أحمد محمد' : 'Ahmed Mohammed', trainerId: 'ahmed-mohammed', price: parseInt(formData.price) || 0,
-        originalPrice: (parseInt(formData.price) || 0) * 1.5, discount: '30% OFF', duration: `${formData.durationWeeks} Weeks`, level: formData.level,
-        language: 'Arabic / English', updated: '07/2026', rating: 0, status: "coming_soon", students: 0, thumbnail: 'default.jpg', isVisible: true
-      };
-      
-      setCoursesList((prev: CourseItem[]) => [newCourseDraft, ...prev]);
+
+      await refetchCourses();
       setFormData({ title: '', price: '', durationWeeks: '', maxStudents: '', videoDurationMinutes: '', level: 'beginner', category: 'Cybersecurity', description: '', requirementsNotes: '' });
     } catch (err) {
       setError(l.messages.genericError);
@@ -281,6 +301,7 @@ function TrainerDashboard() {
                           {course.status === 'available' && (lang === 'ar' ? 'نشطة' : 'Active')}
                           {course.status === 'coming_soon' && (lang === 'ar' ? 'قيد المراجعة' : 'Pending')}
                           {course.status === 'pending_deletion' && (lang === 'ar' ? 'انتظار الحذف' : 'Pending Delete')}
+                          {course.status === 'rejected' && (lang === 'ar' ? 'مرفوضة' : 'Rejected')}
                         </span>
                       </td>
                       <td className="py-3 px-2 flex justify-center gap-1.5">

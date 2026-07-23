@@ -12,6 +12,13 @@ import cors from "cors";
 import authRoutes from "./routes/authRoutes.js";
 import contactRoutes from "./routes/contactRoutes.js";
 
+import trainerRoutes from "./routes/trainerRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
+import companyRoutes from "./routes/companyRoutes.js";
+import studentRoutes from "./routes/studentRoutes.js";
+import courseRoutes from "./routes/courseRoutes.js";
+
+
 const app = express();
 const PORT = process.env.PORT ? Number(process.env.PORT) : 5000;
 
@@ -19,25 +26,32 @@ const PORT = process.env.PORT ? Number(process.env.PORT) : 5000;
 // Global middleware
 // ---------------------------------------------------------------------
 
-
 // CORS: allow only the configured frontend origin — never a wildcard when
 // credentials (auth tokens) are involved (Handbook Section 12.3).
-// 1. Enable CORS for your Vite frontend URL
 app.use(cors({
-  origin: "http://localhost:5173", // Allows your React app to talk to Express
+  origin: process.env.CORS_ORIGIN || "http://localhost:5173",
   credentials: true,
 }));
 
-// 2. Parse JSON body payload
+// Parse JSON body payload
 app.use(express.json());
 
-// 3. Mount routes
+app.use((req, _res, next) => {
+  console.log(req.method, req.url);
+  next();
+});
+// ---------------------------------------------------------------------
+// Routes
+// ---------------------------------------------------------------------
+
 app.use("/api/auth", authRoutes);
 app.use("/api/contact", contactRoutes);
+app.use("/api/trainer", trainerRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/company", companyRoutes);
+app.use("/api/student", studentRoutes);
+app.use("/api/courses", courseRoutes);
 
-app.listen(5000, () => {
-  console.log("Server listening on http://localhost:5000");
-});
 
 // ---------------------------------------------------------------------
 // Health check — required by the Postman test table (Handbook Section 11)
@@ -46,11 +60,7 @@ app.get("/api/health", (_req, res) => {
   res.status(200).json({ status: "ok" });
 });
 
-// ---------------------------------------------------------------------
-// Route registration — every feature area mounts under its own base path
-// ---------------------------------------------------------------------
-app.use("/api/auth", authRoutes);
-app.use("/api/contact", contactRoutes);
+
 
 // ---------------------------------------------------------------------
 // 404 handler — anything that reached here matched no route above

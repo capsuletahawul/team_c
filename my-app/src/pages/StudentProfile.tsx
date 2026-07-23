@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 // استيراد دالة جلب بيانات المستخدم الحالي من ملف الخدمات الأساسي
-import { getCurrentUser } from '../services/api'; 
+import { getCurrentUser, BASE_URL } from '../services/api'; 
 
 // Reusable Components[cite: 11]
 import StudentNavbar from "../components/StudentNavbar.js";
@@ -71,7 +71,6 @@ function StudentProfile({ onBack }: StudentProfileProps) {
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [saveState, setSaveState] = useState<SaveState>('idle');
 
-  const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
   const token = localStorage.getItem('user_token');
 
   useEffect(() => {
@@ -82,7 +81,7 @@ function StudentProfile({ onBack }: StudentProfileProps) {
         setLoading(true);
         
         // 1. جلب بيانات المستخدم الأساسية من الباك إند
-        const userResponse = await getCurrentUser();
+        const userResponse :any = await getCurrentUser();
         const profileData = userResponse.user || userResponse;
 
         // 2. جلب الدورات المشتراة من الباك إند

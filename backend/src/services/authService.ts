@@ -1,44 +1,138 @@
-import bcrypt from 'bcrypt';
-import { RegisterInput } from '../validation/authValidation';
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
-// 🌟 ملاحظة: هنا بنستورد الإنترفيس اللي خويك (Person 1) بيسويه
-// إذا لسه ما سوا الملف، اطلب منه يسوي الفولدر والملف ويكتب الإنترفيس بس عشان ما يطلع لك خط أحمر
-import { userRepository } from '../repositories/userRepository';
+import {
+  RegisterInput,
+  LoginInput,
+} from "../validation/authValidation.js";
+
+import { userRepository } from "../repositories/userRepository.js";
 
 export const authService = {
   /**
-   * تسجيل مستخدم جديد وتعميد هويته أمنياً
+   * Register with Auto-Login Token Generation
    */
   async register(input: RegisterInput) {
-    // 1. التحقق من عدم تكرار البريد الإلكتروني في النظام
     const existingUser = await userRepository.findByEmail(input.email);
+
     if (existingUser) {
       return {
         success: false,
-        error: 'البريد الإلكتروني مسجل مسبقاً في النظام / Email already registered'
+        error: "Email already registered",
       };
     }
 
-    // 2. تشفير كلمة المرور بـ 10 جولات (Salt Rounds) لحمايتها سيبرانياً
     const hashedPassword = await bcrypt.hash(input.password, 10);
 
-    // 3. تجهيز كائن المستخدم النظيف لإرساله لقاعدة البيانات/الموك
     const newUser = await userRepository.create({
       name: input.name,
       email: input.email,
-      password: hashedPassword, // نرسل الهاش المشفر فقط
-      role: input.role
+      password: hashedPassword,
+      role: input.role,
     });
 
-    // 4. إرجاع النتيجة بنجاح بدون إرسال الباسورد للواجهة
+    // 🌟 إصدار توكن فوري وصالح لمدة ساعتين للتسجيل التلقائي الشامل
+    const token = jwt.sign(
+      {
+        userId: newUser.id,
+        email: newUser.email,
+        role: newUser.role,
+      },
+      process.env.JWT_SECRET || "fallback-secret-key",
+      {
+        expiresIn: "2h",
+      }
+    );
+
     return {
       success: true,
-      data: {
+      token,
+      user: {
         id: newUser.id,
         name: newUser.name,
         email: newUser.email,
-        role: newUser.role
-      }
+        role: newUser.role,
+      },
     };
-  }
+  },
+
+  /**
+   * Login
+   */
+  async login(input: LoginInput) {
+    // 🌟 1. التحقق من حساب الأدمن الثابت لتأمين الدخول الفوري
+    if (
+      input.email === "capsuletahawul@gmail.com" &&
+      input.password === "Admin@5011"
+    ) {
+      const adminToken = jwt.sign(
+        {
+          userId: "admin-static-id",
+          email: "capsuletahawul@gmail.com",
+          role: "Admin",
+        },
+        process.env.JWT_SECRET || "fallback-secret-key",
+        {
+          expiresIn: "2h",
+        }
+      );
+
+      return {
+        success: true,
+        token: adminToken,
+        user: {
+          id: "admin-static-id",
+          name: "Administrator",
+          email: "capsuletahawul@gmail.com",
+          role: "Admin",
+        },
+      };
+    }
+
+    // 🌟 2. التحقق من الحسابات العادية في قاعدة البيانات
+    const user = await userRepository.findByEmail(input.email);
+
+    if (!user) {
+      return {
+        success: false,
+        error: "Invalid email or password",
+      };
+    }
+
+    // مقارنة الهاش بـ bcrypt.compare لحماية النظام السيبراني
+    const passwordMatch = await bcrypt.compare(
+      input.password,
+      user.password
+    );
+
+    if (!passwordMatch) {
+      return {
+        success: false,
+        error: "Invalid email or password",
+      };
+    }
+
+    const token = jwt.sign(
+      {
+        userId: user.id,
+        email: user.email,
+        role: user.role,
+      },
+      process.env.JWT_SECRET || "fallback-secret-key",
+      {
+        expiresIn: "2h",
+      }
+    );
+
+    return {
+      success: true,
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+    };
+  },
 };

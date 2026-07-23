@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
+// API base URL — single source of truth
+import { BASE_URL } from '../services/api';
 import Navbar from '../components/Navbar.jsx';
 import Footer from '../components/Footer.jsx';
 import { 
@@ -129,7 +131,6 @@ export default function CompanyDashboard() {
     thEmpProgress: lang === 'ar' ? 'نسبة الإنجاز' : 'Completion Rate'
   };
 
-  const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
   const token = localStorage.getItem('user_token');
 
   // إفراغ المصفوفات من البيانات الثابتة لانتظار البيانات الحية من السيرفر[cite: 9]

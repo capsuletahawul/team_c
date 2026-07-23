@@ -7,6 +7,8 @@ import {
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useLanguage } from '../context/LanguageContext';
+// API base URL — single source of truth
+import { BASE_URL } from '../services/api';
 
 // ==========================================
 // 1. تعريف واجهات البيانات (TypeScript Interfaces)
@@ -45,8 +47,6 @@ export default function Contact() {
   const { t, lang } = useLanguage();
   const c = t.contact; 
   const isRTL = lang === 'ar';
-
-  const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
   const [formData, setFormData] = useState<ContactFormData>({ 
     fullName: '', email: '', phone: '', subject: '', category: '', message: '' 
