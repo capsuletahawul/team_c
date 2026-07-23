@@ -11,14 +11,13 @@ import cors from "cors";
 
 import authRoutes from "./routes/authRoutes.js";
 import contactRoutes from "./routes/contactRoutes.js";
-<<<<<<< Updated upstream
-=======
+
 import trainerRoutes from "./routes/trainerRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import companyRoutes from "./routes/companyRoutes.js";
 import studentRoutes from "./routes/studentRoutes.js";
 import courseRoutes from "./routes/courseRoutes.js";
->>>>>>> Stashed changes
+
 
 const app = express();
 const PORT = process.env.PORT ? Number(process.env.PORT) : 5000;
@@ -36,8 +35,7 @@ app.use(cors({
 
 // Parse JSON body payload
 app.use(express.json());
-<<<<<<< Updated upstream
-=======
+
 app.use((req, _res, next) => {
   console.log(req.method, req.url);
   next();
@@ -53,7 +51,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/company", companyRoutes);
 app.use("/api/student", studentRoutes);
 app.use("/api/courses", courseRoutes);
->>>>>>> Stashed changes
+
 
 // ---------------------------------------------------------------------
 // Health check — required by the Postman test table (Handbook Section 11)
@@ -62,11 +60,7 @@ app.get("/api/health", (_req, res) => {
   res.status(200).json({ status: "ok" });
 });
 
-// ---------------------------------------------------------------------
-// Route registration — every feature area mounts under its own base path
-// ---------------------------------------------------------------------
-app.use("/api/auth", authRoutes);
-app.use("/api/contact", contactRoutes);
+
 
 // ---------------------------------------------------------------------
 // 404 handler — anything that reached here matched no route above

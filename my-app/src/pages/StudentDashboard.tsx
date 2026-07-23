@@ -74,37 +74,23 @@ function StudentDashboard({ onNavigateToProfile }: StudentDashboardProps) {
         setError('');
 
         // 1. جلب بيانات بروفايل الطالب الحالي من الباك إند
-        const userResponse = await getCurrentUser();
+        const userResponse: any = await getCurrentUser();
         
-<<<<<<< Updated upstream
-        // 2. جلب دورات الطالب وإشعاراته من السيرفر (تحديث المسارات بناءً على إعدادات الباك إند لديك)
-        const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-        const token = localStorage.getItem('user_token');
+// 2. جلب دورات الطالب من الباك إند
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const token = localStorage.getItem("user_token");
 
-        const coursesRes = await fetch(`${BASE_URL}/student/courses`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const coursesData = await coursesRes.json().catch(() => []);
+const coursesRes = await fetch(`${BASE_URL}/student/courses/purchased`, {
+  headers: {
+    Authorization: `Bearer ${token}`,
+  },
+});
 
-        const notifsRes = await fetch(`${BASE_URL}/student/notifications`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const notifsData = await notifsRes.json().catch(() => []);
-=======
-        // 2. جلب دورات الطالب المشتراة من الباك إند
-        const token = localStorage.getItem('user_token');
+const coursesData = await coursesRes.json().catch(() => []);
 
-        const coursesRes = await fetch(`${BASE_URL}/student/courses/purchased`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+// لا يوجد API للإشعارات حالياً
+const notifsData: Notification[] = [];
 
-        const coursesData = await coursesRes.json().catch(() => []);
-
-        // لا يوجد API للإشعارات حالياً
-        const notifsData: Notification[] = [];
->>>>>>> Stashed changes
 
         if (!isMounted) return;
 

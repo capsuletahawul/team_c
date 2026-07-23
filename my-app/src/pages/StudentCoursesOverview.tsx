@@ -126,7 +126,7 @@ export default function CoursesOverview() {
 
 
   useEffect(() => {
-    fetch("http://localhost:3001/api/courses/public")
+    fetch("http://localhost:5000/api/courses/public")
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
