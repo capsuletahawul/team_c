@@ -8,7 +8,8 @@ import LoadingIndicator from "../components/LoadingIndicator";
 // Global Context
 import { useLanguage } from "../context/LanguageContext";
 
-// Types reused from the mocks module (no runtime mock calls — API layer below is real)
+// Mock API layer
+import { getTrainerProfile } from "../mocks/mockApi";
 import type { TrainerProfile as ApiTrainerProfile } from "../mocks/mockApi";
 
 // Trainer basic contact and metrics interface
@@ -62,13 +63,9 @@ const TrainerProfile: React.FC = () => {
   const l = t.trainerProfile;
   const isRTL = lang === "ar";
 
-  const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-  const token = localStorage.getItem('user_token');
-
   const [loading, setLoading] = useState<boolean>(true);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [loadError, setLoadError] = useState<boolean>(false);
-  const [saveError, setSaveError] = useState<string>('');
 
   // 1. Basic non-translated trainer states, populated from mockApi
   const [trainer, setTrainer] = useState<TrainerState>({
@@ -93,40 +90,32 @@ const TrainerProfile: React.FC = () => {
   useEffect(() => {
     let isMounted = true;
 
-    async function fetchTrainerProfile() {
-      try {
-        setLoading(true);
-        const headers = { 'Authorization': `Bearer ${token}` };
+    const loadTrainerProfile = async () => {
+      const response = await getTrainerProfile();
+      if (!isMounted) return;
 
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/trainer/profile`, { headers });
-        const result = await response.json().catch(() => ({ success: false }));
-
-        if (!isMounted) return;
-
-        if (result?.success && result.data) {
-          setRawProfile(result.data);
-          setFetchedProfile(apiToProfile(result.data, lang));
-          setCourses(apiToCourses(result.data.courses, lang));
-          setTrainer({
-            email: result.data.email,
-            phone: result.data.phone,
-            students: result.data.stats.studentsCount,
-            rating: result.data.stats.rating,
-          });
-        } else {
-          setLoadError(true);
-        }
-      } catch (err) {
-        console.error('Error fetching trainer profile', err);
-        if (isMounted) setLoadError(true);
-      } finally {
-        if (isMounted) setLoading(false);
+      if (response.success && response.data) {
+        setRawProfile(response.data);
+        setFetchedProfile(apiToProfile(response.data, lang));
+        setCourses(apiToCourses(response.data.courses, lang));
+        setTrainer({
+          email: response.data.email,
+          phone: response.data.phone,
+          students: response.data.stats.studentsCount,
+          rating: response.data.stats.rating,
+        });
+      } else {
+        setLoadError(true);
       }
-    }
 
-    fetchTrainerProfile();
-    return () => { isMounted = false; };
-  }, [BASE_URL, token]);
+      setLoading(false);
+    };
+
+    loadTrainerProfile();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Closes edit mode on language toggle while retaining any edited user modifications
   useEffect(() => {
@@ -151,49 +140,17 @@ const TrainerProfile: React.FC = () => {
 
   const handleStartEdit = (): void => {
     setDraft({ ...currentTrainer });
-    setSaveError('');
     setIsEditing(true);
   };
 
-  const handleSave = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
+  const handleSave = (e: React.FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
-    setSaveError('');
 
     // Save draft data (asserting full properties since form inputs are required)
     const finalizedData = draft as EditedDataState;
-
-    try {
-      const response = await fetch(`${BASE_URL}/trainer/profile`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          fullName: finalizedData.fullName,
-          specialization: finalizedData.specialization,
-          bio: finalizedData.bio,
-          experienceVal: finalizedData.experienceVal
-        })
-      });
-
-      const result = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        const rawError = result.error || result.message;
-        const serverError = rawError && typeof rawError === 'object'
-          ? Object.values(rawError).flat().join(' ')
-          : rawError;
-        setSaveError(serverError || (isRTL ? 'تعذر حفظ التعديلات' : 'Failed to save changes'));
-        return;
-      }
-
-      setEditedData(finalizedData);
-      setIsEditing(false);
-    } catch (err) {
-      console.error('Error saving trainer profile', err);
-      setSaveError(isRTL ? 'تعذر الاتصال بالسيرفر' : 'Could not reach the server');
-    }
+    setEditedData(finalizedData);
+    setTrainer((prev) => ({ ...prev, email: finalizedData.email }));
+    setIsEditing(false);
   };
 
   const publicCourses = courses.filter((c) => c.status === "published");
@@ -259,11 +216,6 @@ const TrainerProfile: React.FC = () => {
             ) : (
               /* Active modification and edit form */
               <form onSubmit={handleSave} className="space-y-6">
-                {saveError && (
-                  <div className="p-3 bg-amber-50 text-amber-800 rounded-xl text-xs font-bold border-r-4 border-capsule-dark-gold">
-                    ⚠️ {saveError}
-                  </div>
-                )}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <input 
                     type="text" 

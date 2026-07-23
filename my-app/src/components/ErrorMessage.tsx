@@ -3,15 +3,8 @@ import { useLanguage } from '../context/LanguageContext';
 
 function ErrorMessage({ message }) {
   const { t } = useLanguage();
-
+  
   if (!message) return null;
-
-  // بعض ردود السيرفر ترجع أخطاء التحقق كـ object (حقل -> رسائل) بدل نص جاهز.
-  // نحولها هنا لنص عشان ما يصير كراش "Objects are not valid as a React child".
-  const displayMessage =
-    typeof message === "string" ? message : Object.values(message).flat().join(" ");
-
-  if (!displayMessage) return null;
 
   // Swap border side based on direction
   const borderSide = t.dir === 'rtl' ? 'border-r-4' : 'border-l-4';
@@ -26,7 +19,7 @@ function ErrorMessage({ message }) {
     >
       <div className={`flex items-center space-x-2 ${spacingLogic}`}>
         <span>⚠️</span>
-        <span>{displayMessage}</span>
+        <span>{message}</span>
       </div>
     </div>
   );
