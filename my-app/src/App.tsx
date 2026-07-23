@@ -1,6 +1,7 @@
 // src/App.tsx
 import React, { useState } from 'react';
-import { Routes, Route, Link, useNavigate } from 'react-router-dom';
+import { Routes, Route, Link, useNavigate, Navigate } from 'react-router-dom';
+import { useAuth, Role } from './context/AuthContext'; // استيراد سياق التحقق والأدوار[cite: 10]
 
 // استيراد الصفحات مع حذف امتدادات .jsx تماماً ليتعرف عليها الـ Compiler تلقائياً
 import LandingPage from './pages/LandingPage';
@@ -22,6 +23,28 @@ import Cart from './pages/Cart';
 import ForgotPassword from "./pages/ForgotPassword";
 import CompanyDashboard from './pages/CompanyDashboard'; 
 import PaymentPage from './pages/PaymentPage';
+
+// --- مكون حماية المسارات (Protected Route Component) ---
+interface ProtectedRouteProps {
+  element: React.ReactElement;
+  allowedRoles?: Role[];
+}
+
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ element, allowedRoles }) => {
+  const { isAuthenticated, role } = useAuth();
+
+  // إذا لم يكن المستخدم مسجلاً، يتم توجيهه لصفحة تسجيل الدخول[cite: 10]
+  if (!isAuthenticated) {
+    return <Navigate to="/sign-in" replace />;
+  }
+
+  // إذا كان مسجلاً ولكن رتبته لا تطابق الرتب المسموح لها بدخول الصفحة[cite: 10]
+  if (allowedRoles && !allowedRoles.includes(role)) {
+    return <Navigate to="/" replace />;
+  }
+
+  return element;
+};
 
 // --- Small wrappers for pages that expect navigation callbacks as props ---
 
@@ -109,29 +132,37 @@ const DevIndex: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    // 🚨 أزلنا الـ <BrowserRouter> من هنا لأننا نقلناه للـ main.tsx لحماية السياق بالكامل
     <Routes>
+      {/* المسارات العامة (متاحة للجميع) */}
       <Route path="/" element={<LandingRoute />} />
       <Route path="/dev" element={<DevIndex />} />
       <Route path="/sign-in" element={<SignInRoute />} />
       <Route path="/sign-up" element={<SignUpRoute />} />
-      <Route path="/student-dashboard" element={<StudentDashboardRoute />} />
-      <Route path="/student-profile" element={<StudentProfileRoute />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/company-dashboard" element={<CompanyDashboard />} /> 
+      <Route path="/contact" element={<Contact />} />
       <Route path="/trainer-details/:trainerId" element={<TrainerDetails />} />
       <Route path="/trainer-details" element={<TrainerDetails />} />
-      <Route path="/trainer-profile" element={<TrainerProfile />} />
-      <Route path="/trainer-dashboard" element={<TrainerDashboard />} />
-      <Route path="/admin-dashboard" element={<AdminDashboard />} />
-      <Route path="/courses-approval" element={<SignInSignUpApproval />} />
       <Route path="/course-details/:id" element={<CourseDetails />} />
       <Route path="/courses-overview" element={<CoursesOverview />} />
-      <Route path="/student-courses-overview" element={<StudentCoursesOverview />} />
       <Route path="/business-contract" element={<BusinessContractForm />} />
-      <Route path="/contact" element={<Contact />} />
-      <Route path="/cart" element={<Cart />} />
-      <Route path="/payment" element={<PaymentPage />} />
+
+      {/* مسارات الطلاب المحمية */}
+      <Route path="/student-dashboard" element={<ProtectedRoute allowedRoles={['student']} element={<StudentDashboardRoute />} />} />
+      <Route path="/student-profile" element={<ProtectedRoute allowedRoles={['student']} element={<StudentProfileRoute />} />} />
+      <Route path="/student-courses-overview" element={<ProtectedRoute allowedRoles={['student']} element={<StudentCoursesOverview />} />} />
+      <Route path="/cart" element={<ProtectedRoute allowedRoles={['student']} element={<Cart />} />} />
+      <Route path="/payment" element={<ProtectedRoute allowedRoles={['student']} element={<PaymentPage />} />} />
+
+      {/* مسارات الشركات المحمية */}
+      <Route path="/company-dashboard" element={<ProtectedRoute allowedRoles={['company']} element={<CompanyDashboard />} />} /> 
+
+      {/* مسارات المدربين المحمية */}
+      <Route path="/trainer-dashboard" element={<ProtectedRoute allowedRoles={['trainer']} element={<TrainerDashboard />} />} />
+      <Route path="/trainer-profile" element={<ProtectedRoute allowedRoles={['trainer']} element={<TrainerProfile />} />} />
+
+      {/* مسارات المسؤول (Admin) المحمية */}
+      <Route path="/admin-dashboard" element={<ProtectedRoute allowedRoles={['admin']} element={<AdminDashboard />} />} />
+      <Route path="/courses-approval" element={<ProtectedRoute allowedRoles={['admin']} element={<SignInSignUpApproval />} />} />
     </Routes>
   );
 };

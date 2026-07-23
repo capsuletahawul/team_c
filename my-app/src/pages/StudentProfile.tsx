@@ -1,18 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { getStudentProfile, updateStudentProfile, getPurchasedCourses } from '../mocks/mockApi.js';
+// استيراد دالة جلب بيانات المستخدم الحالي من ملف الخدمات الأساسي
+import { getCurrentUser } from '../services/api'; 
 
-// Reusable Components
+// Reusable Components[cite: 11]
 import StudentNavbar from "../components/StudentNavbar.js";
 import Footer from '../components/Footer.jsx';
 import LoadingIndicator from '../components/LoadingIndicator.jsx';
 import ErrorMessage from '../components/ErrorMessage.jsx';
 import Button from '../components/Button.js';
 
-// Global Context
+// Global Context[cite: 11]
 import { useLanguage } from '../context/LanguageContext.jsx';
 
 // ============================================================================
-// TYPES & INTERFACES
+// TYPES & INTERFACES[cite: 11]
 // ============================================================================
 
 interface Profile {
@@ -55,7 +56,7 @@ interface StudentProfileProps {
 type SaveState = 'idle' | 'saving' | 'saved';
 
 // ============================================================================
-// COMPONENT
+// COMPONENT[cite: 11]
 // ============================================================================
 
 function StudentProfile({ onBack }: StudentProfileProps) {
@@ -70,24 +71,48 @@ function StudentProfile({ onBack }: StudentProfileProps) {
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [saveState, setSaveState] = useState<SaveState>('idle');
 
+  const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+  const token = localStorage.getItem('user_token');
+
   useEffect(() => {
     let isMounted = true;
 
-    Promise.all([getStudentProfile(), getPurchasedCourses()]).then(([profileRes, coursesRes]) => {
-      if (!isMounted) return;
-      if (profileRes.success && profileRes.data) {
-        const profileData = profileRes.data as Profile;
-        setProfile(profileData);
-        setFormValues({ fullName: profileData.fullName, avatar: profileData.avatar });
+    async function loadProfileAndCourses() {
+      try {
+        setLoading(true);
+        
+        // 1. جلب بيانات المستخدم الأساسية من الباك إند
+        const userResponse :any = await getCurrentUser();
+        const profileData = userResponse.user || userResponse;
+
+        // 2. جلب الدورات المشتراة من الباك إند
+        const coursesRes = await fetch(`${BASE_URL}/student/courses/purchased`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const coursesData = await coursesRes.json().catch(() => []);
+
+        if (!isMounted) return;
+
+        if (profileData) {
+          setProfile(profileData);
+          setFormValues({ fullName: profileData.fullName || '', avatar: profileData.avatar || '' });
+        }
+        if (Array.isArray(coursesData)) {
+          setCourses(coursesData);
+        }
+      } catch (err) {
+        if (isMounted) {
+          setFieldErrors({ global: 'حدث خطأ أثناء تحميل البيانات من السيرفر' });
+        }
+      } finally {
+        if (isMounted) setLoading(false);
       }
-      if (coursesRes.success && coursesRes.data) {
-        setCourses(coursesRes.data as Course[]);
-      }
-      setLoading(false);
-    });
+    }
+
+    loadProfileAndCourses();
 
     return () => { isMounted = false; };
-  }, []);
+  }, [BASE_URL, token]);
 
   const handleChange = (field: keyof FormValues, value: string) => {
     setFormValues(prev => ({ ...prev, [field]: value }));
@@ -97,22 +122,36 @@ function StudentProfile({ onBack }: StudentProfileProps) {
     setSaveState('saving');
     setFieldErrors({});
 
-    const result = await updateStudentProfile(formValues);
+    try {
+      // إرسال البيانات المحدثة إلى الباك إند مباشرة
+      const response = await fetch(`${BASE_URL}/student/profile/update`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(formValues)
+      });
 
-    if (!result.success) {
-      setFieldErrors((result.details as FieldErrors) || {});
-      setSaveState('idle');
-      return;
-    }
+      const result = await response.json().catch(() => ({}));
 
-    if (result.data) {
-      const updatedProfile = result.data as Profile;
+      if (!response.ok) {
+        setFieldErrors((result.details as FieldErrors) || { global: result.error || 'فشل حفظ التعديلات' });
+        setSaveState('idle');
+        return;
+      }
+
+      const updatedProfile = result.data || result.user || result;
       setProfile(updatedProfile);
       setFormValues({ fullName: updatedProfile.fullName, avatar: updatedProfile.avatar });
+      
+      setIsEditing(false);
+      setSaveState('saved');
+      setTimeout(() => setSaveState('idle'), 2000);
+    } catch (err) {
+      setFieldErrors({ global: 'حدث خطأ في الاتصال بالسيرفر' });
+      setSaveState('idle');
     }
-    setIsEditing(false);
-    setSaveState('saved');
-    setTimeout(() => setSaveState('idle'), 2000);
   };
 
   const handleCancel = () => {
@@ -153,7 +192,7 @@ function StudentProfile({ onBack }: StudentProfileProps) {
             </div>
           )}
 
-          {/* Main Header Card */}
+          {/* Main Header Card[cite: 11] */}
           <div className="bg-white border border-gray-100 rounded-2xl shadow-xs overflow-hidden">
             <div className="bg-capsule-gradient h-28"></div>
 
@@ -181,7 +220,7 @@ function StudentProfile({ onBack }: StudentProfileProps) {
                 </div>
               </div>
 
-              {/* Quick Badges */}
+              {/* Quick Badges[cite: 11] */}
               <div className="flex flex-wrap gap-2 mt-6">
                 <span className="bg-capsule-teal/10 text-capsule-teal text-xs font-bold px-3 py-1.5 rounded-full">
                   {profile.role === 'Student' ? l.roles.student : profile.role}
@@ -196,7 +235,7 @@ function StudentProfile({ onBack }: StudentProfileProps) {
                 </span>
               </div>
 
-              {/* Edit Form */}
+              {/* Edit Form[cite: 11] */}
               {isEditing && (
                 <div className="mt-8 border-t border-gray-100 pt-6">
                   <h2 className="text-sm font-bold text-capsule-navy mb-4">{l.editSectionTitle}</h2>
@@ -240,7 +279,7 @@ function StudentProfile({ onBack }: StudentProfileProps) {
             </div>
           </div>
 
-          {/* Academic Progress Summary */}
+          {/* Academic Progress Summary[cite: 11] */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-8">
             <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs">
               <p className="text-xs font-bold text-gray-400 mb-1">{l.stats.active}</p>

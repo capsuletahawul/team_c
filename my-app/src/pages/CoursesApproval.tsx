@@ -9,10 +9,6 @@ import LoadingIndicator from "../components/LoadingIndicator";
 // Global Context
 import { useLanguage } from "../context/LanguageContext";
 
-// Mock API layer
-import { getCourses } from "../mocks/mockApi";
-import type { Course as ApiCourse } from "../mocks/mockApi";
-
 // Union type restricting system course approval states
 type CourseStatus = "pending" | "approved" | "rejected";
 
@@ -26,22 +22,12 @@ interface CourseItem {
   status: CourseStatus;
 }
 
-  //Adapter utility that maps raw API courses to "pending" status locally for UI approval workflow.
-function apiToCourseItem(course: ApiCourse): CourseItem {
-  const parsedDuration = parseInt(course.duration, 10);
-  return {
-    id: course.id,
-    title: course.title,
-    trainer: course.instructor,
-    category: course.category,
-    durationVal: Number.isNaN(parsedDuration) ? 0 : parsedDuration,
-    status: "pending",
-  };
-}
-
 const CoursesApproval: React.FC = () => {
   const { t } = useLanguage();
   const l = t.coursesApproval;
+
+  const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+  const token = localStorage.getItem('user_token');
 
   // React states to manage asynchronous UI lifecycle and dynamic list updates
   const [courses, setCourses] = useState<CourseItem[]>([]);
@@ -53,41 +39,68 @@ const CoursesApproval: React.FC = () => {
     let isMounted = true;
 
     const loadCourses = async () => {
-      const response = await getCourses();
-      if (!isMounted) return;
+      try {
+        const response = await fetch(`${BASE_URL}/admin/courses`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const result = await response.json().catch(() => ({ success: false }));
+        if (!isMounted) return;
 
-      if (response.success && response.data) {
-        // Map data immediately upon successful retrieval to preserve structural integrity
-        setCourses(response.data.courses.map(apiToCourseItem));
-      } else {
-        setLoadError(true);
+        if (result?.success && result.data) {
+          setCourses(result.data.courses as CourseItem[]);
+        } else {
+          setLoadError(true);
+        }
+      } catch (err) {
+        console.error('Error fetching courses for approval', err);
+        if (isMounted) setLoadError(true);
       }
 
-      setLoading(false);
+      if (isMounted) setLoading(false);
     };
 
     loadCourses();
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [BASE_URL, token]);
 
   // Handler triggered by the administrator to approve a specific course pipeline
-  const approveCourse = (id: number): void => {
-    setCourses((prevCourses) =>
-      prevCourses.map((course) =>
-        course.id === id ? { ...course, status: "approved" } : course
-      )
-    );
+  const approveCourse = async (id: number): Promise<void> => {
+    try {
+      const response = await fetch(`${BASE_URL}/admin/courses/${id}/approve`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!response.ok) return;
+
+      setCourses((prevCourses) =>
+        prevCourses.map((course) =>
+          course.id === id ? { ...course, status: "approved" } : course
+        )
+      );
+    } catch (err) {
+      console.error('Error approving course', err);
+    }
   };
 
   // Handler triggered by the administrator to reject a specific course pipeline
-  const rejectCourse = (id: number): void => {
-    setCourses((prevCourses) =>
-      prevCourses.map((course) =>
-        course.id === id ? { ...course, status: "rejected" } : course
-      )
-    );
+  const rejectCourse = async (id: number): Promise<void> => {
+    try {
+      const response = await fetch(`${BASE_URL}/admin/courses/${id}/reject`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!response.ok) return;
+
+      setCourses((prevCourses) =>
+        prevCourses.map((course) =>
+          course.id === id ? { ...course, status: "rejected" } : course
+        )
+      );
+    } catch (err) {
+      console.error('Error rejecting course', err);
+    }
   };
 
   // Dynamic localization mapper to keep rendering logic clean and independent

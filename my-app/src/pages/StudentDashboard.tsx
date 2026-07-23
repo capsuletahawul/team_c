@@ -1,18 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { getStudentProfile } from '../mocks/mockApi.js';
+// استيراد دالة جلب بيانات المستخدم الحالي من ملف الخدمات المشترك
+import { getCurrentUser } from '../services/api'; 
 
-// Reusable Components
+// Reusable Components[cite: 10]
 import StudentNavbar from "../components/StudentNavbar.jsx";
 import Footer from '../components/Footer.jsx';
 import LoadingIndicator from '../components/LoadingIndicator.jsx';
 import ErrorMessage from '../components/ErrorMessage.jsx';
 import Button from '../components/Button.js';
 
-// Global Context
+// Global Context[cite: 10]
 import { useLanguage } from '../context/LanguageContext.jsx';
 
 // ============================================================================
-// TYPES & INTERFACES
+// TYPES & INTERFACES[cite: 10]
 // ============================================================================
 
 interface Course {
@@ -48,7 +49,7 @@ interface StudentDashboardProps {
 }
 
 // ============================================================================
-// COMPONENT
+// COMPONENT[cite: 10]
 // ============================================================================
 
 function StudentDashboard({ onNavigateToProfile }: StudentDashboardProps) {
@@ -57,15 +58,9 @@ function StudentDashboard({ onNavigateToProfile }: StudentDashboardProps) {
 
   const [profile, setProfile] = useState<Profile | null>(null);
   
-  // Local state with strong types
-  const [courses, setCourses] = useState<Course[]>([
-    { id: 1, titleKey: 'course1Title', catKey: 'course1Cat', durKey: 'course1Dur', progress: 45, status: 'Active' },
-    { id: 2, titleKey: 'course2Title', catKey: 'course2Cat', durKey: 'course2Dur', progress: 100, status: 'Completed' }
-  ]);
-  const [notifications, setNotifications] = useState<Notification[]>([
-    { notificationId: 1, titleKey: 'notif1Title', msgKey: 'notif1Msg', isRead: false },
-    { notificationId: 2, titleKey: 'notif2Title', msgKey: 'notif2Msg', isRead: true }
-  ]);
+  // تفريغ البيانات الثابتة وتحويلها إلى مصفوفات فارغة تنتظر البيانات الحية من السيرفر
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
 
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
@@ -73,25 +68,35 @@ function StudentDashboard({ onNavigateToProfile }: StudentDashboardProps) {
   useEffect(() => {
     let isMounted = true;
 
-    // Fetch profile data from mock database
-    getStudentProfile()
-      .then((profileRes) => {
+    async function fetchDashboardData() {
+      try {
+        setLoading(true);
+        setError('');
+
+        // 1. جلب بيانات بروفايل الطالب الحالي من الباك إند
+        const userResponse :any = await getCurrentUser();
+        
+        // 2. جلب دورات الطالب وإشعاراته من السيرفر (تحديث المسارات بناءً على إعدادات الباك إند لديك)
+        const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+        const token = localStorage.getItem('user_token');
+const coursesData: Course[] = [];
+const notifsData: Notification[] = [];
         if (!isMounted) return;
 
-        if (!profileRes.success) {
-          setError(l.errorProfile);
-        } else {
-          // Explicitly cast mock response data to Profile
-          setProfile(profileRes.data as Profile);
-        }
+        // تعيين البيانات القادمة من السيرفر في الـ State لقراءتها ديناميكياً[cite: 10]
+        setProfile(userResponse.user || userResponse); 
+        setCourses(Array.isArray(coursesData) ? coursesData : []);
+        setNotifications(Array.isArray(notifsData) ? notifsData : []);
 
-        setLoading(false);
-      })
-      .catch(() => {
+      } catch (err: any) {
         if (!isMounted) return;
-        setError(l.errorNetwork);
-        setLoading(false);
-      });
+        setError(l.errorNetwork || 'حدث خطأ أثناء تحميل بيانات لوحة التحكم');
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    }
+
+    fetchDashboardData();
 
     return () => { isMounted = false; };
   }, [lang, l.errorProfile, l.errorNetwork]);
@@ -108,7 +113,7 @@ function StudentDashboard({ onNavigateToProfile }: StudentDashboardProps) {
   const completedCourses = courses.filter(c => c.status === 'Completed');
   const unreadNotifications = notifications.filter(n => !n.isRead);
 
-  // Safe fallback calculation for profile name
+  // Safe fallback calculation for profile name[cite: 10]
   const firstName = profile?.fullName?.split(' ')[0] || l.hero.fallbackName;
 
   return (
@@ -122,7 +127,7 @@ function StudentDashboard({ onNavigateToProfile }: StudentDashboardProps) {
           </div>
         )}
 
-        {/* Hero Section */}
+        {/* Hero Section[cite: 10] */}
         <div className="relative bg-capsule-gradient text-white py-10 px-8 overflow-hidden shadow-inner">
           <div className="max-w-7xl mx-auto relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
             <div>
@@ -137,7 +142,7 @@ function StudentDashboard({ onNavigateToProfile }: StudentDashboardProps) {
               </p>
             </div>
 
-            {/* Profile Avatar Button */}
+            {/* Profile Avatar Button[cite: 10] */}
             <button
               onClick={onNavigateToProfile}
               className={`flex items-center gap-3 bg-white/10 hover:bg-white/20 border border-white/20 rounded-2xl p-3 transition cursor-pointer ${t.dir === 'rtl' ? 'pl-5' : 'pr-5'}`}
@@ -157,7 +162,7 @@ function StudentDashboard({ onNavigateToProfile }: StudentDashboardProps) {
 
         <div className="max-w-7xl mx-auto px-6 py-10">
 
-          {/* Quick Stats Cards */}
+          {/* Quick Stats Cards[cite: 10] */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-10">
             <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs">
               <p className="text-xs font-bold text-gray-400 mb-1">{l.stats.activeCourses}</p>
@@ -181,7 +186,7 @@ function StudentDashboard({ onNavigateToProfile }: StudentDashboardProps) {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-            {/* Resume Learning Section */}
+            {/* Resume Learning Section[cite: 10] */}
             <div className="lg:col-span-2 bg-white border border-gray-100 rounded-2xl shadow-xs overflow-hidden">
               <div className="p-6 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
                 <h2 className="text-base font-bold text-capsule-navy">{l.resume.title}</h2>
@@ -199,8 +204,13 @@ function StudentDashboard({ onNavigateToProfile }: StudentDashboardProps) {
                   {courses.map((course) => (
                     <div key={course.id} className="p-6 flex flex-col sm:flex-row sm:items-center gap-4">
                       <div className="flex-1">
-                        <p className="font-bold text-capsule-navy text-sm">{l.mockData[course.titleKey]}</p>
-                        <p className="text-xs text-gray-400 mt-1">{l.mockData[course.catKey]} · {l.mockData[course.durKey]}</p>
+                        {/* فحص ما إذا كان العنوان قادماً كمفتاح ترجمة أو كعنوان نصي مباشر من السيرفر */}
+                        <p className="font-bold text-capsule-navy text-sm">
+                          {l.mockData[course.titleKey] || (course as any).title}
+                        </p>
+                        <p className="text-xs text-gray-400 mt-1">
+                          {l.mockData[course.catKey] || (course as any).category} · {l.mockData[course.durKey] || (course as any).duration}
+                        </p>
 
                         <div className="w-full bg-gray-100 rounded-full h-2 mt-3 overflow-hidden">
                           <div
@@ -220,7 +230,7 @@ function StudentDashboard({ onNavigateToProfile }: StudentDashboardProps) {
               )}
             </div>
 
-            {/* Notifications Section */}
+            {/* Notifications Section[cite: 10] */}
             <div className="bg-white border border-gray-100 rounded-2xl shadow-xs overflow-hidden h-fit">
               <div className="p-6 border-b border-gray-100 bg-gray-50">
                 <h2 className="text-base font-bold text-capsule-navy">{l.notifications.title}</h2>
@@ -233,12 +243,16 @@ function StudentDashboard({ onNavigateToProfile }: StudentDashboardProps) {
                   {notifications.map((note) => (
                     <div key={note.notificationId} className="p-5">
                       <div className="flex items-start justify-between gap-2">
-                        <p className="text-sm font-bold text-capsule-navy">{l.mockData[note.titleKey]}</p>
+                        <p className="text-sm font-bold text-capsule-navy">
+                          {l.mockData[note.titleKey] || (note as any).title}
+                        </p>
                         {!note.isRead && (
                           <span className="w-2 h-2 rounded-full bg-capsule-dark-gold mt-1 flex-shrink-0"></span>
                         )}
                       </div>
-                      <p className="text-xs text-gray-500 mt-1 leading-relaxed">{l.mockData[note.msgKey]}</p>
+                      <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+                        {l.mockData[note.msgKey] || (note as any).message}
+                      </p>
                     </div>
                   ))}
                 </div>

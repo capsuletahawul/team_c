@@ -1,12 +1,14 @@
-// src/pages/ForgotPassword.jsx
+// src/pages/ForgotPassword.tsx
 import React, { useState, ChangeEvent, FormEvent } from "react";
 import { CapsuleMark } from "../components/Icons";
 import "../styles/auth.css";
 import { Link } from "react-router-dom";
-// ربط الصفحة بالسياق العالمي للغات لكي تعمل الترجمة فوراً
+// ربط الصفحة بالسياق العالمي للغات لكي تعمل الترجمة فوراً[cite: 11]
 import { useLanguage } from "../context/LanguageContext";
 
-// النصوص المستخدمة في الصفحة باللغتين العربية والإنجليزية.
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
+// النصوص المستخدمة في الصفحة باللغتين العربية والإنجليزية[cite: 11]
 const TEXT = {
   ar: {
     dir: "rtl",
@@ -23,7 +25,8 @@ const TEXT = {
     successMessage: "تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني.",
     resendText: "لم يصلك البريد الإلكتروني؟",
     resend: "إعادة الإرسال",
-    invalidEmail: "الرجاء إدخال بريد إلكتروني صحيح.",
+    invalidEmail: "الرجاء إدخل بريد إلكتروني صحيح.",
+    serverError: "حدث خطأ في الاتصال بالخادم، يرجى المحاولة مرة أخرى.",
   },
   en: {
     dir: "ltr",
@@ -41,29 +44,29 @@ const TEXT = {
     resendText: "Didn't receive the email?",
     resend: "Resend",
     invalidEmail: "Please enter a valid email address.",
+    serverError: "An error occurred connecting to the server, please try again.",
   },
 };
 
-// المكون الرئيسي المسؤول عن صفحة نسيت كلمة المرور.
 export default function ForgotPassword() {
-  // جلب حالة اللغة ودالة التبديل مباشرة من الـ Context المشترك للمشروع
+  // جلب حالة اللغة ودالة التبديل مباشرة من الـ Context المشترك للمشروع[cite: 11]
   const { lang, toggleLanguage } = useLanguage();
   const t = TEXT[lang as keyof typeof TEXT] ?? TEXT.ar;
 
-  // تخزين البريد الإلكتروني الذي يدخله المستخدم.
+  // تخزين البريد الإلكتروني الذي يدخله المستخدم[cite: 11]
   const [email, setEmail] = useState<string>("");
-    // تخزين رسالة الخطأ في حال كان البريد غير صحيح.
+  // تخزين رسالة الخطأ[cite: 11]
   const [error, setError] = useState<string>("");
-    // تحديد ما إذا كانت عملية الإرسال جارية.
+  // تحديد ما إذا كانت عملية الإرسال جارية[cite: 11]
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-    // تحديد ما إذا تم إرسال الطلب بنجاح.
+  // تحديد ما إذا تم إرسال الطلب بنجاح[cite: 11]
   const [submitted, setSubmitted] = useState<boolean>(false);
 
-    // التحقق من صحة صيغة البريد الإلكتروني.
+  // التحقق من صحة صيغة البريد الإلكتروني[cite: 11]
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    // تنفيذ عملية إرسال النموذج بعد التحقق من صحة البيانات.
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  // تنفيذ عملية إرسال النموذج والربط مع السيرفر[cite: 11]
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
 
@@ -74,21 +77,39 @@ export default function ForgotPassword() {
 
     setIsSubmitting(true);
 
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      const response = await fetch(`${BASE_URL}/auth/forgot-password`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        setError(data.error || data.message || t.serverError);
+        return;
+      }
+
       setSubmitted(true);
-    }, 900);
+    } catch (err) {
+      setError(t.serverError);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <div className="auth-root" dir={t.dir} lang={lang}>
       <div className="auth-shell">
         <div className="auth-visual">
-          {/* الزر الآن ينادي الدالة العالمية toggleLanguage مباشرة لتغيير لغة الموقع بالكامل */}
           <button
             type="button"
             className="lang-toggle"
             onClick={toggleLanguage}
+            disabled={isSubmitting}
           >
             {lang === "ar" ? "EN" : "AR"}
           </button>
@@ -118,7 +139,6 @@ export default function ForgotPassword() {
               <>
                 <p className="auth-subtitle">{t.subtitle}</p>
 
-                {/* نموذج إدخال البريد الإلكتروني */}
                 <form className="auth-form" onSubmit={handleSubmit}>
                   <div className="field">
                     <label>{t.email}</label>
@@ -127,8 +147,10 @@ export default function ForgotPassword() {
                       placeholder={t.emailPlaceholder}
                       value={email}
                       onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+                      disabled={isSubmitting}
+                      required
                     />
-                    {error && <span className="field-error">{error}</span>}
+                    {error && <span className="field-error" style={{ color: "#991b1b", display: "block", marginTop: "4px" }}>{error}</span>}
                   </div>
 
                   <button
@@ -141,9 +163,8 @@ export default function ForgotPassword() {
                 </form>
               </>
             ) : (
-
               <div className="success-box">
-                <div className="success-icon">✓</div>
+                <div className="success-icon" style={{ color: "#16a34a", fontSize: "24px", marginBottom: "8px" }}>✓</div>
                 <h3>{t.successTitle}</h3>
                 <p className="auth-subtitle">{t.successMessage}</p>
 
@@ -161,7 +182,7 @@ export default function ForgotPassword() {
             )}
 
             <p className="switch-line">
-              <Link to="/sign-in" className="link-muted as-link">
+              <Link to="/sign-in" className="link-muted as-link" style={{ pointerEvents: isSubmitting ? "none" : "auto" }}>
                 {t.back}
               </Link>
             </p>

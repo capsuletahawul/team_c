@@ -8,8 +8,7 @@ import LoadingIndicator from "../components/LoadingIndicator";
 // Global Context
 import { useLanguage } from "../context/LanguageContext";
 
-// Mock API layer
-import { getTrainerProfile } from "../mocks/mockApi";
+// Types reused from the mocks module (no runtime mock calls — API layer below is real)
 import type { TrainerProfile as ApiTrainerProfile } from "../mocks/mockApi";
 
 // Trainer basic contact and metrics interface
@@ -37,22 +36,22 @@ interface CourseItem {
   status: "published" | "underReview";
 }
 
-// Maps the raw mockApi trainer profile fields into the local editable-form shape
-function apiToProfile(apiProfile: ApiTrainerProfile): EditedDataState {
+// Maps the raw mockApi trainer profile fields into the local editable-form shape, localized by lang
+function apiToProfile(apiProfile: ApiTrainerProfile, lang: "ar" | "en"): EditedDataState {
   return {
     fullName: apiProfile.name,
-    specialization: apiProfile.specialty,
-    bio: apiProfile.bio,
+    specialization: lang === "ar" ? (apiProfile.specialtyAr || apiProfile.specialty) : apiProfile.specialty,
+    bio: lang === "ar" ? (apiProfile.bioAr || apiProfile.bio) : apiProfile.bio,
     email: apiProfile.email,
     experienceVal: `${apiProfile.experience}`,
   };
 }
 
-// Maps the raw mockApi course records (published/review) into the local table shape (published/underReview)
-function apiToCourses(apiCourses: ApiTrainerProfile["courses"]): CourseItem[] {
+// Maps the raw mockApi course records (published/review) into the local table shape (published/underReview), localized by lang
+function apiToCourses(apiCourses: ApiTrainerProfile["courses"], lang: "ar" | "en"): CourseItem[] {
   return apiCourses.map((c) => ({
     id: c.id,
-    title: c.name,
+    title: lang === "ar" ? (c.nameAr || c.name) : c.name,
     students: c.students,
     status: c.status === "published" ? "published" : "underReview",
   }));
@@ -63,9 +62,13 @@ const TrainerProfile: React.FC = () => {
   const l = t.trainerProfile;
   const isRTL = lang === "ar";
 
+  const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+  const token = localStorage.getItem('user_token');
+
   const [loading, setLoading] = useState<boolean>(true);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [loadError, setLoadError] = useState<boolean>(false);
+  const [saveError, setSaveError] = useState<string>('');
 
   // 1. Basic non-translated trainer states, populated from mockApi
   const [trainer, setTrainer] = useState<TrainerState>({
@@ -77,6 +80,9 @@ const TrainerProfile: React.FC = () => {
 
   const [courses, setCourses] = useState<CourseItem[]>([]);
 
+  // Raw bilingual profile as returned by mockApi, kept so we can re-localize on language toggle without refetching
+  const [rawProfile, setRawProfile] = useState<ApiTrainerProfile | null>(null);
+
   // 2. Baseline profile fetched from mockApi, used as the display source before any local edit
   const [fetchedProfile, setFetchedProfile] = useState<EditedDataState | null>(null);
 
@@ -87,36 +93,52 @@ const TrainerProfile: React.FC = () => {
   useEffect(() => {
     let isMounted = true;
 
-    const loadTrainerProfile = async () => {
-      const response = await getTrainerProfile();
-      if (!isMounted) return;
+    async function fetchTrainerProfile() {
+      try {
+        setLoading(true);
+        const headers = { 'Authorization': `Bearer ${token}` };
 
-      if (response.success && response.data) {
-        setFetchedProfile(apiToProfile(response.data));
-        setCourses(apiToCourses(response.data.courses));
-        setTrainer({
-          email: response.data.email,
-          phone: response.data.phone,
-          students: response.data.stats.studentsCount,
-          rating: response.data.stats.rating,
-        });
-      } else {
-        setLoadError(true);
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/trainer/profile`, { headers });
+        const result = await response.json().catch(() => ({ success: false }));
+
+        if (!isMounted) return;
+
+        if (result?.success && result.data) {
+          setRawProfile(result.data);
+          setFetchedProfile(apiToProfile(result.data, lang));
+          setCourses(apiToCourses(result.data.courses, lang));
+          setTrainer({
+            email: result.data.email,
+            phone: result.data.phone,
+            students: result.data.stats.studentsCount,
+            rating: result.data.stats.rating,
+          });
+        } else {
+          setLoadError(true);
+        }
+      } catch (err) {
+        console.error('Error fetching trainer profile', err);
+        if (isMounted) setLoadError(true);
+      } finally {
+        if (isMounted) setLoading(false);
       }
+    }
 
-      setLoading(false);
-    };
-
-    loadTrainerProfile();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+    fetchTrainerProfile();
+    return () => { isMounted = false; };
+  }, [BASE_URL, token]);
 
   // Closes edit mode on language toggle while retaining any edited user modifications
   useEffect(() => {
     setIsEditing(false);
   }, [lang]);
+
+  // Re-localizes the fetched (non-edited) profile fields whenever the language toggles
+  useEffect(() => {
+    if (!rawProfile) return;
+    setFetchedProfile(apiToProfile(rawProfile, lang));
+    setCourses(apiToCourses(rawProfile.courses, lang));
+  }, [lang, rawProfile]);
 
   // Dynamically resolves metadata with priority to manual user edits over fetched mockApi data
   const currentTrainer: EditedDataState = {
@@ -129,17 +151,49 @@ const TrainerProfile: React.FC = () => {
 
   const handleStartEdit = (): void => {
     setDraft({ ...currentTrainer });
+    setSaveError('');
     setIsEditing(true);
   };
 
-  const handleSave = (e: React.FormEvent<HTMLFormElement>): void => {
+  const handleSave = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
+    setSaveError('');
 
     // Save draft data (asserting full properties since form inputs are required)
     const finalizedData = draft as EditedDataState;
-    setEditedData(finalizedData);
-    setTrainer((prev) => ({ ...prev, email: finalizedData.email }));
-    setIsEditing(false);
+
+    try {
+      const response = await fetch(`${BASE_URL}/trainer/profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          fullName: finalizedData.fullName,
+          specialization: finalizedData.specialization,
+          bio: finalizedData.bio,
+          experienceVal: finalizedData.experienceVal
+        })
+      });
+
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        const rawError = result.error || result.message;
+        const serverError = rawError && typeof rawError === 'object'
+          ? Object.values(rawError).flat().join(' ')
+          : rawError;
+        setSaveError(serverError || (isRTL ? 'تعذر حفظ التعديلات' : 'Failed to save changes'));
+        return;
+      }
+
+      setEditedData(finalizedData);
+      setIsEditing(false);
+    } catch (err) {
+      console.error('Error saving trainer profile', err);
+      setSaveError(isRTL ? 'تعذر الاتصال بالسيرفر' : 'Could not reach the server');
+    }
   };
 
   const publicCourses = courses.filter((c) => c.status === "published");
@@ -205,6 +259,11 @@ const TrainerProfile: React.FC = () => {
             ) : (
               /* Active modification and edit form */
               <form onSubmit={handleSave} className="space-y-6">
+                {saveError && (
+                  <div className="p-3 bg-amber-50 text-amber-800 rounded-xl text-xs font-bold border-r-4 border-capsule-dark-gold">
+                    ⚠️ {saveError}
+                  </div>
+                )}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <input 
                     type="text" 

@@ -5,6 +5,8 @@ import { Link } from "react-router-dom";
 
 import { COPY } from "../i18n/copy";
 import { CapsuleMark, EyeIcon } from "../components/Icons";
+import { useAuth } from "../context/AuthContext";
+// @ts-ignore: allow side-effect CSS import without type declarations
 import "../styles/auth.css";
 
 /**
@@ -14,59 +16,77 @@ import "../styles/auth.css";
  * - onToggleLang: دالة لتبديل اللغة
  * - onGoToSignUp: دالة للتنقل إلى صفحة إنشاء الحساب
  */
-// الخصائص التي يستقبلها المكون من الصفحة الرئيسية.
 interface SignInProps {
   lang: string;
   onToggleLang: () => void;
   onGoToSignUp: () => void;
 }
 
-// المكون الرئيسي المسؤول عن تسجيل دخول المستخدم.
 export default function SignIn({ lang, onToggleLang, onGoToSignUp }: SignInProps) {
-  // تحديد ما إذا كانت كلمة المرور ظاهرة أو مخفية.
   const [showPw, setShowPw] = useState<boolean>(false);
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-const navigate = useNavigate();
+  const navigate = useNavigate();
+  const { login } = useAuth();
 
-// تخزين البريد الإلكتروني الذي يدخله المستخدم.
-const [email, setEmail] = useState<string>("");
-// تخزين كلمة المرور المدخلة.
-const [password, setPassword] = useState<string>("");
+  const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
   const t = COPY[lang as keyof typeof COPY];
   const form = t.login;
 
-// التحقق من بيانات تسجيل الدخول وتوجيه المستخدم إلى لوحة التحكم المناسبة.
-const handleLogin = (e: FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
+  const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
+    setErrorMsg(null);
 
-  // Student
-  if (email === "student@test.com" && password === "123456") {
-    navigate("/student-dashboard");
-    return;
-  }
+    try {
+      const response = await fetch(`${BASE_URL}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-  // Trainer
-  if (email === "trainer@test.com" && password === "123456") {
-    navigate("/trainer-dashboard");
-    return;
-  }
+      const result = await response.json().catch(() => ({}));
 
-  // Admin
-  if (email === "admin@test.com" && password === "123456") {
-    navigate("/admin-dashboard");
-    return;
-  }
+      if (!response.ok) {
+        // أخطاء التحقق من الحقول ترجع من الباك اند كـ object (حقل -> رسائل)، نحولها لنص واحد مقروء
+        const rawError = result.error || result.message;
+        const serverError =
+          rawError && typeof rawError === "object"
+            ? Object.values(rawError).flat().join(" ")
+            : rawError;
 
-  // Company — Successfully updated to hit the dashboard directly
-  if (email === "company@test.com" && password === "123456") {
-    navigate("/company-dashboard"); 
-    return;
-  }
+        setErrorMsg(serverError || "البريد الإلكتروني أو كلمة المرور غير صحيحة.");
+        return;
+      }
 
-  alert("البريد الإلكتروني أو كلمة المرور غير صحيحة");
-};
+      // تحويل الرتبة إلى حروف صغيرة لتتوافق مع نظام الـ Dashboard الحالي
+      const role = result.user.role.toLowerCase();
 
+      // تخزين التوكن الحقيقي القادم من الباك اند — بدونه أي طلب محمي لاحقاً يفشل بـ invalid_token
+      login(role as any, result.token);
+
+      // التوجيه للوحة التحكم الصحيحة بناءً على نوع المستخدم
+      if (role === "student") {
+        navigate("/student-dashboard");
+      } else if (role === "trainer") {
+        navigate("/trainer-dashboard");
+      } else if (role === "admin") {
+        navigate("/admin-dashboard");
+      } else if (role === "company") {
+        navigate("/company-dashboard");
+      } else {
+        navigate("/");
+      }
+    } catch (err: any) {
+      setErrorMsg("حدث خطأ غير متوقع أثناء الاتصال بالخادم، يرجى المحاولة لاحقاً.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="auth-root" dir={t.dir} lang={lang}>
@@ -94,6 +114,21 @@ const handleLogin = (e: FormEvent<HTMLFormElement>) => {
         {/* نموذج تسجيل الدخول */}
         <div className="auth-form-side">
           <div className="auth-form-wrap">
+            <div
+              style={{
+                textAlign: lang === "ar" ? "left" : "right",
+                marginBottom: "16px",
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => navigate("/")}
+                className="text-[#0f4c81] font-semibold"
+              >
+                {lang === "ar" ? "← رجوع" : "Back →"}
+              </button>
+            </div>
+
             <div className="auth-tabs">
               <button className="is-active">{t.tabs.login}</button>
               <button onClick={onGoToSignUp}>{t.tabs.signup}</button>
@@ -103,29 +138,52 @@ const handleLogin = (e: FormEvent<HTMLFormElement>) => {
             <h2>{form.title}</h2>
             <p className="auth-subtitle">{form.subtitle}</p>
 
-{/* نموذج إدخال بيانات تسجيل الدخول */}
-<form className="auth-form" onSubmit={handleLogin}>
-                {/* حقل البريد الإلكتروني */}
-                {/* حقل كلمة المرور */}
+            {/* عرض رسالة الخطأ في حال وجودها */}
+            {errorMsg && (
+              <div 
+                style={{
+                  padding: "10px 14px",
+                  backgroundColor: "#fee2e2",
+                  color: "#991b1b",
+                  borderRadius: "6px",
+                  marginBottom: "16px",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                  textAlign: "right"
+                }}
+              >
+                ⚠️ {errorMsg}
+              </div>
+            )}
+
+            {/* نموذج إدخال بيانات تسجيل الدخول */}
+            <form className="auth-form" onSubmit={handleLogin}>
+              {/* حقل البريد الإلكتروني */}
               <div className="field">
                 <label>{form.email}</label>
                 <input
-  type="email"
-  placeholder={form.emailPh}
-  value={email}
-  onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
-/>
+                  type="email"
+                  placeholder={form.emailPh}
+                  value={email}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+                  disabled={loading}
+                  required
+                />
               </div>
 
+              {/* حقل كلمة المرور */}
               <div className="field">
                 <label>{form.password}</label>
                 <div className="password-input">
-<input
-  type={showPw ? "text" : "password"}
-  placeholder={form.passwordPh}
-  value={password}
-  onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
-/>                  <button
+                  <input
+                    type={showPw ? "text" : "password"}
+                    placeholder={form.passwordPh}
+                    value={password}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+                    disabled={loading}
+                    required
+                  />
+                  <button
                     type="button"
                     className="eye-btn"
                     onClick={() => setShowPw(!showPw)}
@@ -139,15 +197,22 @@ const handleLogin = (e: FormEvent<HTMLFormElement>) => {
               {/* خيارات تذكرني ورابط نسيت كلمة المرور */}
               <div className="row-between">
                 <label className="checkbox">
-                  <input type="checkbox" />
+                  <input type="checkbox" disabled={loading} />
                   <span>{form.remember}</span>
                 </label>
                 <Link to="/forgot-password" className="link-muted">
-  {form.forgot}
-</Link>
+                  {form.forgot}
+                </Link>
               </div>
 
-              <button type="submit" className="submit-btn">{form.submit}</button>
+              <button 
+                type="submit" 
+                className="submit-btn" 
+                disabled={loading}
+                style={{ opacity: loading ? 0.7 : 1, cursor: loading ? "not-allowed" : "pointer" }}
+              >
+                {loading ? (lang === "ar" ? "جاري تسجيل الدخول..." : "Signing in...") : form.submit}
+              </button>
             </form>
 
             <div className="divider"><span>{form.or}</span></div>
@@ -155,7 +220,7 @@ const handleLogin = (e: FormEvent<HTMLFormElement>) => {
             {/* أزرار تسجيل الدخول عبر وسائل التواصل */}
             <div className="social-row">
               {t.social.map((s: string, i: number) => (
-                <button key={i} className="social-btn">
+                <button key={i} className="social-btn" disabled={loading}>
                   {s === "Google" ? "🔴" : "🔵"} {s}
                 </button>
               ))}
@@ -163,7 +228,7 @@ const handleLogin = (e: FormEvent<HTMLFormElement>) => {
 
             <p className="switch-line">
               {form.noAccount}{" "}
-              <button className="switch-btn" onClick={onGoToSignUp}>
+              <button className="switch-btn" onClick={onGoToSignUp} disabled={loading}>
                 {form.switchLink}
               </button>
             </p>

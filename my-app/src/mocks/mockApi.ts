@@ -4,6 +4,8 @@
  * This file simulates a backend database and server processing environment.
  */
 
+import { login, register, submitContact } from '../services/api';
+
 // ============================================================================
 // TYPES & INTERFACES DEFINITIONS
 // ============================================================================
@@ -39,7 +41,9 @@ export interface Requirement {
 
 export interface InstructorProfile {
   role: string;
+  roleAr?: string;
   bio: string;
+  bioAr?: string;
   avatarLabel: string;
   ratingText: string;
   studentsText: string;
@@ -52,7 +56,6 @@ export interface Enrollment {
   timer: string;
 }
 
-// Interfaces designed explicitly to prevent block-scope compiler issues
 export interface CurriculumTranslation {
   title: string;
   subtitle: string;
@@ -94,6 +97,7 @@ export interface InstructorTranslation {
 export interface Course {
   id: number;
   title: string;
+  titleAr?: string;
   category: string;
   description: string;
   subtitle: string;
@@ -117,7 +121,6 @@ export interface Course {
   curriculum: CurriculumModule[];
   enrollment: Enrollment;
   
-  // Localized Fields (Injected Dynamically)
   translatedCurriculum?: CurriculumTranslation;
   translatedRequirements?: RequirementsTranslation;
   translatedEnrollment?: EnrollmentTranslation;
@@ -138,7 +141,7 @@ export interface User {
 }
 
 export interface CourseEnrollment {
-  courseId: number; // Unified parameter to prevent logical mismatch
+  courseId: number; 
   progress: number;
   status: 'In Progress' | 'Completed' | string;
 }
@@ -164,7 +167,9 @@ export interface TrainerProfile {
   trainerId: string;
   name: string;
   specialty: string;
+  specialtyAr?: string;
   bio: string;
+  bioAr?: string;
   email: string;
   phone: string;
   experience: number;
@@ -177,6 +182,7 @@ export interface TrainerProfile {
   courses: Array<{
     id: number;
     name: string;
+    nameAr?: string;
     students: number;
     status: 'published' | 'review' | string;
   }>;
@@ -204,13 +210,14 @@ export interface AdminUserRecord {
 const delay = (ms: number): Promise<void> => new Promise(res => setTimeout(res, ms));
 
 // ============================================================================
-// SIMULATED IN-MEMORY DATABASE (State persists while browser tab is open)
+// SIMULATED IN-MEMORY DATABASE
 // ============================================================================
 
 let mockCourses: Course[] = [
   {
     id: 15,
     title: "React Bootcamp Deep Dive",
+    titleAr: "معسكر React المتقدم",
     category: "Web Development",
     description: "Learn React from beginner to advanced with hands-on projects.",
     subtitle: "Master building production-ready React applications with hooks, state management, and real-world project architecture.",
@@ -238,7 +245,9 @@ let mockCourses: Course[] = [
     ],
     instructorProfile: {
       role: "Senior Front-End Engineer",
+      roleAr: "مهندس أول واجهات أمامية",
       bio: "Ahmed has spent over 8 years building production React applications for startups and enterprises across the region.",
+      bioAr: "يمتلك أحمد خبرة تتجاوز 8 سنوات في بناء تطبيقات React الإنتاجية للشركات الناشئة والمؤسسات الكبرى في المنطقة.",
       avatarLabel: "AM",
       ratingText: "4.8 Instructor Rating",
       studentsText: "1,240+ Students",
@@ -277,6 +286,7 @@ let mockCourses: Course[] = [
   {
     id: 16,
     title: "AI & Machine Learning Fundamentals",
+    titleAr: "أساسيات الذكاء الاصطناعي والتعلم الآلي",
     category: "Artificial Intelligence",
     description: "A hands-on introduction to AI and Machine Learning concepts using real datasets and Python.",
     subtitle: "Learn the core building blocks of AI and Machine Learning through practical, project-based lessons.",
@@ -302,7 +312,9 @@ let mockCourses: Course[] = [
     ],
     instructorProfile: {
       role: "AI & Data Science Instructor",
+      roleAr: "مدربة الذكاء الاصطناعي وعلوم البيانات",
       bio: "Sara has taught Machine Learning fundamentals to thousands of students, focusing on practical, project-first learning.",
+      bioAr: "درّست سارة أساسيات التعلم الآلي لآلاف الطلاب، مع التركيز على التعلم العملي القائم على المشاريع.",
       avatarLabel: "SA",
       ratingText: "4.9 Instructor Rating",
       studentsText: "850+ Students",
@@ -337,6 +349,7 @@ let mockCourses: Course[] = [
   {
     id: 17,
     title: "Cybersecurity Next-Gen Defense",
+    titleAr: "الدفاع السيبراني للجيل القادم",
     category: "Cybersecurity",
     description: "Learn modern cybersecurity defense strategies to protect networks and systems from evolving threats.",
     subtitle: "Build practical skills in network defense, threat detection, and incident response.",
@@ -362,7 +375,9 @@ let mockCourses: Course[] = [
     ],
     instructorProfile: {
       role: "Senior Cybersecurity Engineer",
+      roleAr: "مهندس أول أمن سيبراني",
       bio: "Abdullah has over 10 years of experience securing enterprise infrastructure and leading incident response teams.",
+      bioAr: "يمتلك عبدالله خبرة تفوق 10 سنوات في تأمين البنية التحتية للمؤسسات وقيادة فرق الاستجابة للحوادث الأمنية.",
       avatarLabel: "AN",
       ratingText: "New Instructor",
       studentsText: "0 Students (Coming Soon)",
@@ -397,6 +412,7 @@ let mockCourses: Course[] = [
   {
     id: 18,
     title: "Cloud Native Infrastructure",
+    titleAr: "البنية التحتية السحابية الحديثة",
     category: "Cloud Computing",
     description: "Master cloud-native architecture, containers, and infrastructure automation on modern cloud platforms.",
     subtitle: "Design, deploy, and scale cloud-native infrastructure using industry-standard tools.",
@@ -422,7 +438,9 @@ let mockCourses: Course[] = [
     ],
     instructorProfile: {
       role: "Cloud Solutions Architect",
+      roleAr: "مهندسة معمارية للحلول السحابية",
       bio: "Noura has led cloud migration and infrastructure automation projects for enterprise clients across the Gulf region.",
+      bioAr: "قادت نورة مشاريع ترحيل الأنظمة إلى السحابة وأتمتة البنية التحتية لعملاء المؤسسات في منطقة الخليج.",
       avatarLabel: "NF",
       ratingText: "4.5 Instructor Rating",
       studentsText: "430+ Students",
@@ -468,7 +486,6 @@ let mockUser: User = {
   companyAffiliation: "ABC Technologies"
 };
 
-// Unified the property name to 'courseId' to prevent dynamic data fetch issues
 let mockEnrollments: CourseEnrollment[] = [
   { courseId: 15, progress: 45, status: "In Progress" },
   { courseId: 16, progress: 100, status: "Completed" }
@@ -485,13 +502,12 @@ let mockNotifications: Notification[] = [
   }
 ];
 
-// Typed in-memory state storage lists
-let mockSupportTickets: Array<ContactFormPayload & { id: number; createdAt: string }> = [];
+let mockSupportTickets: Array<unknown> = [];
 let mockB2BRequests: Array<B2BRequestPayload & { ticketId: number; status: string }> = [];
 let mockCourseDrafts: unknown[] = [];
 
 // ============================================================================
-// NEW STATIC DATA FOR INTEGRATION (Course Details, Trainer Details, Contact)
+// NEW STATIC DATA FOR INTEGRATION
 // ============================================================================
 
 export const courseHeroData = {
@@ -663,48 +679,59 @@ export const contactPageData = {
 };
 
 // ============================================================================
-// MODULE 1: AUTHENTICATION APIs (Feature 3)
+// MODULE 1: AUTHENTICATION APIs (Feature 3) - LIVE BACKEND INTEGRATION
 // ============================================================================
 
 export interface RegisterPayload {
+  name?: string;
   fullName?: string;
   email?: string;
   password?: string;
   confirmPassword?: string;
+  role?: string;
 }
 
-export async function registerStudent(payload: RegisterPayload): Promise<ApiResponse<unknown>> {
-  await delay(800);
+export async function registerUser(payload: RegisterPayload): Promise<ApiResponse<unknown>> {
+  await delay(500);
   
-  if (!payload.fullName || !payload.email || !payload.password || !payload.confirmPassword) {
+  const finalName = payload.name || payload.fullName;
+
+  if (!finalName || !payload.email || !payload.password) {
     return {
       success: false,
       error: "validation_error",
-      details: { global: "All required form fields must be populated before registration confirmation." }
+      details: { global: "جميع الحقول مطلوبة لإتمام عملية التسجيل." }
     };
   }
 
-  if (payload.fullName.length < 3) {
+  if (finalName.length < 3) {
     return {
       success: false,
       error: "validation_error",
-      details: { fullName: "Full name must be at least 3 characters long." }
+      details: { global: "يجب أن يكون الاسم 3 حروف أو أكثر." }
     };
   }
 
-  if (payload.password !== payload.confirmPassword) {
+  try {
+    const response = await register({
+      fullName: finalName,
+      email: payload.email,
+      password: payload.password,
+      role: payload.role || "Student"
+    });
+
+    return {
+      success: true,
+      message: "تم إنشاء الحساب بنجاح.",
+      data: response
+    };
+  } catch (err: any) {
     return {
       success: false,
-      error: "validation_error",
-      details: { confirmPassword: "Passwords do not match." }
+      error: "registration_error",
+      details: { global: err.message || "حدث خطأ أثناء إنشاء الحساب." }
     };
   }
-
-  return {
-    success: true,
-    message: "Student account created successfully.",
-    data: { id: Math.floor(Math.random() * 1000), role: "Student", email: payload.email }
-  };
 }
 
 export interface LoginPayload {
@@ -713,21 +740,40 @@ export interface LoginPayload {
 }
 
 export async function loginUser(payload: LoginPayload): Promise<ApiResponse<{ token: string; userId: number; role: string; name: string }>> {
-  await delay(600);
+  await delay(500);
 
   if (!payload.email || !payload.password) {
     return {
       success: false,
       error: "validation_error",
-      details: { auth: "Email and password fields are both required." }
+      details: { auth: "البريد الإلكتروني وكلمة المرور حقول مطلوبة." }
     };
   }
 
-  return {
-    success: true,
-    message: "Login successful.",
-    data: { token: "MOCK_JWT_TOKEN_2026", userId: mockUser.id, role: mockUser.role, name: mockUser.fullName }
-  };
+  try {
+    const response = await login(payload.email, payload.password);
+    
+    if (response.token) {
+      localStorage.setItem('token', response.token);
+    }
+
+    return {
+      success: true,
+      message: "تم تسجيل الدخول بنجاح.",
+      data: {
+        token: response.token,
+        userId: response.user?.id || mockUser.id,
+        role: response.user?.role || mockUser.role,
+        name: response.user?.fullName || response.user?.name || mockUser.fullName
+      }
+    };
+  } catch (err: any) {
+    return {
+      success: false,
+      error: "validation_error",
+      details: { auth: err.message || "خطأ في البريد الإلكتروني أو كلمة المرور." }
+    };
+  }
 }
 
 // ============================================================================
@@ -737,6 +783,8 @@ export async function loginUser(payload: LoginPayload): Promise<ApiResponse<{ to
 export interface PlatformTrack {
   title: string;
   description: string;
+  title_en?: string;
+  description_en?: string;
 }
 
 export interface PlatformOverview {
@@ -752,9 +800,24 @@ export async function getPlatformOverview(): Promise<ApiResponse<PlatformOvervie
     success: true,
     data: {
       platformName: "Capsule Tahawul",
-      studentTrack: { title: "Learn & Accelerate", description: "Access free and premium engineering tracks with modular roadmaps." },
-      trainerTrack: { title: "Monetize Expertise", description: "Author curriculum pipelines, check enrollment trajectory analytics, and earn structural payouts." },
-      companyTrack: { title: "Upskill Your Workforce", description: "Orchestrate continuous corporate ecosystems via trackable bootcamps and custom hackathons." }
+      studentTrack: { 
+        title: "التسجيل كطالب", 
+        title_en: "Learn & Accelerate", 
+        description: "الوصول إلى مسارات هندسية مجانية ومدفوعة مع خرائط طريق مرنة ومجزأة.",
+        description_en: "Access free and premium engineering tracks with modular roadmaps." 
+      },
+      trainerTrack: { 
+        title: "تقديم كمدرب", 
+        title_en: "Monetize Expertise", 
+        description: "قم بإعداد المناهج التدريبية، وتتبع تحليلات تسجيل الطلاب، واحصل على عوائد ممتازة.",
+        description_en: "Author curriculum pipelines, check enrollment trajectory analytics, and earn structural payouts." 
+      },
+      companyTrack: { 
+        title: "حلول الشركات والمؤسسات", 
+        title_en: "Upskill Your Workforce", 
+        description: "تنظيم مسارات تدريبية مستمرة لشركتك عبر معسكرات قابلة للتتبع وهاكاثونات مخصصة.",
+        description_en: "Orchestrate continuous corporate ecosystems via trackable bootcamps and custom hackathons." 
+      }
     }
   };
 }
@@ -932,7 +995,7 @@ export async function submitQuiz(quizId: string | number, payload: QuizPayload):
 }
 
 // ============================================================================
-// MODULE 6: COMMUNICATIONS & SUPPORT (Feature 10, Mandatory Contact Form Check)
+// MODULE 6: COMMUNICATIONS & SUPPORT - LIVE BACKEND INTEGRATION
 // ============================================================================
 
 export interface ContactFormPayload {
@@ -943,27 +1006,39 @@ export interface ContactFormPayload {
 }
 
 export async function submitContactForm(data: ContactFormPayload): Promise<ApiResponse<unknown>> {
-  await delay(800);
+  await delay(500);
   
   if (!data.fullName || data.fullName.length < 3) {
-    return { success: false, error: "validation_error", details: { name: "Name must be at least 3 characters." } };
+    return { success: false, error: "validation_error", details: { name: "يجب أن يكون الاسم 3 حروف أو أكثر." } };
   }
   if (!data.email || !data.email.includes("@")) {
-    return { success: false, error: "validation_error", details: { email: "Provide a clean valid email syntax structure." } };
+    return { success: false, error: "validation_error", details: { email: "يرجى إدخال بريد إلكتروني صحيح." } };
   }
   if (!data.phone || !data.phone.startsWith("05") || data.phone.length !== 10) {
     return {
       success: false,
       error: "validation_error",
-      details: { phone: "Must start with 05 and contain exactly 10 programmatic digits." }
+      details: { phone: "يجب أن يبدأ رقم الجوال بـ 05 ويتكون من 10 أرقام." }
     };
   }
   if (!data.message || data.message.length < 20 || data.message.length > 500) {
-    return { success: false, error: "validation_error", details: { message: "Message block must range between 20 and 500 parameters." } };
+    return { success: false, error: "validation_error", details: { message: "يجب أن تكون الرسالة بين 20 و 500 حرف." } };
   }
 
-  mockSupportTickets.push({ id: Math.floor(Math.random() * 1000), ...data, createdAt: new Date().toISOString() });
-  return { success: true, message: "Your message was received." };
+  try {
+    const response = await submitContact(data);
+    return { 
+      success: true, 
+      message: "تم استلام رسالتك بنجاح وسنتواصل معك قريباً.",
+      data: response 
+    };
+  } catch (err: any) {
+    return {
+      success: false,
+      error: "contact_error",
+      details: { message: err.message || "فشل إرسال الرسالة، يرجى المحاولة لاحقاً." }
+    };
+  }
 }
 
 export async function sendChatbotMessage(msgInput: string): Promise<ApiResponse<{ replyBubble: string }>> {
@@ -1069,6 +1144,39 @@ export async function getAdminDashboardMetrics(): Promise<ApiResponse<AdminDashb
     }
   };
 }
+export interface ComplaintItem {
+  id: string;
+  name: string;
+  email: string;
+  message: string;
+  date: string;
+}
+export interface GrowthMetric {
+  monthAr: string;
+  monthEn: string;
+  count: number;
+}
+
+export const getAdminGrowthStats = async (): Promise<{ success: boolean; data: GrowthMetric[] }> => {
+  return {
+    success: true,
+    data: [
+      { monthAr: 'مايو', monthEn: 'May', count: 420 },
+      { monthAr: 'يونيو', monthEn: 'June', count: 890 },
+      { monthAr: 'يوليو (الحالي)', monthEn: 'July (Current)', count: 1420 }
+    ]
+  };
+};
+
+export const getAdminComplaints = async (): Promise<{ success: boolean; data: ComplaintItem[] }> => {
+  return {
+    success: true,
+    data: [
+      { id: 'TKT-991', name: 'خالد عبدالله', email: 'khaled@mail.com', message: 'تواجهني مشكلة أثناء تحميل ملفات موديول خطافات ريأكت المتقدمة.', date: '2026-07-10' },
+      { id: 'TKT-302', name: 'سارة الأحمد', email: 'sara.a@corporate.com', message: 'طلب تفعيل واجهة الشركة B2B لم يتم الرد عليه بعرض السعر حتى الآن.', date: '2026-07-12' }
+    ]
+  };
+};
 
 // ============================================================================
 // MODULE 9: TRAINER PROFILE
@@ -1108,7 +1216,9 @@ function buildTrainerProfile(trainerId: string): TrainerProfile | null {
     trainerId,
     name: trainerCourses[0].instructor,
     specialty: base.role || "Trainer",
+    specialtyAr: base.roleAr,
     bio: base.bio || "",
+    bioAr: base.bioAr,
     email: contact.email || `${trainerId}@capsule.com`,
     phone: contact.phone || "+966500000000",
     experience: contact.experience || 5,
@@ -1121,6 +1231,7 @@ function buildTrainerProfile(trainerId: string): TrainerProfile | null {
     courses: trainerCourses.map(c => ({
       id: c.id,
       name: c.title,
+      nameAr: c.titleAr,
       students: c.students,
       status: (c.status === "available" || c.status === "completed") ? "published" : "review",
     })),
@@ -1189,3 +1300,40 @@ export async function toggleUserStatusInMock(userId: string): Promise<ApiRespons
   });
   return { success: true };
 }
+
+export interface ReviewItem {
+  id: number;
+  name: string;
+  rating: number;
+  date: string;
+  commentAr: string;
+  commentEn: string;
+}
+
+export const getTrainerReviewsMock = async (): Promise<{ success: boolean; data: ReviewItem[] }> => {
+  return {
+    success: true,
+    data: [
+      { id: 1, name: 'أحمد علي', rating: 5, date: '2026-07-01', commentAr: 'شرح ممتاز للمفاهيم المتقدمة!', commentEn: 'Excellent explanation of advanced concepts!' },
+      { id: 2, name: 'سارة محمد', rating: 4, date: '2026-06-28', commentAr: 'الدورة عملية جداً ومفيدة.', commentEn: 'The course is very practical and useful.' }
+    ]
+  };
+};
+
+export interface StudentProgressItem {
+  id: number;
+  name: string;
+  courseAr: string;
+  courseEn: string;
+  progress: number;
+}
+
+export const getTrainerStudentProgressMock = async (): Promise<{ success: boolean; data: StudentProgressItem[] }> => {
+  return {
+    success: true,
+    data: [
+      { id: 984, name: 'سلمان العتيبي', courseAr: 'معسكر مراجعة ريأكت العميقة', courseEn: 'React Bootcamp Deep Dive', progress: 45 },
+      { id: 221, name: 'نورة العلي', courseAr: 'أساسيات الذكاء الاصطناعي والـ ML', courseEn: 'AI & ML Fundamentals', progress: 100 }
+    ]
+  };
+};
