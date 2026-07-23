@@ -15,6 +15,7 @@ import TrainerProfile from './pages/TrainerProfile';
 import AdminDashboard from './pages/AdminDashboard';
 import TrainerDashboard from './pages/TrainerDashboard';
 import SignInSignUpApproval from './pages/CoursesApproval';
+import ContractsApproval from './pages/ContractsApproval';
 import CourseDetails from './pages/CourseDetails';
 import CoursesOverview from "./pages/CoursesOverview";
 import StudentCoursesOverview from './pages/StudentCoursesOverview';
@@ -109,6 +110,7 @@ const DevIndex: React.FC = () => {
     ['/trainer-dashboard', 'Trainer Dashboard'],
     ['/admin-dashboard', 'Admin Dashboard'],
     ['/courses-approval', 'Courses Approval'],
+    ['/contracts-approval', 'Contracts Approval 📄'],
     ['/courses-overview', 'Courses Overview'],
     ['/course-details/1', 'Course Details'],
     ['/business-contract', 'Business Contract Form'],
@@ -165,6 +167,7 @@ const App: React.FC = () => {
       {/* مسارات المسؤول (Admin) المحمية */}
       <Route path="/admin-dashboard" element={<ProtectedRoute allowedRoles={['admin']} element={<AdminDashboard />} />} />
       <Route path="/courses-approval" element={<ProtectedRoute allowedRoles={['admin']} element={<SignInSignUpApproval />} />} />
+      <Route path="/contracts-approval" element={<ProtectedRoute allowedRoles={['admin']} element={<ContractsApproval />} />} />
     </Routes>
   );
 };

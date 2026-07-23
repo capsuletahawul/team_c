@@ -169,6 +169,8 @@ const AdminDashboard: React.FC = () => {
           <button onClick={() => setActiveTab('courses')} className={`w-full text-start p-2.5 rounded-xl text-xs font-bold transition ${activeTab === 'courses' ? 'bg-capsule-navy text-white shadow-xs' : 'text-gray-500 hover:bg-white/60'}`}>⚙️ {lang === 'ar' ? 'إدارة واعتماد الكورسات' : 'Course Pipeline Control'}</button>
           <button onClick={() => setActiveTab('complaints')} className={`w-full text-start p-2.5 rounded-xl text-xs font-bold transition ${activeTab === 'complaints' ? 'bg-capsule-navy text-white shadow-xs' : 'text-gray-500 hover:bg-white/60'}`}>📥 {lang === 'ar' ? 'صندوق الشكاوى والتواصل' : 'Complaints Box'}</button>
           <Link to="/courses-approval" className="block w-full text-start p-2.5 rounded-xl text-xs font-bold transition text-gray-500 hover:bg-white/60">✅ {lang === 'ar' ? 'اعتماد الدورات الفعلية' : 'Live Course Approval'}</Link>
+
+          <Link to="/contracts-approval" className="block w-full text-start p-2.5 rounded-xl text-xs font-bold transition text-gray-500 hover:bg-white/60">📄 {lang === 'ar' ? 'اعتماد طلبات الشركات' : 'Contract Requests Approval'}</Link>
         </div>
 
         <div className="lg:col-span-3 space-y-6">

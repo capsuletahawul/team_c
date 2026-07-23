@@ -11,13 +11,12 @@ import cors from "cors";
 
 import authRoutes from "./routes/authRoutes.js";
 import contactRoutes from "./routes/contactRoutes.js";
-
 import trainerRoutes from "./routes/trainerRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import companyRoutes from "./routes/companyRoutes.js";
 import studentRoutes from "./routes/studentRoutes.js";
 import courseRoutes from "./routes/courseRoutes.js";
-
+import contractRoutes from "./routes/contractRoutes.js";
 
 const app = express();
 const PORT = process.env.PORT ? Number(process.env.PORT) : 5000;
@@ -28,10 +27,12 @@ const PORT = process.env.PORT ? Number(process.env.PORT) : 5000;
 
 // CORS: allow only the configured frontend origin — never a wildcard when
 // credentials (auth tokens) are involved (Handbook Section 12.3).
-app.use(cors({
-  origin: process.env.CORS_ORIGIN || "http://localhost:5173",
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: process.env.CORS_ORIGIN || "http://localhost:5173",
+    credentials: true,
+  })
+);
 
 // Parse JSON body payload
 app.use(express.json());
@@ -40,6 +41,7 @@ app.use((req, _res, next) => {
   console.log(req.method, req.url);
   next();
 });
+
 // ---------------------------------------------------------------------
 // Routes
 // ---------------------------------------------------------------------
@@ -51,16 +53,15 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/company", companyRoutes);
 app.use("/api/student", studentRoutes);
 app.use("/api/courses", courseRoutes);
-
+app.use("/api/contracts", contractRoutes);
 
 // ---------------------------------------------------------------------
 // Health check — required by the Postman test table (Handbook Section 11)
 // ---------------------------------------------------------------------
+
 app.get("/api/health", (_req, res) => {
   res.status(200).json({ status: "ok" });
 });
-
-
 
 // ---------------------------------------------------------------------
 // 404 handler — anything that reached here matched no route above
@@ -80,6 +81,10 @@ const errorHandler: express.ErrorRequestHandler = (err, _req, res, _next) => {
 
 app.use(errorHandler);
 
+// ---------------------------------------------------------------------
+// Start server
+// ---------------------------------------------------------------------
+console.log("=== SERVER STARTED ===");
 app.listen(PORT, () => {
   console.log(`Server listening on http://localhost:${PORT}`);
 });

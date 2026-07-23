@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
-// API base URL — single source of truth
-import { BASE_URL } from '../services/api';
+// API base URL — single source of truth, plus the real current-user fetch
+import { BASE_URL, getCurrentUser } from '../services/api';
 import Navbar from '../components/Navbar.jsx';
 import Footer from '../components/Footer.jsx';
 import { 
@@ -34,6 +34,12 @@ interface EmployeeItem {
   id: number;
   name: string;
   progress: number;
+}
+
+// Real, logged-in company account details — fetched from /auth/me, never hardcoded
+interface CompanyProfile {
+  fullName: string;
+  email: string;
 }
 
 interface FormState {
@@ -137,6 +143,9 @@ export default function CompanyDashboard() {
   const [tickets, setTickets] = useState<TicketItem[]>([]);
   const [employees, setEmployees] = useState<EmployeeItem[]>([]);
 
+  // بيانات الشركة الحقيقية (الاسم والبريد) — تُجلب من السيرفر ولا تُكتب بشكل ثابت بالكود
+  const [profile, setProfile] = useState<CompanyProfile | null>(null);
+
   // UI Navigation & View Screen Switches
   const [activeTab, setActiveTab] = useState<'request' | 'tickets' | 'analytics'>('request');
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -164,10 +173,18 @@ export default function CompanyDashboard() {
         });
         const employeesData = await employeesRes.json().catch(() => []);
 
+        // جلب بيانات حساب الشركة الحقيقية (الاسم والبريد المسجّلين فعلياً عند التسجيل)
+        const userResponse: any = await getCurrentUser().catch(() => null);
+
         if (!isMounted) return;
 
         setTickets(Array.isArray(ticketsData) ? ticketsData : []);
         setEmployees(Array.isArray(employeesData) ? employeesData : []);
+
+        const rawUser = userResponse?.user || userResponse;
+        if (rawUser?.fullName || rawUser?.email) {
+          setProfile({ fullName: rawUser.fullName || '', email: rawUser.email || '' });
+        }
       } catch (err) {
         console.error('Failed to load company dashboard telemetry data', err);
       }
@@ -271,8 +288,17 @@ export default function CompanyDashboard() {
             <BuildingOffice2Icon className="w-3.5 h-3.5" />
             {l.title}
           </div>
-          <h1 className="text-2xl md:text-4xl font-black tracking-tight mb-2">{l.title}</h1>
+          <h1 className="text-2xl md:text-4xl font-black tracking-tight mb-2">
+            {profile?.fullName
+              ? (lang === 'ar' ? `مرحباً، ${profile.fullName}` : `Welcome, ${profile.fullName}`)
+              : l.title}
+          </h1>
           <p className="text-slate-300 max-w-2xl text-xs md:text-sm font-semibold leading-relaxed">{l.subtitle}</p>
+          {profile?.email && (
+            <p dir="ltr" className="text-[#26FFE6] text-xs font-bold mt-2 inline-flex items-center gap-1.5">
+              📧 {profile.email}
+            </p>
+          )}
         </div>
       </div>
 

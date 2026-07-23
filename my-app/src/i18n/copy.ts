@@ -322,6 +322,39 @@ export const COPY = {
         rejectedText: "مرفوض"
       }
     },
+<<<<<<< HEAD
+=======
+    contractsApproval: {
+      loading: "جاري تحميل طلبات الشركات...",
+      hero: {
+        title: "اعتماد طلبات الشركات",
+        subtitle: "مراجعة طلبات الشراكة والتدريب المؤسسي المقدمة من الشركات واعتمادها أو رفضها."
+      },
+      stats: {
+        total: "إجمالي الطلبات",
+        approved: "الطلبات المعتمدة",
+        pending: "بانتظار المراجعة"
+      },
+      table: {
+        cardTitle: "قائمة طلبات الشركات",
+        colCompany: "اسم الشركة",
+        colContact: "جهة الاتصال",
+        colTrainingType: "نوع التدريب",
+        colTrainees: "عدد المتدربين",
+        colStatus: "الحالة",
+        colActions: "الإجراءات",
+        actionApprove: "اعتماد",
+        actionReject: "رفض",
+        statusApproved: "تم الاعتماد",
+        statusRejected: "تم الرفض"
+      },
+      data: {
+        approvedText: "معتمد",
+        pendingText: "بانتظار المراجعة",
+        rejectedText: "مرفوض"
+      }
+    },
+>>>>>>> fix/week3-company-dashboard
     contactPage: {
       title: "تواصل معنا الآن",
       subtitle: "نحن هنا لمساعدتك في قيادة تحولك الرقمي وبناء مسيرتك التقنية الفعالة والناجحة.",
@@ -842,6 +875,39 @@ export const COPY = {
         rejectedText: "Rejected"
       }
     },
+<<<<<<< HEAD
+=======
+    contractsApproval: {
+      loading: "Loading contract requests...",
+      hero: {
+        title: "Contract Requests Approval",
+        subtitle: "Review B2B partnership and corporate training requests submitted by companies and approve or reject them."
+      },
+      stats: {
+        total: "Total Requests",
+        approved: "Approved",
+        pending: "Pending"
+      },
+      table: {
+        cardTitle: "Company Requests List",
+        colCompany: "Company Name",
+        colContact: "Contact",
+        colTrainingType: "Training Type",
+        colTrainees: "Trainees",
+        colStatus: "Status",
+        colActions: "Actions",
+        actionApprove: "Approve",
+        actionReject: "Reject",
+        statusApproved: "Approved",
+        statusRejected: "Rejected"
+      },
+      data: {
+        approvedText: "Approved",
+        pendingText: "Pending",
+        rejectedText: "Rejected"
+      }
+    },
+>>>>>>> fix/week3-company-dashboard
     contactPage: {
       title: "Get in Touch",
       subtitle: "We are here to help you deploy your digital shift. Reach out anytime.",

@@ -17,4 +17,12 @@ router.get("/courses", adminController.getCourses);
 router.put("/courses/:id/approve", adminController.approveCourse);
 router.put("/courses/:id/reject", adminController.rejectCourse);
 
+
+router.get("/contracts", adminController.getContracts);
+router.put("/contracts/:id/approve", adminController.approveContract);
+router.put("/contracts/:id/reject", adminController.rejectContract);
+
+router.get("/tickets", adminController.getTickets);
+router.put("/tickets/:id/status", adminController.updateTicketStatus);
+
 export default router;

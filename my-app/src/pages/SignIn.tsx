@@ -8,6 +8,10 @@ import { EyeIcon } from "../components/Icons";
 import logo from "../assets/logo.png";
 import { useAuth } from "../context/AuthContext";
 import { loginUser } from "../mocks/mockApi";
+// import { CapsuleMark, EyeIcon } from "../components/Icons";
+// import { useAuth } from "../context/AuthContext";
+// API base URL — single source of truth
+import { BASE_URL } from "../services/api";
 // @ts-ignore: allow side-effect CSS import without type declarations
 import "../styles/auth.css";
 
@@ -26,13 +30,15 @@ interface SignInProps {
 
 export default function SignIn({ lang, onToggleLang, onGoToSignUp }: SignInProps) {
   const [showPw, setShowPw] = useState<boolean>(false);
-  const [email, setEmail] = useState<string>(window.location.hostname === 'localhost' ? "student@test.com" : "");
-  const [password, setPassword] = useState<string>(window.location.hostname === 'localhost' ? "123456" : "");
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const navigate = useNavigate();
   const { login } = useAuth();
+
+
 
   const t = COPY[lang as keyof typeof COPY];
   const form = t.login;
@@ -43,30 +49,43 @@ export default function SignIn({ lang, onToggleLang, onGoToSignUp }: SignInProps
     setErrorMsg(null);
 
     try {
-      const response = await loginUser({ email, password });
+      const response = await fetch(`${BASE_URL}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-      if (response.success && response.data) {
-        // تحويل الرتبة إلى حروف صغيرة لتتوافق مع نظام الـ Dashboard الحالي
-        const role = response.data.role.toLowerCase();
-        
-        // التعديل هنا: تمرير النوع كـ any لحل مشكلة الفحص الصارم للـ TypeScript
-        login(role as any, response.data.token);
+      const result = await response.json().catch(() => ({}));
 
-        // التوجيه للوحة التحكم الصحيحة بناءً على نوع المستخدم
-        if (role === "student") {
-          navigate("/student-dashboard");
-        } else if (role === "trainer") {
-          navigate("/trainer-dashboard");
-        } else if (role === "admin") {
-          navigate("/admin-dashboard");
-        } else if (role === "company") {
-          navigate("/company-dashboard");
-        } else {
-          navigate("/");
-        }
+      if (!response.ok) {
+        // أخطاء التحقق من الحقول ترجع من الباك اند كـ object (حقل -> رسائل)، نحولها لنص واحد مقروء
+        const rawError = result.error || result.message;
+        const serverError =
+          rawError && typeof rawError === "object"
+            ? Object.values(rawError).flat().join(" ")
+            : rawError;
+
+        setErrorMsg(serverError || "البريد الإلكتروني أو كلمة المرور غير صحيحة.");
+        return;
+      }
+
+      // تحويل الرتبة إلى حروف صغيرة لتتوافق مع نظام الـ Dashboard الحالي
+      const role = result.user.role.toLowerCase();
+
+      // تخزين التوكن الحقيقي القادم من الباك اند — بدونه أي طلب محمي لاحقاً يفشل بـ invalid_token
+      login(role as any, result.token);
+
+      // التوجيه للوحة التحكم الصحيحة بناءً على نوع المستخدم
+      if (role === "student") {
+        navigate("/student-dashboard");
+      } else if (role === "trainer") {
+        navigate("/trainer-dashboard");
+      } else if (role === "admin") {
+        navigate("/admin-dashboard");
+      } else if (role === "company") {
+        navigate("/company-dashboard");
       } else {
-        // إظهار رسالة الخطأ القادمة من السيرفر أو فحص الحقول
-        setErrorMsg(response.details?.auth || response.details?.global || "البريد الإلكتروني أو كلمة المرور غير صحيحة.");
+        navigate("/");
       }
     } catch (err: any) {
       setErrorMsg("حدث خطأ غير متوقع أثناء الاتصال بالخادم، يرجى المحاولة لاحقاً.");
@@ -122,6 +141,8 @@ export default function SignIn({ lang, onToggleLang, onGoToSignUp }: SignInProps
 
             <h2>{form.title}</h2>
             <p className="auth-subtitle">{form.subtitle}</p>
+
+            {/* تم حذف زر تعبئة بيانات الأدمن السريع من هنا */}
 
             {/* عرض رسالة الخطأ في حال وجودها */}
             {errorMsg && (

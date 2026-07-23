@@ -50,6 +50,15 @@ export const companyRepository = {
       .sort((a, b) => (a.date < b.date ? 1 : -1));
   },
 
+
+  /**
+   * All tickets across every company, for the Admin's contract/ticket
+   * review queue — same pattern as trainerRepository.listAllCourses().
+   */
+  async listAllTickets(): Promise<CompanyTicket[]> {
+    return [...tickets].sort((a, b) => (a.date < b.date ? 1 : -1));
+  },
+
   async findTicketById(id: string): Promise<CompanyTicket | undefined> {
     return tickets.find((ticket) => ticket.id === id);
   },
@@ -83,6 +92,18 @@ export const companyRepository = {
   },
 
   /**
+
+   * Admin variant of updateTicketStatus — not scoped to a companyId, since
+   * the Admin reviewing the queue isn't the ticket's owning company.
+   */
+  async setTicketStatusByAdmin(id: string, status: TicketStatus): Promise<CompanyTicket | undefined> {
+    const ticket = tickets.find((t) => t.id === id);
+    if (ticket) ticket.status = status;
+    return ticket;
+  },
+
+  /**
+>>>>>>> fix/week3-company-dashboard
    * Employee roster (no HR/employee-import module yet — returns an empty
    * list, same pattern used by trainerController.getStudentsProgress)
    */

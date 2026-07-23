@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 // استيراد دالة جلب بيانات المستخدم الحالي من ملف الخدمات المشترك
-import { getCurrentUser } from '../services/api'; 
+import { getCurrentUser, BASE_URL } from '../services/api'; 
 
 // Reusable Components[cite: 10]
 import StudentNavbar from "../components/StudentNavbar.jsx";

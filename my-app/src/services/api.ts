@@ -107,3 +107,54 @@ export async function rejectAdminCourse(id: number) {
     method: "PUT",
   });
 }
+
+// =======================
+// B2B Contract Requests (Company onboarding)
+// =======================
+
+export async function submitContractRequest(data: {
+  companyName: string;
+  contactPerson: string;
+  email: string;
+  phone: string;
+  trainingType: string;
+  trainees: number;
+  startDate: string;
+  notes?: string;
+}) {
+  return apiFetch<{ success: boolean; request?: any; error?: any }>("/contracts", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function getAdminContracts() {
+  return apiFetch<{ success: boolean; data: { requests: any[] } }>("/admin/contracts");
+}
+
+export async function approveAdminContract(id: string) {
+  return apiFetch(`/admin/contracts/${id}/approve`, {
+    method: "PUT",
+  });
+}
+
+export async function rejectAdminContract(id: string) {
+  return apiFetch(`/admin/contracts/${id}/reject`, {
+    method: "PUT",
+  });
+}
+
+// =======================
+// Admin Bootcamp Tickets (from the Company Dashboard's "Request Bootcamp" tab)
+// =======================
+
+export async function getAdminTickets() {
+  return apiFetch<{ success: boolean; data: { tickets: any[] } }>("/admin/tickets");
+}
+
+export async function updateAdminTicketStatus(id: string, status: "review" | "issued" | "approved") {
+  return apiFetch(`/admin/tickets/${id}/status`, {
+    method: "PUT",
+    body: JSON.stringify({ status }),
+  });
+}

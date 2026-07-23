@@ -8,9 +8,9 @@ import Button from "../components/Button";
 // Global language context for localization (i18n)
 import { useLanguage } from "../context/LanguageContext";
 
-// Mock API layer
-import { submitB2BRequest } from "../mocks/mockApi";
-import type { B2BRequestPayload } from "../mocks/mockApi";
+// Centralized API layer — submits directly to the backend so the request
+// reaches the Admin's contract review queue (no runtime mock calls)
+import { submitContractRequest } from "../services/api";
 
 // TypeScript interface for strict form data typing
 interface FormDataState {
@@ -22,18 +22,6 @@ interface FormDataState {
   trainees: string;
   startDate: string;
   notes: string;
-}
-
-// Builds the mockApi's requirementsNotes string from the fields the form collects
-// that aren't part of B2BRequestPayload directly (trainingType, trainees, startDate, notes)
-function buildRequirementsNotes(data: FormDataState): string {
-  const parts = [
-    `Training type: ${data.trainingType}`,
-    `Trainees: ${data.trainees}`,
-    `Start date: ${data.startDate}`,
-  ];
-  if (data.notes) parts.push(`Notes: ${data.notes}`);
-  return parts.join(" | ");
 }
 
 const BusinessContractForm: React.FC = () => {
@@ -68,32 +56,50 @@ const BusinessContractForm: React.FC = () => {
     }));
   };
 
-  // Handles form submission via mockApi's submitB2BRequest, surfaces validation errors,
-  // and resets the form + shows the success notification only once the ticket is confirmed
+  // Handles form submission via the real backend (/api/contracts), surfaces
+  // validation errors, and resets the form + shows the success notification
+  // only once the request is confirmed. The submission lands in the Admin's
+  // contract review queue (see ContractsApproval.tsx) for approval.
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     setSubmitError(null);
     setSubmitting(true);
 
-    const payload: B2BRequestPayload = {
-      companyName: formData.companyName,
-      contactName: formData.contactPerson,
-      requirementsNotes: buildRequirementsNotes(formData),
-    };
+    try {
+      const response = await submitContractRequest({
+        companyName: formData.companyName,
+        contactPerson: formData.contactPerson,
+        email: formData.email,
+        phone: formData.phone,
+        trainingType: formData.trainingType,
+        trainees: Number(formData.trainees) || 0,
+        startDate: formData.startDate,
+        notes: formData.notes,
+      });
 
-    const response = await submitB2BRequest(payload);
-    setSubmitting(false);
-
-    if (response.success) {
-      setSubmitted(true);
-      setFormData(initialFormState);
-      setTimeout(() => setSubmitted(false), 5000);
-    } else {
+      if (response.success) {
+        setSubmitted(true);
+        setFormData(initialFormState);
+        setTimeout(() => setSubmitted(false), 5000);
+      } else {
+        const rawError = (response as any).error;
+        const fieldError =
+          rawError && typeof rawError === "object" ? Object.values(rawError).flat()[0] : rawError;
+        setSubmitError(
+          (fieldError as string) ||
+            (isRtl ? "حدث خطأ أثناء إرسال الطلب." : "Something went wrong while submitting the request.")
+        );
+      }
+    } catch (err) {
       setSubmitError(
-        response.details?.requirementsNotes ||
-          response.error ||
-          (isRtl ? "حدث خطأ أثناء إرسال الطلب." : "Something went wrong while submitting the request.")
+        err instanceof Error
+          ? err.message
+          : isRtl
+          ? "تعذر الاتصال بالسيرفر."
+          : "Could not reach the server."
       );
+    } finally {
+      setSubmitting(false);
     }
   };
 
