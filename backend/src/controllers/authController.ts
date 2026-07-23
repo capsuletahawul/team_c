@@ -1,74 +1,91 @@
-import { Request, Response } from 'express';
-import { registerSchema } from '../validation/authValidation.js';
-import { authService } from '../services/authService.js';
+import { Request, Response } from "express";
+
+import {
+  registerSchema,
+  loginSchema,
+} from "../validation/authValidation.js";
+
+import { authService } from "../services/authService.js";
 
 export const authController = {
   /**
-   * معالجة طلب تسجيل حساب جديد
+   * Register
    */
   async register(req: Request, res: Response) {
     try {
-      const validationResult = registerSchema.safeParse(req.body);
-      
-      if (!validationResult.success) {
+      const validation = registerSchema.safeParse(req.body);
+
+      if (!validation.success) {
         return res.status(400).json({
           success: false,
-          error: 'خطأ في التحقق من البيانات / Validation Error',
-          details: validationResult.error.flatten().fieldErrors
+          error: validation.error.flatten().fieldErrors,
         });
       }
 
-      const result = await authService.register(validationResult.data);
+      const result = await authService.register(validation.data);
 
       if (!result.success) {
         return res.status(400).json(result);
       }
 
       return res.status(201).json(result);
+    } catch (err) {
+      console.error(err);
 
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Server Error';
       return res.status(500).json({
         success: false,
-        error: `خطأ داخلي في الخادم: ${errorMessage}`
+        error: "Internal server error",
       });
     }
   },
 
   /**
-   * معالجة طلب تسجيل الدخول
+   * Login
    */
   async login(req: Request, res: Response) {
     try {
-      // TODO: Connect login logic to authService
-      return res.status(200).json({
-        success: true,
-        message: "Login route operational"
-      });
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Server Error';
+      const validation = loginSchema.safeParse(req.body);
+
+      if (!validation.success) {
+        return res.status(400).json({
+          success: false,
+          error: validation.error.flatten().fieldErrors,
+        });
+      }
+
+      const result = await authService.login(validation.data);
+
+      if (!result.success) {
+        return res.status(401).json(result);
+      }
+
+      return res.status(200).json(result);
+    } catch (err) {
+      console.error(err);
+
       return res.status(500).json({
         success: false,
-        error: `خطأ داخلي في الخادم: ${errorMessage}`
+        error: "Internal server error",
       });
     }
   },
 
   /**
-   * جلب بيانات المستخدم الحالي (Protected Endpoint)
+   * Current User
    */
   async me(req: Request, res: Response) {
     try {
       return res.status(200).json({
         success: true,
-        user: (req as any).user || null
+        user: (req as any).user,
       });
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Server Error';
+    } catch (err) {
+      console.error(err);
+
       return res.status(500).json({
         success: false,
-        error: `خطأ داخلي في الخادم: ${errorMessage}`
+        error: "Internal server error",
       });
     }
-  }
+  },
 };

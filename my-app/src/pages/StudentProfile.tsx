@@ -82,7 +82,7 @@ function StudentProfile({ onBack }: StudentProfileProps) {
         setLoading(true);
         
         // 1. جلب بيانات المستخدم الأساسية من الباك إند
-        const userResponse = await getCurrentUser();
+        const userResponse :any = await getCurrentUser();
         const profileData = userResponse.user || userResponse;
 
         // 2. جلب الدورات المشتراة من الباك إند

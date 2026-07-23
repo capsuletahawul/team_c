@@ -35,7 +35,7 @@ export default function SignUp({ lang, onToggleLang, onGoToSignIn }: SignUpProps
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+  const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
   const t = COPY[lang as keyof typeof COPY];
   const form = t.signup;
@@ -97,8 +97,8 @@ export default function SignUp({ lang, onToggleLang, onGoToSignIn }: SignUpProps
     setLoading(true);
 
     // تحويل رتبة الحساب الرقمية إلى نصية تتوافق مع السيرفر ونظام التوجيه
-    const roleMapping = ["student", "trainer", "company"];
-    const roleString = roleMapping[role] || "student";
+    const roleMapping = ["Student", "Trainer", "Company"];
+    const roleString = roleMapping[role] || "Student";
 
     try {
       const response = await fetch(`${BASE_URL}/auth/register`, {
@@ -115,6 +115,8 @@ export default function SignUp({ lang, onToggleLang, onGoToSignIn }: SignUpProps
       });
 
       const result = await response.json().catch(() => ({}));
+      console.log("Response:", result);
+console.log("Token:", result.token);
 
       if (!response.ok) {
         // استخلاص رسالة الخطأ القادمة من السيرفر مباشرة
@@ -128,8 +130,7 @@ export default function SignUp({ lang, onToggleLang, onGoToSignIn }: SignUpProps
         localStorage.setItem("user_token", result.token);
       }
 
-      login(roleString as any);
-
+login(roleString as any, result.token);
       // التوجيه التلقائي إلى لوحة التحكم المناسبة للدور الفعلي
       if (roleString === "student") {
         navigate("/student-dashboard");

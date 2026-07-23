@@ -26,3 +26,16 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
     return res.status(401).json({ success: false, error: 'invalid_token' });
   }
 }
+
+// يحصر الوصول على المستخدمين اللي دورهم ضمن القائمة الممررة — يُستخدم بعد requireAuth
+export function requireRole(...roles: string[]) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const user = (req as AuthenticatedRequest).user;
+
+    if (!user || !roles.includes(user.role)) {
+      return res.status(403).json({ success: false, error: 'forbidden' });
+    }
+
+    next();
+  };
+}

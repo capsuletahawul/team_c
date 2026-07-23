@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 // تفعيل الواجهة لتقبل النجاح والفشل كـ boolean عامة تنهي تعارض دوال الموك
 export interface ApiGenericResult<T> {
@@ -14,14 +14,20 @@ export function useApi<T>(apiFunc: (...args: any[]) => Promise<ApiGenericResult<
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  // نحتفظ بآخر نسخة من الدالة عبر ref بدل الاعتماد عليها مباشرة —
+  // apiFunc يتجدد بكل رسم (لأن الصفحات تمرره كدالة inline)، ولو حطيناه
+  // باعتماديات useCallback بيصير لوب لانهائي: جلب -> إعادة رسم -> جلب...
+  const apiFuncRef = useRef(apiFunc);
+  apiFuncRef.current = apiFunc;
+
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const result = await apiFunc();
+      const result = await apiFuncRef.current();
       if (result && result.success) {
-        // نمرر النتيجة بالكامل لتستفيد منها الصفحات سواء كانت data أو حقول مباشرة
-        setData(result as unknown as T);
+        // نفك التغليف ونخزن data فقط — الصفحات تتوقع البيانات مباشرة بدون غلاف {success, data}
+        setData(result.data as unknown as T);
       } else {
         setError(result && 'error' in result ? String(result.error) : 'API Operational Failure');
       }
@@ -30,7 +36,7 @@ export function useApi<T>(apiFunc: (...args: any[]) => Promise<ApiGenericResult<
     } finally {
       setLoading(false);
     }
-  }, [apiFunc]);
+  }, []);
 
   useEffect(() => {
     fetchData();
