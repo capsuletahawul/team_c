@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 // استيراد دالة جلب بيانات المستخدم الحالي من ملف الخدمات المشترك
-import { getCurrentUser, BASE_URL } from '../services/api'; 
+import { getCurrentUser } from '../services/api'; 
 
 // Reusable Components[cite: 10]
 import StudentNavbar from "../components/StudentNavbar.jsx";
@@ -74,18 +74,44 @@ function StudentDashboard({ onNavigateToProfile }: StudentDashboardProps) {
         setError('');
 
         // 1. جلب بيانات بروفايل الطالب الحالي من الباك إند
-        const userResponse :any = await getCurrentUser();
+        const userResponse = await getCurrentUser();
         
+<<<<<<< Updated upstream
         // 2. جلب دورات الطالب وإشعاراته من السيرفر (تحديث المسارات بناءً على إعدادات الباك إند لديك)
+        const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
         const token = localStorage.getItem('user_token');
-const coursesData: Course[] = [];
-const notifsData: Notification[] = [];
+
+        const coursesRes = await fetch(`${BASE_URL}/student/courses`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const coursesData = await coursesRes.json().catch(() => []);
+
+        const notifsRes = await fetch(`${BASE_URL}/student/notifications`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const notifsData = await notifsRes.json().catch(() => []);
+=======
+        // 2. جلب دورات الطالب المشتراة من الباك إند
+        const token = localStorage.getItem('user_token');
+
+        const coursesRes = await fetch(`${BASE_URL}/student/courses/purchased`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const coursesData = await coursesRes.json().catch(() => []);
+
+        // لا يوجد API للإشعارات حالياً
+        const notifsData: Notification[] = [];
+>>>>>>> Stashed changes
+
         if (!isMounted) return;
 
-        // تعيين البيانات القادمة من السيرفر في الـ State لقراءتها ديناميكياً[cite: 10]
-        setProfile(userResponse.user || userResponse); 
+        // تعيين البيانات القادمة من السيرفر في الـ State لقراءتها ديناميكياً
+        setProfile(userResponse.user || userResponse);
         setCourses(Array.isArray(coursesData) ? coursesData : []);
-        setNotifications(Array.isArray(notifsData) ? notifsData : []);
+        setNotifications(notifsData);
 
       } catch (err: any) {
         if (!isMounted) return;

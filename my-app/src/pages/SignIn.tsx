@@ -4,10 +4,10 @@ import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 
 import { COPY } from "../i18n/copy";
-import { CapsuleMark, EyeIcon } from "../components/Icons";
+import { EyeIcon } from "../components/Icons";
+import logo from "../assets/logo.png";
 import { useAuth } from "../context/AuthContext";
-// API base URL — single source of truth
-import { BASE_URL } from "../services/api";
+import { loginUser } from "../mocks/mockApi";
 // @ts-ignore: allow side-effect CSS import without type declarations
 import "../styles/auth.css";
 
@@ -26,15 +26,13 @@ interface SignInProps {
 
 export default function SignIn({ lang, onToggleLang, onGoToSignUp }: SignInProps) {
   const [showPw, setShowPw] = useState<boolean>(false);
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
+  const [email, setEmail] = useState<string>(window.location.hostname === 'localhost' ? "student@test.com" : "");
+  const [password, setPassword] = useState<string>(window.location.hostname === 'localhost' ? "123456" : "");
   const [loading, setLoading] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const navigate = useNavigate();
   const { login } = useAuth();
-
-
 
   const t = COPY[lang as keyof typeof COPY];
   const form = t.login;
@@ -45,43 +43,30 @@ export default function SignIn({ lang, onToggleLang, onGoToSignUp }: SignInProps
     setErrorMsg(null);
 
     try {
-      const response = await fetch(`${BASE_URL}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+      const response = await loginUser({ email, password });
 
-      const result = await response.json().catch(() => ({}));
+      if (response.success && response.data) {
+        // تحويل الرتبة إلى حروف صغيرة لتتوافق مع نظام الـ Dashboard الحالي
+        const role = response.data.role.toLowerCase();
+        
+        // التعديل هنا: تمرير النوع كـ any لحل مشكلة الفحص الصارم للـ TypeScript
+        login(role as any, response.data.token);
 
-      if (!response.ok) {
-        // أخطاء التحقق من الحقول ترجع من الباك اند كـ object (حقل -> رسائل)، نحولها لنص واحد مقروء
-        const rawError = result.error || result.message;
-        const serverError =
-          rawError && typeof rawError === "object"
-            ? Object.values(rawError).flat().join(" ")
-            : rawError;
-
-        setErrorMsg(serverError || "البريد الإلكتروني أو كلمة المرور غير صحيحة.");
-        return;
-      }
-
-      // تحويل الرتبة إلى حروف صغيرة لتتوافق مع نظام الـ Dashboard الحالي
-      const role = result.user.role.toLowerCase();
-
-      // تخزين التوكن الحقيقي القادم من الباك اند — بدونه أي طلب محمي لاحقاً يفشل بـ invalid_token
-      login(role as any, result.token);
-
-      // التوجيه للوحة التحكم الصحيحة بناءً على نوع المستخدم
-      if (role === "student") {
-        navigate("/student-dashboard");
-      } else if (role === "trainer") {
-        navigate("/trainer-dashboard");
-      } else if (role === "admin") {
-        navigate("/admin-dashboard");
-      } else if (role === "company") {
-        navigate("/company-dashboard");
+        // التوجيه للوحة التحكم الصحيحة بناءً على نوع المستخدم
+        if (role === "student") {
+          navigate("/student-dashboard");
+        } else if (role === "trainer") {
+          navigate("/trainer-dashboard");
+        } else if (role === "admin") {
+          navigate("/admin-dashboard");
+        } else if (role === "company") {
+          navigate("/company-dashboard");
+        } else {
+          navigate("/");
+        }
       } else {
-        navigate("/");
+        // إظهار رسالة الخطأ القادمة من السيرفر أو فحص الحقول
+        setErrorMsg(response.details?.auth || response.details?.global || "البريد الإلكتروني أو كلمة المرور غير صحيحة.");
       }
     } catch (err: any) {
       setErrorMsg("حدث خطأ غير متوقع أثناء الاتصال بالخادم، يرجى المحاولة لاحقاً.");
@@ -99,15 +84,13 @@ export default function SignIn({ lang, onToggleLang, onGoToSignUp }: SignInProps
             {lang === "ar" ? "EN" : "AR"}
           </button>
           <div className="auth-visual-inner">
-            <div className="auth-brand">
-              <CapsuleMark size={36} />
+            <div className="auth-brand" style={{display:"flex",flexDirection:"column",alignItems:"center",gap:"12px"}}>
+              <img
+                src={logo}
+                alt="Capsule Tahawul"
+                style={{width:"300px",height:"auto"}}
+              />
               <span>{t.brand}</span>
-            </div>
-            <div className="auth-art" aria-hidden="true">
-              <div className="capsule-big" />
-              <div className="capsule-small" />
-              <span className="spark spark-1">✦</span>
-              <span className="spark spark-2">✦</span>
             </div>
             <p className="auth-tagline">{t.tagline}</p>
           </div>
@@ -139,8 +122,6 @@ export default function SignIn({ lang, onToggleLang, onGoToSignUp }: SignInProps
 
             <h2>{form.title}</h2>
             <p className="auth-subtitle">{form.subtitle}</p>
-
-            {/* تم حذف زر تعبئة بيانات الأدمن السريع من هنا */}
 
             {/* عرض رسالة الخطأ في حال وجودها */}
             {errorMsg && (

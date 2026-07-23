@@ -230,4 +230,35 @@ export const trainerController = {
   async getStudentsProgress(_req: Request, res: Response) {
     return res.status(200).json([]);
   },
+
+
+
+  /**
+ * Public Courses
+ * Returns all published & visible courses for students
+ */
+async getPublicCourses(_req: Request, res: Response) {
+  try {
+    const courses = await trainerRepository.listAllCourses();
+
+    const publicCourses = courses.filter(
+      (course) =>
+        course.isVisible === true &&
+        course.status === "available"
+    );
+
+    return res.status(200).json({
+      success: true,
+      courses: publicCourses,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({
+      success: false,
+      error: "internal_server_error",
+    });
+  }
+},
+
+
 };

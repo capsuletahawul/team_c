@@ -3,10 +3,9 @@ import React, { useState, ChangeEvent, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { COPY } from "../i18n/copy";
-import { CapsuleMark, EyeIcon } from "../components/Icons";
+import { EyeIcon } from "../components/Icons";
+import logo from "../assets/logo.png";
 import { useAuth } from "../context/AuthContext";
-// API base URL — single source of truth
-import { BASE_URL } from "../services/api";
 import "../styles/auth.css";
 
 /**
@@ -37,7 +36,7 @@ export default function SignUp({ lang, onToggleLang, onGoToSignIn }: SignUpProps
   const navigate = useNavigate();
   const { login } = useAuth();
 
-
+  const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
   const t = COPY[lang as keyof typeof COPY];
   const form = t.signup;
@@ -98,9 +97,12 @@ export default function SignUp({ lang, onToggleLang, onGoToSignIn }: SignUpProps
 
     setLoading(true);
 
-    // تحويل رتبة الحساب الرقمية إلى نصية تتوافق مع السيرفر ونظام التوجيه
-    const roleMapping = ["Student", "Trainer", "Company"];
-    const roleString = roleMapping[role] || "Student";
+    // تحويل رتبة الحساب الرقمية إلى نصية تتوافق مع نظام التوجيه في الواجهة
+    const roleMapping = ["student", "trainer", "company"];
+    const roleString = roleMapping[role] || "student";
+
+    // السيرفر يتوقع القيمة بحرف كبير في البداية (Student/Trainer/Company)
+    const roleForServer = roleString.charAt(0).toUpperCase() + roleString.slice(1);
 
     try {
       const response = await fetch(`${BASE_URL}/auth/register`, {
@@ -112,41 +114,29 @@ export default function SignUp({ lang, onToggleLang, onGoToSignIn }: SignUpProps
           name,
           email,
           password: pwValue,
-          role: roleString
+          role: roleForServer
         })
       });
 
       const result = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        // أخطاء التحقق من الحقول ترجع من الباك اند كـ object (حقل -> رسائل)، نحولها لنص واحد مقروء
-        const rawError = result.error || result.message || result.details?.email || result.details?.global;
-        const serverError =
-          rawError && typeof rawError === "object"
-            ? Object.values(rawError).flat().join(" ")
-            : rawError;
 
+      if (!response.ok) {
+        // استخلاص رسالة الخطأ القادمة من السيرفر مباشرة
+        const serverError = result.error || result.message || result.details?.email || result.details?.global;
         setErrorMsg(serverError || (lang === "ar" ? "فشل إنشاء الحساب، يرجى التحقق من البيانات." : "Failed to create account."));
         return;
       }
 
-      // حفظ بيانات التوكين حية داخل الـ Storage في حال إرجاعها من السيرفر مباشرة بعد التسجيل
-      if (result.token) {
-        localStorage.setItem("user_token", result.token);
-      }
+      // تمرير التوكين إلى AuthContext مباشرة (يتكفل هو بحفظه في الـ localStorage)
+      login(roleString as any, result.token);
 
-      // تحويل الرتبة إلى حروف صغيرة لتتوافق مع نظام الـ Dashboard الحالي
-      const role = roleString.toLowerCase();
-
-      login(role as any, result.token);
       // التوجيه التلقائي إلى لوحة التحكم المناسبة للدور الفعلي
-      if (role === "student") {
+      if (roleString === "student") {
         navigate("/student-dashboard");
-      } else if (role === "trainer") {
+      } else if (roleString === "trainer") {
         navigate("/trainer-dashboard");
-      } else if (role === "company") {
+      } else if (roleString === "company") {
         navigate("/company-dashboard");
-      } else {
-        navigate("/");
       }
 
     } catch (err: any) {
@@ -164,15 +154,24 @@ export default function SignUp({ lang, onToggleLang, onGoToSignIn }: SignUpProps
             {lang === "ar" ? "EN" : "AR"}
           </button>
           <div className="auth-visual-inner">
-            <div className="auth-brand">
-              <CapsuleMark size={36} />
-              <span>{t.brand}</span>
-            </div>
-            <div className="auth-art" aria-hidden="true">
-              <div className="capsule-big" />
-              <div className="capsule-small" />
-              <span className="spark spark-1">✦</span>
-              <span className="spark spark-2">✦</span>
+            <div
+              className="auth-brand"
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: "20px",
+              }}
+            >
+              <img
+                src={logo}
+                alt="Capsule Tahawul"
+                style={{
+                  width: "300px",
+                  
+                  height: "auto",
+                }}
+              />
             </div>
             <p className="auth-tagline">{t.tagline}</p>
           </div>

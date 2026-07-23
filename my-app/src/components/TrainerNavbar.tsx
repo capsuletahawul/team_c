@@ -60,7 +60,7 @@ function TrainerNavbar({
     {
       id: "courses",
       label: lang === "ar" ? "دوراتي" : "My Courses",
-      to: "#",
+      to: "/trainer-courses",
     },
     {
       id: "profile",
